@@ -1,0 +1,6256 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "./supabase";
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      errorMessage: "",
+    };
+  }
+
+  static getDerivedStateFromError(error) {
+    return {
+      hasError: true,
+      errorMessage: error?.message || "Onbekende fout",
+    };
+  }
+
+  componentDidCatch(error, info) {
+    console.error("CSI HIT render error:", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          style={{
+            background: "#18181b",
+            border: "1px solid #7f1d1d",
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 14,
+            color: "#f4f4f5",
+          }}
+        >
+          <h2>Er ging iets mis in dit scherm</h2>
+          <p style={{ color: "#fca5a5" }}>{this.state.errorMessage}</p>
+          <p style={{ color: "#a1a1aa" }}>
+            Ververs de pagina of ga naar een andere tab. Als dit blijft
+            gebeuren, controleer dan de laatste wijziging in de code.
+          </p>
+          <button
+            style={{
+              padding: "11px 14px",
+              borderRadius: 12,
+              border: "1px solid #52525b",
+              background: "#27272a",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer",
+              marginRight: 8,
+              marginBottom: 8,
+              fontSize: 15,
+            }}
+            onClick={() => window.location.reload()}
+          >
+            Pagina verversen
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const styles = {
+  app: {
+    fontFamily: "Arial, sans-serif",
+    background: "#0f0f10",
+    minHeight: "100vh",
+    padding: 14,
+    paddingBottom: 90,
+    color: "#f4f4f5",
+  },
+  shell: {
+    maxWidth: 1280,
+    margin: "0 auto",
+  },
+  card: {
+    background: "#18181b",
+    border: "1px solid #3f3f46",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
+    gap: 14,
+  },
+  input: {
+    width: "100%",
+    padding: 11,
+    marginBottom: 10,
+    borderRadius: 12,
+    border: "1px solid #52525b",
+    background: "#09090b",
+    color: "#f4f4f5",
+    boxSizing: "border-box",
+    fontSize: 16,
+  },
+  select: {
+    width: "100%",
+    padding: 11,
+    marginBottom: 10,
+    borderRadius: 12,
+    border: "1px solid #52525b",
+    background: "#09090b",
+    color: "#f4f4f5",
+    boxSizing: "border-box",
+    fontSize: 16,
+  },
+  textarea: {
+    width: "100%",
+    padding: 11,
+    marginBottom: 10,
+    borderRadius: 12,
+    border: "1px solid #52525b",
+    background: "#09090b",
+    color: "#f4f4f5",
+    minHeight: 90,
+    boxSizing: "border-box",
+    fontSize: 16,
+  },
+  button: {
+    padding: "11px 14px",
+    borderRadius: 12,
+    border: "1px solid #52525b",
+    background: "#991b1b",
+    color: "#fff",
+    fontWeight: 700,
+    cursor: "pointer",
+    marginRight: 8,
+    marginBottom: 8,
+    fontSize: 15,
+  },
+  buttonSecondary: {
+    padding: "11px 14px",
+    borderRadius: 12,
+    border: "1px solid #52525b",
+    background: "#27272a",
+    color: "#fff",
+    fontWeight: 700,
+    cursor: "pointer",
+    marginRight: 8,
+    marginBottom: 8,
+    fontSize: 15,
+  },
+  buttonDanger: {
+    padding: "11px 14px",
+    borderRadius: 12,
+    border: "1px solid #7f1d1d",
+    background: "#450a0a",
+    color: "#fecaca",
+    fontWeight: 700,
+    cursor: "pointer",
+    marginRight: 8,
+    marginBottom: 8,
+    fontSize: 15,
+  },
+  subtle: {
+    color: "#a1a1aa",
+    fontSize: 14,
+  },
+  badge: {
+    display: "inline-block",
+    padding: "5px 10px",
+    borderRadius: 999,
+    background: "#27272a",
+    border: "1px solid #52525b",
+    marginRight: 8,
+    marginTop: 8,
+    fontSize: 13,
+  },
+  img: {
+    width: 120,
+    height: 120,
+    objectFit: "cover",
+    borderRadius: 12,
+    marginBottom: 10,
+    border: "1px solid #52525b",
+    cursor: "pointer",
+  },
+  modalBackdrop: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.82)",
+    zIndex: 999,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 18,
+  },
+  modalCard: {
+    maxWidth: 900,
+    width: "100%",
+    background: "#18181b",
+    border: "1px solid #52525b",
+    borderRadius: 18,
+    padding: 14,
+    boxSizing: "border-box",
+  },
+  modalImage: {
+    width: "100%",
+    maxHeight: "78vh",
+    objectFit: "contain",
+    borderRadius: 14,
+  },
+  error: {
+    color: "#fca5a5",
+    marginTop: 10,
+  },
+  ok: {
+    color: "#86efac",
+    marginTop: 10,
+  },
+  header: {
+    position: "sticky",
+    top: 0,
+    zIndex: 20,
+    background: "rgba(15,15,16,0.94)",
+    backdropFilter: "blur(10px)",
+    borderBottom: "1px solid #27272a",
+    padding: "10px 0 12px",
+    marginBottom: 14,
+  },
+  titleRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  mobileNav: {
+    position: "fixed",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
+    background: "#18181b",
+    borderTop: "1px solid #3f3f46",
+    display: "grid",
+    gridTemplateColumns: "repeat(6,1fr)",
+    gap: 0,
+  },
+  adminMobileNav: {
+    position: "fixed",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 55,
+    background: "#18181b",
+    borderTop: "1px solid #3f3f46",
+    display: "grid",
+    gridTemplateColumns: "repeat(9,1fr)",
+    gap: 0,
+  },
+  navButton: (active) => ({
+    padding: "10px 6px",
+    border: "none",
+    borderRight: "1px solid #27272a",
+    background: active ? "#991b1b" : "#18181b",
+    color: "#f4f4f5",
+    fontSize: 12,
+    fontWeight: active ? 800 : 600,
+    cursor: "pointer",
+  }),
+  statNumber: {
+    fontSize: 28,
+    fontWeight: 800,
+    marginTop: 6,
+  },
+  link: {
+    color: "#93c5fd",
+    fontWeight: 700,
+  },
+};
+
+function formatDate(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleString("nl-NL", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getAgendaIcon(type) {
+  if (type === "food") return "🍽️";
+  if (type === "credits") return "💰";
+  if (type === "deadline") return "⏰";
+  if (type === "free_time") return "💤";
+  return "🕵️";
+}
+
+function toDateTimeLocalValue(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60000);
+
+  return localDate.toISOString().slice(0, 16);
+}
+function getStatusLabel(status) {
+  if (status === "suspect") return "Verdacht";
+  if (status === "doubt") return "Twijfel";
+  if (status === "excluded") return "Uitgesloten";
+  return "Onbekend";
+}
+
+export default function App() {
+  const reloadTimer = useRef(null);
+  const isTypingRef = useRef(false);
+  const editClueFileRef = useRef(null);
+  const editSuspectFileRef = useRef(null);
+  const finalReportMotiveRef = useRef(null);
+  const finalReportEvidenceRef = useRef(null);
+
+  const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+
+  const [groups, setGroups] = useState([]);
+  const [profiles, setProfiles] = useState([]);
+  const [memberships, setMemberships] = useState([]);
+  const [suspects, setSuspects] = useState([]);
+  const [agendaItems, setAgendaItems] = useState([]);
+
+  const [notifications, setNotifications] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [clues, setClues] = useState([]);
+  const [groupClues, setGroupClues] = useState([]);
+  const [suspectNotes, setSuspectNotes] = useState([]);
+  const [suspectStatuses, setSuspectStatuses] = useState([]);
+
+  const [activeParticipantTab, setActiveParticipantTab] = useState("dashboard");
+  const [activeAdminTab, setActiveAdminTab] = useState("dashboard");
+  const [selectedInterrogationSuspect, setSelectedInterrogationSuspect] =
+    useState("");
+
+  const [newGroupName, setNewGroupName] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
+  const [editingGroupId, setEditingGroupId] = useState("");
+  const [editGroupName, setEditGroupName] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState("");
+  const [manualClueGroup, setManualClueGroup] = useState("");
+  const [manualClueId, setManualClueId] = useState("");
+  const [manualClueMode, setManualClueMode] = useState("single");
+  const [selectedManualClueGroups, setSelectedManualClueGroups] = useState([]);
+  const [selectedSuspectUser, setSelectedSuspectUser] = useState("");
+  const [selectedProfileSuspect, setSelectedProfileSuspect] = useState("");
+
+  const [newSuspectName, setNewSuspectName] = useState("");
+  const [newSuspectDescription, setNewSuspectDescription] = useState("");
+  const [newSuspectPhotoUrl, setNewSuspectPhotoUrl] = useState("");
+
+  const [editingSuspectId, setEditingSuspectId] = useState("");
+  const [editSuspectName, setEditSuspectName] = useState("");
+  const [editSuspectDescription, setEditSuspectDescription] = useState("");
+  const [editSuspectPhotoUrl, setEditSuspectPhotoUrl] = useState("");
+
+  const [newAgenda, setNewAgenda] = useState({
+    title: "",
+    description: "",
+    starts_at: "",
+    ends_at: "",
+    item_type: "activity",
+    credits_reward: "0",
+    is_visible: true,
+  });
+
+  const [newClueTitle, setNewClueTitle] = useState("");
+  const [newClueDescription, setNewClueDescription] = useState("");
+  const [newCluePrice, setNewCluePrice] = useState("5");
+  const [newClueSuspect, setNewClueSuspect] = useState("");
+  const [newClueIsFree, setNewClueIsFree] = useState(false);
+  const [newClueIsGlobal, setNewClueIsGlobal] = useState(false);
+  const [editingClueId, setEditingClueId] = useState("");
+  const [editClueTitle, setEditClueTitle] = useState("");
+  const [editClueDescription, setEditClueDescription] = useState("");
+  const [editCluePrice, setEditCluePrice] = useState("0");
+  const [editClueSuspect, setEditClueSuspect] = useState("");
+  const [editClueIsFree, setEditClueIsFree] = useState(false);
+  const [editClueIsGlobal, setEditClueIsGlobal] = useState(false);
+  const [editClueIsVisible, setEditClueIsVisible] = useState(true);
+
+  const [editingAgendaId, setEditingAgendaId] = useState("");
+  const [editAgenda, setEditAgenda] = useState({
+    title: "",
+    description: "",
+    starts_at: "",
+    ends_at: "",
+    item_type: "activity",
+    credits_reward: "0",
+    is_visible: true,
+  });
+
+  const [newNotificationGroup, setNewNotificationGroup] = useState("");
+  const [newNotificationTitle, setNewNotificationTitle] = useState("");
+  const [newNotificationMessage, setNewNotificationMessage] = useState("");
+  const [notificationMode, setNotificationMode] = useState("single");
+  const [selectedNotificationGroups, setSelectedNotificationGroups] = useState(
+    []
+  );
+
+  const [creditGroup, setCreditGroup] = useState("");
+  const [creditAmount, setCreditAmount] = useState("5");
+  const [creditReason, setCreditReason] = useState("");
+
+  const [selectedNoteSuspect, setSelectedNoteSuspect] = useState("");
+  const [newNote, setNewNote] = useState("");
+  const [selectedStatusSuspect, setSelectedStatusSuspect] = useState("");
+  const [newStatus, setNewStatus] = useState("unknown");
+  const [editingNoteId, setEditingNoteId] = useState("");
+  const [editNoteText, setEditNoteText] = useState("");
+
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [imageModal, setImageModal] = useState(null);
+  const [gameMode, setGameMode] = useState("test");
+  const [isLoading, setIsLoading] = useState(false);
+  const [finalReportsOpen, setFinalReportsOpen] = useState(false);
+  const [finalReports, setFinalReports] = useState([]);
+
+  const [finalReportSuspect, setFinalReportSuspect] = useState("");
+  const [finalReportMotive, setFinalReportMotive] = useState("");
+  const [finalReportEvidence, setFinalReportEvidence] = useState("");
+  const [showFinalReportEditor, setShowFinalReportEditor] = useState(false);
+
+  useEffect(() => {
+    if (!message) return;
+
+    const timer = setTimeout(() => {
+      setMessage("");
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  useEffect(() => {
+    if (!error) return;
+
+    const timer = setTimeout(() => {
+      setError("");
+    }, 7000);
+
+    return () => clearTimeout(timer);
+  }, [error]);
+
+  const myMemberships = useMemo(() => {
+    if (!profile) return [];
+    return memberships.filter((m) => m.user_id === profile.id);
+  }, [memberships, profile]);
+
+  const myGroups = useMemo(() => {
+    return myMemberships
+      .map((m) => m.groups || groups.find((g) => g.id === m.group_id))
+      .filter(Boolean);
+  }, [myMemberships, groups]);
+
+  const myGroup = myGroups[0];
+
+  const purchasedClueIds = useMemo(() => {
+    return groupClues.map((g) => g.clue_id);
+  }, [groupClues]);
+
+  const visibleAgendaItems = useMemo(() => {
+    return agendaItems
+      .filter((item) => item.is_visible || profile?.role === "admin")
+      .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+  }, [agendaItems, profile]);
+
+  const nextAgendaItem = useMemo(() => {
+    const now = new Date();
+    return visibleAgendaItems.find((item) => new Date(item.starts_at) >= now);
+  }, [visibleAgendaItems]);
+
+  const adminStats = useMemo(() => {
+    const suspicionCounts = suspects.map((suspect) => {
+      const related = suspectStatuses.filter(
+        (x) => x.suspect_id === suspect.id
+      );
+      return {
+        suspect,
+        suspectCount: related.filter((x) => x.status === "suspect").length,
+        doubtCount: related.filter((x) => x.status === "doubt").length,
+        excludedCount: related.filter((x) => x.status === "excluded").length,
+        noteCount: suspectNotes.filter((x) => x.suspect_id === suspect.id)
+          .length,
+      };
+    });
+
+    const groupStats = groups.map((group) => ({
+      group,
+      cluesBought: groupClues.filter((x) => x.group_id === group.id).length,
+      notifications: notifications.filter((x) => x.group_id === group.id)
+        .length,
+      transactions: transactions.filter((x) => x.group_id === group.id).length,
+      notes: suspectNotes.filter((x) => x.group_id === group.id).length,
+      statuses: suspectStatuses.filter((x) => x.group_id === group.id).length,
+    }));
+
+    return { suspicionCounts, groupStats };
+  }, [
+    groups,
+    groupClues,
+    notifications,
+    transactions,
+    suspects,
+    suspectNotes,
+    suspectStatuses,
+  ]);
+
+  const scheduleReload = (currentProfile = profile) => {
+    if (!currentProfile) return;
+
+    if (isTypingRef.current) {
+      return;
+    }
+
+    if (reloadTimer.current) {
+      clearTimeout(reloadTimer.current);
+    }
+
+    reloadTimer.current = setTimeout(() => {
+      if (!isTypingRef.current) {
+        loadAppData(currentProfile);
+      }
+    }, 1000);
+  };
+
+  const appFocusHandlers = {
+    onFocusCapture: (e) => {
+      const tag = e.target.tagName?.toLowerCase();
+
+      if (["input", "textarea", "select"].includes(tag)) {
+        isTypingRef.current = true;
+      }
+    },
+
+    onBlurCapture: (e) => {
+      const tag = e.target.tagName?.toLowerCase();
+
+      if (["input", "textarea", "select"].includes(tag)) {
+        setTimeout(() => {
+          isTypingRef.current = false;
+          loadAppData(profile);
+        }, 500);
+      }
+    },
+  };
+
+  useEffect(() => {
+    loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+
+      if (newSession?.user) {
+        setTimeout(() => {
+          loadProfile(newSession.user.id);
+        }, 0);
+      } else {
+        setProfile(null);
+        clearAppData();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!profile) return;
+
+    const channel = supabase
+      .channel("csi-hit-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "groups" },
+        () => scheduleReload(profile)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "group_clues" },
+        () => scheduleReload(profile)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications" },
+        () => scheduleReload(profile)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "credit_transactions" },
+        () => scheduleReload(profile)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "clues" },
+        () => scheduleReload(profile)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "agenda_items" },
+        () => scheduleReload(profile)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "suspect_notes" },
+        () => scheduleReload(profile)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "suspect_statuses" },
+        () => scheduleReload(profile)
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile]);
+
+  useEffect(() => {
+    if (!profile || profile.role !== "participant") return;
+    if (!myGroup) return;
+
+    const existingReport = finalReports.find(
+      (report) => report.group_id === myGroup.id
+    );
+
+    if (!existingReport) return;
+
+    setFinalReportSuspect(existingReport.suspect_id || "");
+    setFinalReportMotive(existingReport.motive || "");
+    setFinalReportEvidence(existingReport.evidence || "");
+  }, [finalReports, myGroup?.id, profile]);
+
+  const clearAppData = () => {
+    setGroups([]);
+    setProfiles([]);
+    setMemberships([]);
+    setSuspects([]);
+    setAgendaItems([]);
+    setNotifications([]);
+    setTransactions([]);
+    setClues([]);
+    setGroupClues([]);
+    setSuspectNotes([]);
+    setSuspectStatuses([]);
+    setFinalReports([]);
+    setFinalReportsOpen(false);
+  };
+
+  const loadSession = async () => {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setSession(data.session);
+
+    if (data.session?.user) {
+      await loadProfile(data.session.user.id);
+    }
+  };
+
+  const loadProfile = async (userId) => {
+    setError("");
+    setMessage("");
+
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (profileError) {
+      setError(profileError.message);
+      return;
+    }
+
+    setProfile(profileData);
+    await loadAppData(profileData);
+  };
+
+  const loadAppData = async (currentProfile = profile) => {
+    if (!currentProfile) return;
+
+    const { data: agendaData } = await supabase
+      .from("agenda_items")
+      .select("*")
+      .order("starts_at");
+
+    const { data: suspectData } = await supabase
+      .from("suspects")
+      .select("*")
+      .order("sort_order");
+
+    const { data: cluesData } = await supabase
+      .from("clues")
+      .select("*, suspects(name)")
+      .order("sort_order");
+
+    const { data: gameModeData } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "game_mode")
+      .maybeSingle();
+
+    const { data: finalReportsOpenData } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "final_reports_open")
+      .maybeSingle();
+
+    setAgendaItems(agendaData || []);
+    setSuspects(suspectData || []);
+    setClues(cluesData || []);
+    setGameMode(gameModeData?.value || "test");
+    setFinalReportsOpen(finalReportsOpenData?.value === "true");
+
+    if (currentProfile.role === "suspect") {
+      const { data: groupsData } = await supabase
+        .from("groups")
+        .select("*")
+        .order("created_at");
+
+      const { data: groupClueData } = await supabase
+        .from("group_clues")
+        .select("*, groups(name), clues(title, price, file_url, suspect_id)");
+
+      const { data: notesData } = await supabase
+        .from("suspect_notes")
+        .select("*, groups(name), suspects(name), profiles(display_name,email)")
+        .order("created_at", { ascending: false });
+
+      const { data: statusData } = await supabase
+        .from("suspect_statuses")
+        .select("*, groups(name), suspects(name)");
+
+      setGroups(groupsData || []);
+      setGroupClues(groupClueData || []);
+      setSuspectNotes(notesData || []);
+      setSuspectStatuses(statusData || []);
+      setNotifications([]);
+      setTransactions([]);
+      return;
+    }
+
+    if (currentProfile.role === "admin") {
+      const { data: groupsData } = await supabase
+        .from("groups")
+        .select("*")
+        .order("created_at");
+
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("email");
+
+      const { data: membershipData } = await supabase
+        .from("group_members")
+        .select("*");
+
+      const { data: notificationsData } = await supabase
+        .from("notifications")
+        .select("*, groups(name)")
+        .order("created_at", { ascending: false });
+
+      const { data: transactionData } = await supabase
+        .from("credit_transactions")
+        .select("*, groups(name)")
+        .order("created_at", { ascending: false });
+
+      const { data: groupClueData } = await supabase
+        .from("group_clues")
+        .select("*, groups(name), clues(title, price, file_url, suspect_id)");
+
+      const { data: notesData } = await supabase
+        .from("suspect_notes")
+        .select("*, groups(name), suspects(name), profiles(display_name,email)")
+        .order("created_at", { ascending: false });
+
+      const { data: statusData } = await supabase
+        .from("suspect_statuses")
+        .select("*, groups(name), suspects(name)");
+
+      const { data: finalReportsData, error: finalReportsError } =
+        await supabase
+          .from("final_reports")
+          .select("*")
+          .order("updated_at", { ascending: false });
+
+      if (finalReportsError) {
+        setError(`Eindrapporten laden mislukt: ${finalReportsError.message}`);
+      }
+
+      if (finalReportsError) {
+        setError(finalReportsError.message);
+      }
+
+      setGroups(groupsData || []);
+      setProfiles(profilesData || []);
+      setMemberships(membershipData || []);
+      setNotifications(notificationsData || []);
+      setTransactions(transactionData || []);
+      setGroupClues(groupClueData || []);
+      setSuspectNotes(notesData || []);
+      setSuspectStatuses(statusData || []);
+      setFinalReports(finalReportsData || []);
+      return;
+    }
+
+    const { data: myMembershipsData, error: myMembershipsError } =
+      await supabase
+        .from("group_members")
+        .select("*, groups(*)")
+        .eq("user_id", currentProfile.id);
+
+    if (myMembershipsError) {
+      setError(myMembershipsError.message);
+      return;
+    }
+
+    setMemberships(myMembershipsData || []);
+    const myLoadedGroups = (myMembershipsData || [])
+      .map((m) => m.groups)
+      .filter(Boolean);
+    setGroups(myLoadedGroups);
+
+    const myGroupId = myMembershipsData?.[0]?.group_id;
+
+    if (!myGroupId) {
+      setNotifications([]);
+      setTransactions([]);
+      setGroupClues([]);
+      setSuspectNotes([]);
+      setSuspectStatuses([]);
+      return;
+    }
+
+    const { data: notificationsData } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("group_id", myGroupId)
+      .order("created_at", { ascending: false });
+
+    const { data: transactionData } = await supabase
+      .from("credit_transactions")
+      .select("*")
+      .eq("group_id", myGroupId)
+      .order("created_at", { ascending: false });
+
+    const { data: groupClueData } = await supabase
+      .from("group_clues")
+      .select("*, clues(*)")
+      .eq("group_id", myGroupId);
+
+    const { data: notesData } = await supabase
+      .from("suspect_notes")
+      .select("*, groups(name), suspects(name), profiles(display_name,email)")
+      .eq("group_id", myGroupId)
+      .order("created_at", { ascending: false });
+
+    const { data: statusData } = await supabase
+      .from("suspect_statuses")
+      .select("*, groups(name), suspects(name)")
+      .eq("group_id", myGroupId);
+
+    const { data: finalReportsData } = await supabase
+      .from("final_reports")
+      .select("*, suspects(name)")
+      .eq("group_id", myGroupId);
+
+    setNotifications(notificationsData || []);
+    setTransactions(transactionData || []);
+    setGroupClues(groupClueData || []);
+    setSuspectNotes(notesData || []);
+    setSuspectStatuses(statusData || []);
+    setFinalReports(finalReportsData || []);
+  };
+
+  const refreshWithLoading = async () => {
+    if (!profile) return;
+
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await loadAppData(profile);
+    } catch (err) {
+      setError(err?.message || "Er ging iets mis bij het verversen.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    setError("");
+    setMessage("");
+
+    if (!email || !password) {
+      setError("Vul e-mailadres en wachtwoord in.");
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          display_name: displayName || email,
+        },
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Account aangemaakt.");
+  };
+
+  const handleLogin = async () => {
+    setError("");
+    setMessage("");
+
+    if (!email || !password) {
+      setError("Vul e-mailadres en wachtwoord in.");
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Ingelogd.");
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setProfile(null);
+    setSession(null);
+    clearAppData();
+  };
+
+  const uploadFileToBucket = async (bucket, folder, file) => {
+    if (!file) return null;
+
+    const ext = file.name.split(".").pop();
+    const path = `${folder}/${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      setError(uploadError.message);
+      return null;
+    }
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const createGroup = async () => {
+    setError("");
+    setMessage("");
+
+    if (!newGroupName.trim()) {
+      setError("Vul een groepsnaam in.");
+      return;
+    }
+
+    const { error } = await supabase.from("groups").insert({
+      name: newGroupName.trim(),
+      credits: 20,
+      is_active: true,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setNewGroupName("");
+    setMessage("Groep aangemaakt.");
+    await loadAppData(profile);
+  };
+  const startEditGroup = (group) => {
+    setEditingGroupId(group.id);
+    setEditGroupName(group.name || "");
+  };
+
+  const saveEditGroup = async () => {
+    setError("");
+    setMessage("");
+
+    if (!editingGroupId) {
+      setError("Geen groep geselecteerd om te bewerken.");
+      return;
+    }
+
+    if (!editGroupName.trim()) {
+      setError("Vul een groepsnaam in.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("groups")
+      .update({
+        name: editGroupName.trim(),
+      })
+      .eq("id", editingGroupId);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setEditingGroupId("");
+    setEditGroupName("");
+    setMessage("Groepsnaam bijgewerkt.");
+    await loadAppData(profile);
+  };
+
+  const cancelEditGroup = () => {
+    setEditingGroupId("");
+    setEditGroupName("");
+  };
+
+  const addUserToGroup = async () => {
+    setError("");
+    setMessage("");
+
+    if (!selectedUser || !selectedGroup) {
+      setError("Selecteer een gebruiker en een groep.");
+      return;
+    }
+
+    const { error } = await supabase.from("group_members").insert({
+      user_id: selectedUser,
+      group_id: selectedGroup,
+    });
+
+    if (error) {
+      if (error.message?.includes("group_members_one_group_per_user")) {
+        setError(
+          "Deze gebruiker is al aan een groep gekoppeld. Verwijder eerst de bestaande koppeling of gebruik een ander account."
+        );
+        return;
+      }
+
+      setError(error.message);
+      return;
+    }
+
+    setSelectedUser("");
+    setSelectedGroup("");
+    setMessage("Gebruiker gekoppeld aan groep.");
+    await loadAppData(profile);
+  };
+
+  const linkUserToSuspect = async () => {
+    setError("");
+    setMessage("");
+
+    if (!selectedSuspectUser || !selectedProfileSuspect) {
+      setError("Selecteer een suspect-gebruiker en een verdachte.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        role: "suspect",
+        suspect_id: selectedProfileSuspect,
+      })
+      .eq("id", selectedSuspectUser);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setSelectedSuspectUser("");
+    setSelectedProfileSuspect("");
+    setMessage("Suspect-account gekoppeld aan verdachte.");
+    await loadAppData(profile);
+  };
+
+  const removeUserFromGroup = async (membership) => {
+    setError("");
+    setMessage("");
+
+    const memberProfile = profiles.find((p) => p.id === membership.user_id);
+    const group = groups.find((g) => g.id === membership.group_id);
+
+    const ok = window.confirm(
+      `Weet je zeker dat je ${
+        memberProfile?.display_name || memberProfile?.email || "deze gebruiker"
+      } uit groep "${group?.name || "onbekende groep"}" wilt verwijderen?`
+    );
+
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("group_members")
+      .delete()
+      .eq("id", membership.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Gebruiker uit groep verwijderd.");
+    await loadAppData(profile);
+  };
+
+  const createSuspect = async (file) => {
+    setError("");
+    setMessage("");
+
+    if (!newSuspectName.trim()) {
+      setError("Vul een naam voor de verdachte in.");
+      return;
+    }
+
+    const uploadedUrl = await uploadFileToBucket(
+      "suspect-photos",
+      "suspects",
+      file
+    );
+
+    const { error } = await supabase.from("suspects").insert({
+      name: newSuspectName.trim(),
+      description: newSuspectDescription.trim(),
+      photo_url: uploadedUrl || newSuspectPhotoUrl.trim(),
+      is_active: true,
+      sort_order: suspects.length + 1,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setNewSuspectName("");
+    setNewSuspectDescription("");
+    setNewSuspectPhotoUrl("");
+    setMessage("Verdachte toegevoegd.");
+    await loadAppData(profile);
+  };
+
+  const startEditSuspect = (suspect) => {
+    setEditingSuspectId(suspect.id);
+    setEditSuspectName(suspect.name || "");
+    setEditSuspectDescription(suspect.description || "");
+    setEditSuspectPhotoUrl(suspect.photo_url || "");
+  };
+
+  const cancelEditSuspect = () => {
+    setEditingSuspectId("");
+    setEditSuspectName("");
+    setEditSuspectDescription("");
+    setEditSuspectPhotoUrl("");
+  };
+
+  const saveEditSuspect = async () => {
+    setError("");
+    setMessage("");
+
+    if (!editingSuspectId) {
+      setError("Geen verdachte geselecteerd om te bewerken.");
+      return;
+    }
+
+    if (!editSuspectName.trim()) {
+      setError("Vul een naam voor de verdachte in.");
+      return;
+    }
+
+    const existingSuspect = suspects.find(
+      (suspect) => suspect.id === editingSuspectId
+    );
+
+    const selectedFile = editSuspectFileRef.current?.files?.[0];
+
+    let photoUrl =
+      editSuspectPhotoUrl.trim() || existingSuspect?.photo_url || null;
+
+    if (selectedFile) {
+      const uploadedUrl = await uploadFileToBucket(
+        "suspect-photos",
+        "suspects",
+        selectedFile
+      );
+
+      if (!uploadedUrl) {
+        return;
+      }
+
+      photoUrl = uploadedUrl;
+    }
+
+    const { error } = await supabase
+      .from("suspects")
+      .update({
+        name: editSuspectName.trim(),
+        description: editSuspectDescription.trim(),
+        photo_url: photoUrl,
+      })
+      .eq("id", editingSuspectId);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    if (editSuspectFileRef.current) {
+      editSuspectFileRef.current.value = "";
+    }
+
+    cancelEditSuspect();
+
+    setMessage(
+      selectedFile ? "Verdachte en foto bijgewerkt." : "Verdachte bijgewerkt."
+    );
+
+    await loadAppData(profile);
+  };
+
+  const createAgendaItem = async () => {
+    setError("");
+    setMessage("");
+
+    if (!newAgenda.title.trim() || !newAgenda.starts_at) {
+      setError("Vul minimaal een titel en starttijd in.");
+      return;
+    }
+
+    const { error } = await supabase.from("agenda_items").insert({
+      title: newAgenda.title.trim(),
+      description: newAgenda.description.trim(),
+      starts_at: new Date(newAgenda.starts_at).toISOString(),
+      ends_at: newAgenda.ends_at
+        ? new Date(newAgenda.ends_at).toISOString()
+        : null,
+      item_type: newAgenda.item_type,
+      credits_reward: Number(newAgenda.credits_reward) || 0,
+      is_visible: newAgenda.is_visible,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setNewAgenda({
+      title: "",
+      description: "",
+      starts_at: "",
+      ends_at: "",
+      item_type: "activity",
+      credits_reward: "0",
+      is_visible: true,
+    });
+
+    setMessage("Agenda-item toegevoegd.");
+    await loadAppData(profile);
+  };
+
+  const createClue = async (file) => {
+    setError("");
+    setMessage("");
+
+    if (!newClueTitle.trim()) {
+      setError("Vul een titel in.");
+      return;
+    }
+
+    const fileUrl = await uploadFileToBucket("clue-files", "clues", file);
+
+    const clueType = newClueIsFree
+      ? "free"
+      : newClueSuspect
+      ? "suspect"
+      : "general";
+
+    const { error } = await supabase.from("clues").insert({
+      title: newClueTitle.trim(),
+      description: newClueDescription.trim(),
+      file_url: fileUrl,
+      suspect_id: newClueSuspect || null,
+      price: newClueIsFree ? 0 : Number(newCluePrice) || 0,
+      clue_type: clueType,
+      is_free: newClueIsFree,
+      is_global: newClueIsGlobal,
+      is_visible: true,
+      sort_order: clues.length + 1,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setNewClueTitle("");
+    setNewClueDescription("");
+    setNewCluePrice("5");
+    setNewClueSuspect("");
+    setNewClueIsFree(false);
+    setNewClueIsGlobal(false);
+
+    setMessage("Aanwijzing toegevoegd.");
+    await loadAppData(profile);
+  };
+  const toggleSelectedManualClueGroup = (groupId) => {
+    setSelectedManualClueGroups((current) => {
+      if (current.includes(groupId)) {
+        return current.filter((id) => id !== groupId);
+      }
+
+      return [...current, groupId];
+    });
+  };
+
+  const toggleSelectedNotificationGroup = (groupId) => {
+    setSelectedNotificationGroups((current) => {
+      if (current.includes(groupId)) {
+        return current.filter((id) => id !== groupId);
+      }
+
+      return [...current, groupId];
+    });
+  };
+
+  const sendNotification = async () => {
+    setError("");
+    setMessage("");
+
+    if (!newNotificationTitle.trim()) {
+      setError("Vul een titel in.");
+      return;
+    }
+
+    let targetGroupIds = [];
+
+    if (notificationMode === "single") {
+      if (!newNotificationGroup) {
+        setError("Selecteer een groep.");
+        return;
+      }
+
+      targetGroupIds = [newNotificationGroup];
+    }
+
+    if (notificationMode === "all") {
+      targetGroupIds = groups
+        .filter((group) => group.is_active)
+        .map((group) => group.id);
+    }
+
+    if (notificationMode === "selection") {
+      targetGroupIds = selectedNotificationGroups;
+    }
+
+    if (targetGroupIds.length === 0) {
+      setError("Selecteer minimaal één groep om de melding naar te sturen.");
+      return;
+    }
+
+    const rows = targetGroupIds.map((groupId) => ({
+      group_id: groupId,
+      title: newNotificationTitle.trim(),
+      message: newNotificationMessage.trim(),
+      notification_type:
+        notificationMode === "all"
+          ? "broadcast_all"
+          : notificationMode === "selection"
+          ? "broadcast_selection"
+          : "manual",
+      created_by: profile.id,
+    }));
+
+    const { error } = await supabase.from("notifications").insert(rows);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setNewNotificationGroup("");
+    setSelectedNotificationGroups([]);
+    setNewNotificationTitle("");
+    setNewNotificationMessage("");
+
+    setMessage(
+      targetGroupIds.length === 1
+        ? "Notificatie verstuurd."
+        : `Notificatie verstuurd naar ${targetGroupIds.length} groepen.`
+    );
+
+    await loadAppData(profile);
+  };
+
+  const giveCredits = async () => {
+    setError("");
+    setMessage("");
+
+    if (!creditGroup) {
+      setError("Selecteer een groep.");
+      return;
+    }
+
+    const amount = Number(creditAmount);
+
+    const { error: adjustError } = await supabase.rpc("adjust_group_credits", {
+      target_group_id: creditGroup,
+      amount_change: amount,
+    });
+
+    if (adjustError) {
+      setError(adjustError.message);
+      return;
+    }
+
+    const { error: transactionError } = await supabase
+      .from("credit_transactions")
+      .insert({
+        group_id: creditGroup,
+        amount,
+        reason: creditReason || "Handmatige wijziging",
+        created_by: profile.id,
+      });
+
+    if (transactionError) {
+      setError(transactionError.message);
+      return;
+    }
+
+    await supabase.from("notifications").insert({
+      group_id: creditGroup,
+      title: amount >= 0 ? "Pegels ontvangen" : "Pegels afgeschreven",
+      message:
+        amount >= 0
+          ? `Jullie hebben ${amount} pegels ontvangen.`
+          : `${Math.abs(amount)} pegels afgeschreven.`,
+      notification_type: "credits",
+      created_by: profile.id,
+    });
+
+    setMessage("Pegels bijgewerkt.");
+    await loadAppData(profile);
+  };
+
+  const changeCredits = async (groupId, amount, reason) => {
+    setError("");
+    setMessage("");
+
+    if (!groupId) {
+      setError("Selecteer een groep.");
+      return;
+    }
+
+    const { error: adjustError } = await supabase.rpc("adjust_group_credits", {
+      target_group_id: groupId,
+      amount_change: amount,
+    });
+
+    if (adjustError) {
+      setError(adjustError.message);
+      return;
+    }
+
+    const { error: transactionError } = await supabase
+      .from("credit_transactions")
+      .insert({
+        group_id: groupId,
+        amount,
+        reason,
+        created_by: profile.id,
+      });
+
+    if (transactionError) {
+      setError(transactionError.message);
+      return;
+    }
+
+    await supabase.from("notifications").insert({
+      group_id: groupId,
+      title: amount >= 0 ? "Pegels ontvangen" : "Pegels afgeschreven",
+      message:
+        amount >= 0
+          ? `Jullie hebben ${amount} pegels ontvangen.`
+          : `${Math.abs(amount)} pegels afgeschreven.`,
+      notification_type: "credits",
+      created_by: profile.id,
+    });
+
+    setMessage("Pegels bijgewerkt.");
+    await loadAppData(profile);
+  };
+
+  const toggleClueVisible = async (clue) => {
+    setError("");
+    setMessage("");
+
+    const { error } = await supabase
+      .from("clues")
+      .update({ is_visible: !clue.is_visible })
+      .eq("id", clue.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage(
+      clue.is_visible
+        ? "Aanwijzing verborgen."
+        : "Aanwijzing zichtbaar gemaakt."
+    );
+    await loadAppData(profile);
+  };
+  const startEditClue = (clue) => {
+    setEditingClueId(clue.id);
+    setEditClueTitle(clue.title || "");
+    setEditClueDescription(clue.description || "");
+    setEditCluePrice(String(clue.price ?? 0));
+    setEditClueSuspect(clue.suspect_id || "");
+    setEditClueIsFree(Boolean(clue.is_free));
+    setEditClueIsGlobal(Boolean(clue.is_global));
+    setEditClueIsVisible(Boolean(clue.is_visible));
+  };
+
+  const cancelEditClue = () => {
+    setEditingClueId("");
+    setEditClueTitle("");
+    setEditClueDescription("");
+    setEditCluePrice("0");
+    setEditClueSuspect("");
+    setEditClueIsFree(false);
+    setEditClueIsGlobal(false);
+    setEditClueIsVisible(true);
+  };
+
+  const saveEditClue = async () => {
+    setError("");
+    setMessage("");
+
+    if (!editingClueId) {
+      setError("Geen aanwijzing geselecteerd om te bewerken.");
+      return;
+    }
+
+    if (!editClueTitle.trim()) {
+      setError("Vul een titel in.");
+      return;
+    }
+
+    const existingClue = clues.find((clue) => clue.id === editingClueId);
+    const selectedFile = editClueFileRef.current?.files?.[0];
+
+    let fileUrl = existingClue?.file_url || null;
+
+    if (selectedFile) {
+      const uploadedUrl = await uploadFileToBucket(
+        "clue-files",
+        "clues",
+        selectedFile
+      );
+
+      if (!uploadedUrl) {
+        return;
+      }
+
+      fileUrl = uploadedUrl;
+    }
+
+    const clueType = editClueIsFree
+      ? "free"
+      : editClueSuspect
+      ? "suspect"
+      : "general";
+
+    const { error } = await supabase
+      .from("clues")
+      .update({
+        title: editClueTitle.trim(),
+        description: editClueDescription.trim(),
+        suspect_id: editClueSuspect || null,
+        price: editClueIsFree ? 0 : Number(editCluePrice) || 0,
+        clue_type: clueType,
+        is_free: editClueIsFree,
+        is_global: editClueIsGlobal,
+        is_visible: editClueIsVisible,
+        file_url: fileUrl,
+      })
+      .eq("id", editingClueId);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    if (editClueFileRef.current) {
+      editClueFileRef.current.value = "";
+    }
+
+    cancelEditClue();
+    setMessage(
+      selectedFile
+        ? "Aanwijzing en bestand bijgewerkt."
+        : "Aanwijzing bijgewerkt."
+    );
+
+    await loadAppData(profile);
+  };
+  const deleteClue = async (clue) => {
+    setError("");
+    setMessage("");
+
+    const ok = window.confirm(
+      `Weet je zeker dat je aanwijzing "${clue.title}" wilt verwijderen?`
+    );
+
+    if (!ok) return;
+
+    const { error } = await supabase.from("clues").delete().eq("id", clue.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Aanwijzing verwijderd.");
+    await loadAppData(profile);
+  };
+
+  const toggleAgendaVisible = async (item) => {
+    setError("");
+    setMessage("");
+
+    const { error } = await supabase
+      .from("agenda_items")
+      .update({ is_visible: !item.is_visible })
+      .eq("id", item.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage(
+      item.is_visible
+        ? "Agenda-item verborgen."
+        : "Agenda-item zichtbaar gemaakt."
+    );
+    await loadAppData(profile);
+  };
+  const startEditAgenda = (item) => {
+    setEditingAgendaId(item.id);
+    setEditAgenda({
+      title: item.title || "",
+      description: item.description || "",
+      starts_at: toDateTimeLocalValue(item.starts_at),
+      ends_at: toDateTimeLocalValue(item.ends_at),
+      item_type: item.item_type || "activity",
+      credits_reward: String(item.credits_reward ?? 0),
+      is_visible: Boolean(item.is_visible),
+    });
+  };
+
+  const cancelEditAgenda = () => {
+    setEditingAgendaId("");
+    setEditAgenda({
+      title: "",
+      description: "",
+      starts_at: "",
+      ends_at: "",
+      item_type: "activity",
+      credits_reward: "0",
+      is_visible: true,
+    });
+  };
+
+  const saveEditAgenda = async () => {
+    setError("");
+    setMessage("");
+
+    if (!editingAgendaId) {
+      setError("Geen agenda-item geselecteerd om te bewerken.");
+      return;
+    }
+
+    if (!editAgenda.title.trim() || !editAgenda.starts_at) {
+      setError("Vul minimaal een titel en starttijd in.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("agenda_items")
+      .update({
+        title: editAgenda.title.trim(),
+        description: editAgenda.description.trim(),
+        starts_at: new Date(editAgenda.starts_at).toISOString(),
+        ends_at: editAgenda.ends_at
+          ? new Date(editAgenda.ends_at).toISOString()
+          : null,
+        item_type: editAgenda.item_type,
+        credits_reward: Number(editAgenda.credits_reward) || 0,
+        is_visible: editAgenda.is_visible,
+      })
+      .eq("id", editingAgendaId);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    cancelEditAgenda();
+    setMessage("Agenda-item bijgewerkt.");
+    await loadAppData(profile);
+  };
+  const deleteAgendaItem = async (item) => {
+    setError("");
+    setMessage("");
+
+    const ok = window.confirm(
+      `Weet je zeker dat je agenda-item "${item.title}" wilt verwijderen?`
+    );
+
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("agenda_items")
+      .delete()
+      .eq("id", item.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Agenda-item verwijderd.");
+    await loadAppData(profile);
+  };
+  const toggleSuspectActive = async (suspect) => {
+    setError("");
+    setMessage("");
+
+    const { error } = await supabase
+      .from("suspects")
+      .update({ is_active: !suspect.is_active })
+      .eq("id", suspect.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage(
+      suspect.is_active
+        ? "Verdachte inactief gezet."
+        : "Verdachte actief gezet."
+    );
+
+    await loadAppData(profile);
+  };
+
+  const toggleGroupActive = async (group) => {
+    setError("");
+    setMessage("");
+
+    const { error } = await supabase
+      .from("groups")
+      .update({ is_active: !group.is_active })
+      .eq("id", group.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage(
+      group.is_active ? "Groep inactief gezet." : "Groep actief gezet."
+    );
+
+    await loadAppData(profile);
+  };
+  const getGroupLastActivity = (groupId) => {
+    const dates = [
+      ...groupClues
+        .filter((item) => item.group_id === groupId)
+        .map((item) => item.purchased_at || item.created_at),
+      ...suspectNotes
+        .filter((item) => item.group_id === groupId)
+        .map((item) => item.created_at),
+      ...suspectStatuses
+        .filter((item) => item.group_id === groupId)
+        .map((item) => item.updated_at || item.created_at),
+      ...notifications
+        .filter((item) => item.group_id === groupId)
+        .map((item) => item.created_at),
+      ...transactions
+        .filter((item) => item.group_id === groupId)
+        .map((item) => item.created_at),
+    ].filter(Boolean);
+
+    if (dates.length === 0) return null;
+
+    return dates.sort((a, b) => new Date(b) - new Date(a))[0];
+  };
+
+  const assignClueToGroup = async () => {
+    setError("");
+    setMessage("");
+
+    if (!manualClueId) {
+      setError("Selecteer een aanwijzing.");
+      return;
+    }
+
+    const selectedClue = clues.find((clue) => clue.id === manualClueId);
+
+    let targetGroupIds = [];
+
+    if (manualClueMode === "single") {
+      if (!manualClueGroup) {
+        setError("Selecteer een groep.");
+        return;
+      }
+
+      targetGroupIds = [manualClueGroup];
+    }
+
+    if (manualClueMode === "all") {
+      targetGroupIds = groups
+        .filter((group) => group.is_active)
+        .map((group) => group.id);
+    }
+
+    if (manualClueMode === "selection") {
+      targetGroupIds = selectedManualClueGroups;
+    }
+
+    if (targetGroupIds.length === 0) {
+      setError("Selecteer minimaal één groep.");
+      return;
+    }
+
+    const alreadyAssignedGroupIds = groupClues
+      .filter(
+        (item) =>
+          item.clue_id === manualClueId &&
+          targetGroupIds.includes(item.group_id)
+      )
+      .map((item) => item.group_id);
+
+    const newTargetGroupIds = targetGroupIds.filter(
+      (groupId) => !alreadyAssignedGroupIds.includes(groupId)
+    );
+
+    if (newTargetGroupIds.length === 0) {
+      setError("Alle geselecteerde groepen hebben deze aanwijzing al.");
+      return;
+    }
+
+    const assignmentRows = newTargetGroupIds.map((groupId) => ({
+      group_id: groupId,
+      clue_id: manualClueId,
+    }));
+
+    const { error: assignmentError } = await supabase
+      .from("group_clues")
+      .insert(assignmentRows);
+
+    if (assignmentError) {
+      setError(assignmentError.message);
+      return;
+    }
+
+    const notificationRows = newTargetGroupIds.map((groupId) => ({
+      group_id: groupId,
+      title: "Aanwijzing ontvangen",
+      message: `Jullie hebben een aanwijzing ontvangen: ${
+        selectedClue?.title || "Onbekende aanwijzing"
+      }.`,
+      notification_type:
+        manualClueMode === "all"
+          ? "clue_manual_all"
+          : manualClueMode === "selection"
+          ? "clue_manual_selection"
+          : "clue_manual",
+      created_by: profile.id,
+    }));
+
+    const { error: notificationError } = await supabase
+      .from("notifications")
+      .insert(notificationRows);
+
+    if (notificationError) {
+      setError(
+        `Aanwijzing toegewezen, maar notificatie versturen mislukte: ${notificationError.message}`
+      );
+      await loadAppData(profile);
+      return;
+    }
+
+    setManualClueGroup("");
+    setManualClueId("");
+    setSelectedManualClueGroups([]);
+
+    setMessage(
+      alreadyAssignedGroupIds.length > 0
+        ? `Aanwijzing toegewezen aan ${newTargetGroupIds.length} groep(en). ${alreadyAssignedGroupIds.length} groep(en) hadden deze aanwijzing al.`
+        : `Aanwijzing toegewezen aan ${newTargetGroupIds.length} groep(en).`
+    );
+
+    await loadAppData(profile);
+  };
+  const updateGameMode = async (newMode) => {
+    setError("");
+    setMessage("");
+
+    if (profile?.role !== "admin") {
+      setError("Alleen admin mag de spelmodus wijzigen.");
+      return;
+    }
+
+    if (!["test", "live"].includes(newMode)) {
+      setError("Ongeldige spelmodus.");
+      return;
+    }
+
+    if (newMode === "live") {
+      const confirmation = window.prompt(
+        "Je zet het spel LIVE. Reset testdata wordt daarna geblokkeerd. Typ exact: LIVE"
+      );
+
+      if (confirmation !== "LIVE") {
+        setError("Live zetten geannuleerd.");
+        return;
+      }
+    }
+
+    if (newMode === "test") {
+      const confirmation = window.prompt(
+        "Je zet het spel terug naar TESTMODUS. Typ exact: TEST"
+      );
+
+      if (confirmation !== "TEST") {
+        setError("Terugzetten naar testmodus geannuleerd.");
+        return;
+      }
+    }
+
+    const { error } = await supabase.from("app_settings").upsert(
+      {
+        key: "game_mode",
+        value: newMode,
+        updated_at: new Date().toISOString(),
+        updated_by: profile.id,
+      },
+      { onConflict: "key" }
+    );
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setGameMode(newMode);
+    setMessage(
+      newMode === "live"
+        ? "Live spel is ingeschakeld."
+        : "Testmodus is ingeschakeld."
+    );
+
+    await loadAppData(profile);
+  };
+
+  const updateFinalReportsOpen = async (open) => {
+    setError("");
+    setMessage("");
+
+    if (profile?.role !== "admin") {
+      setError("Alleen admin mag eindrapporten openen of sluiten.");
+      return;
+    }
+
+    const confirmation = window.prompt(
+      open
+        ? "Je opent de eindrapporten voor deelnemers. Typ exact: OPEN"
+        : "Je sluit de eindrapporten. Groepen kunnen daarna niet meer aanpassen. Typ exact: SLUIT"
+    );
+
+    if (open && confirmation !== "OPEN") {
+      setError("Openen van eindrapporten geannuleerd.");
+      return;
+    }
+
+    if (!open && confirmation !== "SLUIT") {
+      setError("Sluiten van eindrapporten geannuleerd.");
+      return;
+    }
+
+    const { error } = await supabase.from("app_settings").upsert(
+      {
+        key: "final_reports_open",
+        value: open ? "true" : "false",
+        updated_at: new Date().toISOString(),
+        updated_by: profile.id,
+      },
+      { onConflict: "key" }
+    );
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setFinalReportsOpen(open);
+    setMessage(
+      open
+        ? "Eindrapporten zijn geopend voor deelnemers."
+        : "Eindrapporten zijn gesloten."
+    );
+
+    await loadAppData(profile);
+  };
+  const safeCsvValue = (value) => {
+    if (value === null || value === undefined) return "";
+
+    const stringValue = String(value).replaceAll('"', '""');
+    return `"${stringValue}"`;
+  };
+
+  const downloadTextFile = (filename, content, mimeType) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadCsv = (filename, headers, rows) => {
+    const csv = [
+      headers.map(safeCsvValue).join(";"),
+      ...rows.map((row) =>
+        headers.map((header) => safeCsvValue(row[header])).join(";")
+      ),
+    ].join("\n");
+
+    downloadTextFile(filename, csv, "text/csv;charset=utf-8;");
+  };
+
+  const getExportStamp = () => {
+    return new Date().toISOString().slice(0, 19).replaceAll(":", "-");
+  };
+
+  const exportFullBackup = () => {
+    const backup = {
+      exported_at: new Date().toISOString(),
+      game_mode: gameMode,
+      final_reports_open: finalReportsOpen,
+      groups,
+      profiles,
+      memberships,
+      suspects,
+      agenda_items: agendaItems,
+      clues,
+      group_clues: groupClues,
+      suspect_notes: suspectNotes,
+      suspect_statuses: suspectStatuses,
+      final_reports: finalReports,
+      notifications,
+      credit_transactions: transactions,
+    };
+
+    downloadTextFile(
+      `csi-hit-backup-${getExportStamp()}.json`,
+      JSON.stringify(backup, null, 2),
+      "application/json;charset=utf-8;"
+    );
+  };
+
+  const exportNotesCsv = () => {
+    const headers = [
+      "created_at",
+      "group_name",
+      "suspect_name",
+      "author",
+      "note",
+    ];
+
+    const rows = suspectNotes.map((note) => ({
+      created_at: note.created_at || "",
+      group_name:
+        note.groups?.name ||
+        groups.find((group) => group.id === note.group_id)?.name ||
+        "",
+      suspect_name:
+        note.suspects?.name ||
+        suspects.find((suspect) => suspect.id === note.suspect_id)?.name ||
+        "",
+      author:
+        note.profiles?.display_name ||
+        note.profiles?.email ||
+        note.user_id ||
+        "",
+      note: note.note || "",
+    }));
+
+    downloadCsv(`csi-hit-notities-${getExportStamp()}.csv`, headers, rows);
+  };
+
+  const exportStatusesCsv = () => {
+    const headers = ["updated_at", "group_name", "suspect_name", "status"];
+
+    const rows = suspectStatuses.map((status) => ({
+      updated_at: status.updated_at || status.created_at || "",
+      group_name:
+        status.groups?.name ||
+        groups.find((group) => group.id === status.group_id)?.name ||
+        "",
+      suspect_name:
+        status.suspects?.name ||
+        suspects.find((suspect) => suspect.id === status.suspect_id)?.name ||
+        "",
+      status: getStatusLabel(status.status),
+    }));
+
+    downloadCsv(`csi-hit-statussen-${getExportStamp()}.csv`, headers, rows);
+  };
+
+  const exportPurchasesCsv = () => {
+    const headers = [
+      "purchased_at",
+      "group_name",
+      "clue_title",
+      "suspect_name",
+      "price",
+      "file_url",
+    ];
+
+    const rows = groupClues.map((purchase) => {
+      const clue =
+        purchase.clues || clues.find((item) => item.id === purchase.clue_id);
+
+      const suspect =
+        suspects.find((item) => item.id === clue?.suspect_id) || clue?.suspects;
+
+      return {
+        purchased_at: purchase.purchased_at || purchase.created_at || "",
+        group_name:
+          purchase.groups?.name ||
+          groups.find((group) => group.id === purchase.group_id)?.name ||
+          "",
+        clue_title: clue?.title || "",
+        suspect_name: suspect?.name || "Algemeen",
+        price: clue?.price ?? "",
+        file_url: clue?.file_url || "",
+      };
+    });
+
+    downloadCsv(`csi-hit-aankopen-${getExportStamp()}.csv`, headers, rows);
+  };
+
+  const exportTransactionsCsv = () => {
+    const headers = ["created_at", "group_name", "amount", "reason"];
+
+    const rows = transactions.map((transaction) => ({
+      created_at: transaction.created_at || "",
+      group_name:
+        transaction.groups?.name ||
+        groups.find((group) => group.id === transaction.group_id)?.name ||
+        "",
+      amount: transaction.amount ?? "",
+      reason: transaction.reason || "",
+    }));
+
+    downloadCsv(`csi-hit-pegels-${getExportStamp()}.csv`, headers, rows);
+  };
+  const exportFinalReportsCsv = () => {
+    const headers = [
+      "submitted_at",
+      "updated_at",
+      "group_name",
+      "suspect_name",
+      "motive",
+      "evidence",
+      "submitted_by",
+    ];
+
+    const rows = finalReports.map((report) => ({
+      submitted_at: report.submitted_at || "",
+      updated_at: report.updated_at || "",
+      group_name:
+        report.groups?.name ||
+        groups.find((group) => group.id === report.group_id)?.name ||
+        "",
+      suspect_name:
+        report.suspects?.name ||
+        suspects.find((suspect) => suspect.id === report.suspect_id)?.name ||
+        "",
+      motive: report.motive || "",
+      evidence: report.evidence || "",
+      submitted_by: report.submitted_by || "",
+    }));
+
+    downloadCsv(`csi-hit-eindrapporten-${getExportStamp()}.csv`, headers, rows);
+  };
+  const resetTestData = async () => {
+    setError("");
+    setMessage("");
+
+    if (gameMode !== "test") {
+      setError("Reset testdata is geblokkeerd omdat het spel live staat.");
+      return;
+    }
+
+    const confirmation = window.prompt(
+      "Weet je zeker dat je alle testdata wilt resetten? Typ exact: RESET TESTDATA"
+    );
+
+    if (confirmation !== "RESET TESTDATA") {
+      setError("Reset geannuleerd. De bevestigingstekst klopte niet.");
+      return;
+    }
+
+    const { data, error } = await supabase.rpc("reset_test_data");
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setGroupClues([]);
+    setSuspectNotes([]);
+    setSuspectStatuses([]);
+    setFinalReports([]);
+    setNotifications([]);
+    setTransactions([]);
+
+    setMessage(
+      `Testdata gereset. Verwijderd: ${
+        data?.deleted_group_clues || 0
+      } aankopen, ${data?.deleted_notes || 0} notities, ${
+        data?.deleted_statuses || 0
+      } statussen, ${data?.deleted_final_reports || 0} eindrapporten, ${
+        data?.deleted_notifications || 0
+      } meldingen en ${data?.deleted_transactions || 0} transacties.`
+    );
+
+    await loadAppData(profile);
+  };
+  const removeGroupClue = async (purchase) => {
+    setError("");
+    setMessage("");
+
+    if (gameMode !== "test") {
+      setError(
+        "Aanwijzingen verwijderen bij een groep is geblokkeerd omdat het spel live staat."
+      );
+      return;
+    }
+
+    const clueTitle =
+      purchase.clues?.title ||
+      clues.find((clue) => clue.id === purchase.clue_id)?.title ||
+      "deze aanwijzing";
+
+    const ok = window.confirm(
+      `Weet je zeker dat je "${clueTitle}" wilt verwijderen bij deze groep?`
+    );
+
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("group_clues")
+      .delete()
+      .eq("id", purchase.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    await supabase.from("notifications").insert({
+      group_id: purchase.group_id,
+      title: "Aanwijzing gecorrigeerd",
+      message: `De aanwijzing "${clueTitle}" is door de organisatie verwijderd.`,
+      notification_type: "clue_removed",
+      created_by: profile.id,
+    });
+
+    setMessage("Gekochte/toegewezen aanwijzing verwijderd bij groep.");
+    await loadAppData(profile);
+  };
+  const purchaseClue = async (clueId) => {
+    setError("");
+    setMessage("");
+
+    if (!myGroup) {
+      setError("Je bent nog niet aan een groep gekoppeld.");
+      return;
+    }
+
+    const { error } = await supabase.rpc("purchase_clue", {
+      target_group_id: myGroup.id,
+      target_clue_id: clueId,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Aanwijzing gekocht.");
+    await loadAppData(profile);
+  };
+
+  const addParticipantNote = async () => {
+    setError("");
+    setMessage("");
+
+    if (!myGroup) {
+      setError("Je bent nog niet aan een groep gekoppeld.");
+      return;
+    }
+
+    if (!selectedNoteSuspect || !newNote.trim()) {
+      setError("Kies een verdachte en vul een notitie in.");
+      return;
+    }
+
+    const { error } = await supabase.from("suspect_notes").insert({
+      group_id: myGroup.id,
+      suspect_id: selectedNoteSuspect,
+      user_id: profile.id,
+      note: newNote.trim(),
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setSelectedNoteSuspect("");
+    setNewNote("");
+    setMessage("Notitie opgeslagen.");
+    await loadAppData(profile);
+  };
+
+  const startEditNote = (note) => {
+    setEditingNoteId(note.id);
+    setEditNoteText(note.note || "");
+  };
+
+  const cancelEditNote = () => {
+    setEditingNoteId("");
+    setEditNoteText("");
+  };
+
+  const saveEditNote = async () => {
+    setError("");
+    setMessage("");
+
+    if (!editingNoteId) {
+      setError("Geen notitie geselecteerd om te bewerken.");
+      return;
+    }
+
+    if (!editNoteText.trim()) {
+      setError("Een notitie mag niet leeg zijn.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("suspect_notes")
+      .update({
+        note: editNoteText.trim(),
+      })
+      .eq("id", editingNoteId);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    cancelEditNote();
+    setMessage("Notitie bijgewerkt.");
+    await loadAppData(profile);
+  };
+
+  const deleteNote = async (note) => {
+    setError("");
+    setMessage("");
+
+    const ok = window.confirm(
+      "Weet je zeker dat je deze notitie wilt verwijderen?"
+    );
+
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("suspect_notes")
+      .delete()
+      .eq("id", note.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Notitie verwijderd.");
+    await loadAppData(profile);
+  };
+
+  const saveParticipantStatus = async () => {
+    setError("");
+    setMessage("");
+
+    if (!myGroup) {
+      setError("Je bent nog niet aan een groep gekoppeld.");
+      return;
+    }
+
+    if (!selectedStatusSuspect) {
+      setError("Kies een verdachte.");
+      return;
+    }
+
+    const { error } = await supabase.from("suspect_statuses").upsert(
+      {
+        group_id: myGroup.id,
+        suspect_id: selectedStatusSuspect,
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "group_id,suspect_id" }
+    );
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Status opgeslagen.");
+    await loadAppData(profile);
+  };
+
+  const loadFinalReportForm = () => {
+    const existingReport = finalReports.find(
+      (report) => report.group_id === myGroup?.id
+    );
+
+    setFinalReportSuspect(existingReport?.suspect_id || "");
+    setFinalReportMotive(existingReport?.motive || "");
+    setFinalReportEvidence(existingReport?.evidence || "");
+  };
+
+  const saveFinalReport = async () => {
+    setError("");
+    setMessage("");
+
+    if (!myGroup) {
+      setError("Je bent nog niet aan een groep gekoppeld.");
+      return;
+    }
+
+    if (!finalReportsOpen) {
+      setError("Eindrapporten zijn nog gesloten door de organisatie.");
+      return;
+    }
+
+    if (!finalReportSuspect) {
+      setError("Kies een eindverdachte.");
+      return;
+    }
+
+    const motiveText = finalReportMotiveRef.current?.value?.trim() || "";
+    const evidenceText = finalReportEvidenceRef.current?.value?.trim() || "";
+
+    if (!motiveText) {
+      setError("Vul een motief of verklaring in.");
+      return;
+    }
+
+    if (!evidenceText) {
+      setError("Vul jullie bewijs of redenering in.");
+      return;
+    }
+
+    const { error } = await supabase.from("final_reports").upsert(
+      {
+        group_id: myGroup.id,
+        suspect_id: finalReportSuspect,
+        motive: motiveText,
+        evidence: evidenceText,
+        submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        submitted_by: profile.id,
+      },
+      { onConflict: "group_id" }
+    );
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage("Eindrapport opgeslagen.");
+    await loadAppData(profile);
+    return true;
+  };
+  const SuspectImage = ({ src, alt }) => {
+    if (!src) return null;
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        style={styles.img}
+        onClick={() => setImageModal({ src, alt })}
+      />
+    );
+  };
+
+  const ImageModal = () => {
+    if (!imageModal) return null;
+
+    return (
+      <div style={styles.modalBackdrop} onClick={() => setImageModal(null)}>
+        <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 10,
+            }}
+          >
+            <strong>{imageModal.alt}</strong>
+            <button
+              style={styles.buttonSecondary}
+              onClick={() => setImageModal(null)}
+            >
+              Sluiten
+            </button>
+          </div>
+
+          <img
+            src={imageModal.src}
+            alt={imageModal.alt}
+            style={styles.modalImage}
+          />
+        </div>
+      </div>
+    );
+  };
+  const FinalReportEditorModal = () => {
+    const existingReport = finalReports.find(
+      (report) => report.group_id === myGroup?.id
+    );
+
+    if (!showFinalReportEditor) return null;
+
+    return (
+      <div
+        style={styles.modalBackdrop}
+        onClick={() => setShowFinalReportEditor(false)}
+      >
+        <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 10,
+              marginBottom: 12,
+            }}
+          >
+            <strong>Eindrapport invullen</strong>
+
+            <button
+              style={styles.buttonSecondary}
+              onClick={() => setShowFinalReportEditor(false)}
+            >
+              Sluiten
+            </button>
+          </div>
+
+          <select
+            style={styles.select}
+            value={finalReportSuspect}
+            onChange={(e) => setFinalReportSuspect(e.target.value)}
+          >
+            <option value="">Kies eindverdachte</option>
+            {suspects
+              .filter((suspect) => suspect.is_active)
+              .map((suspect) => (
+                <option key={suspect.id} value={suspect.id}>
+                  {suspect.name}
+                </option>
+              ))}
+          </select>
+
+          <textarea
+            key={`modal-motive-${existingReport?.id || "new"}-${
+              existingReport?.updated_at || ""
+            }`}
+            style={styles.textarea}
+            placeholder="Motief / verklaring: waarom is deze verdachte volgens jullie de dader?"
+            defaultValue={existingReport?.motive || ""}
+            ref={finalReportMotiveRef}
+            autoFocus
+          />
+
+          <textarea
+            key={`modal-evidence-${existingReport?.id || "new"}-${
+              existingReport?.updated_at || ""
+            }`}
+            style={styles.textarea}
+            placeholder="Bewijs / redenering: welke aanwijzingen, notities of observaties ondersteunen dit?"
+            defaultValue={existingReport?.evidence || ""}
+            ref={finalReportEvidenceRef}
+          />
+
+          <button
+            style={styles.button}
+            onClick={async () => {
+              const saved = await saveFinalReport();
+
+              if (saved) {
+                setShowFinalReportEditor(false);
+              }
+            }}
+          >
+            Eindrapport opslaan
+          </button>
+        </div>
+      </div>
+    );
+  };
+  const StatusBadge = ({ status }) => {
+    return <span style={styles.badge}>{getStatusLabel(status)}</span>;
+  };
+
+  const LoadingBlock = () => {
+    if (!isLoading) return null;
+
+    return (
+      <div style={styles.card}>
+        <strong>Gegevens laden...</strong>
+        <div style={styles.subtle}>
+          De meldkamer haalt de laatste speldata op.
+        </div>
+      </div>
+    );
+  };
+
+  const MessageBlock = () => (
+    <>
+      {error && (
+        <div style={styles.error}>
+          {error}
+          <button style={styles.buttonSecondary} onClick={() => setError("")}>
+            Sluiten
+          </button>
+        </div>
+      )}
+
+      {message && (
+        <div style={styles.ok}>
+          {message}
+          <button style={styles.buttonSecondary} onClick={() => setMessage("")}>
+            Sluiten
+          </button>
+        </div>
+      )}
+    </>
+  );
+
+  const Header = ({ title, subtitle }) => (
+    <div style={styles.header}>
+      <div style={styles.titleRow}>
+        <div>
+          <h1 style={{ margin: 0 }}>{title}</h1>
+          {subtitle && <div style={styles.subtle}>{subtitle}</div>}
+
+          <span
+            style={{
+              ...styles.badge,
+              borderColor: gameMode === "live" ? "#ef4444" : "#22c55e",
+            }}
+          >
+            {gameMode === "live" ? "🔴 LIVE SPEL" : "🧪 TESTMODUS"}
+          </span>
+        </div>
+        <div>
+          <button
+            style={{
+              ...styles.buttonSecondary,
+              opacity: isLoading ? 0.65 : 1,
+              cursor: isLoading ? "not-allowed" : "pointer",
+            }}
+            onClick={refreshWithLoading}
+            disabled={isLoading}
+          >
+            {isLoading ? "Laden..." : "Ververs"}
+          </button>
+          <button style={styles.buttonSecondary} onClick={handleLogout}>
+            Uitloggen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const AgendaBlock = () => (
+    <div style={styles.card}>
+      <h2>Agenda</h2>
+
+      {nextAgendaItem ? (
+        <div style={styles.card}>
+          <h3 style={{ marginTop: 0 }}>Volgende activiteit</h3>
+          <strong>
+            {getAgendaIcon(nextAgendaItem.item_type)} {nextAgendaItem.title}
+          </strong>
+          <div style={styles.subtle}>
+            {formatDate(nextAgendaItem.starts_at)}
+            {nextAgendaItem.ends_at
+              ? ` - ${formatDate(nextAgendaItem.ends_at)}`
+              : ""}
+          </div>
+          {nextAgendaItem.description && <p>{nextAgendaItem.description}</p>}
+          {nextAgendaItem.credits_reward > 0 && (
+            <span style={styles.badge}>
+              💰 {nextAgendaItem.credits_reward} pegels te verdienen
+            </span>
+          )}
+        </div>
+      ) : (
+        <p style={styles.subtle}>Er staat geen volgende activiteit gepland.</p>
+      )}
+
+      {visibleAgendaItems.length === 0 ? (
+        <p style={styles.subtle}>Nog geen agenda-items zichtbaar.</p>
+      ) : (
+        visibleAgendaItems.map((item) => (
+          <div key={item.id} style={{ marginBottom: 16 }}>
+            <strong>
+              {getAgendaIcon(item.item_type)} {item.title}
+            </strong>
+            <div style={styles.subtle}>
+              {formatDate(item.starts_at)}
+              {item.ends_at ? ` - ${formatDate(item.ends_at)}` : ""}
+            </div>
+            {item.description && <div>{item.description}</div>}
+            {item.credits_reward > 0 && (
+              <span style={styles.badge}>
+                💰 {item.credits_reward} pegels te verdienen
+              </span>
+            )}
+            {profile?.role === "admin" && !item.is_visible && (
+              <span style={styles.badge}>Verborgen</span>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
+
+  const NotificationsBlock = () => (
+    <div style={styles.card}>
+      <h2>Meldingen</h2>
+
+      {notifications.length === 0 ? (
+        <p style={styles.subtle}>Nog geen meldingen.</p>
+      ) : (
+        notifications.map((n) => (
+          <div key={n.id} style={{ marginBottom: 14 }}>
+            <strong>{n.title}</strong>
+            <div>{n.message}</div>
+            <div style={styles.subtle}>{formatDate(n.created_at)}</div>
+            {n.groups?.name && (
+              <span style={styles.badge}>{n.groups.name}</span>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
+
+  const TransactionsBlock = () => (
+    <div style={styles.card}>
+      <h2>Pegels geschiedenis</h2>
+
+      {transactions.length === 0 ? (
+        <p style={styles.subtle}>Nog geen transacties.</p>
+      ) : (
+        transactions.map((t) => (
+          <div key={t.id} style={{ marginBottom: 12 }}>
+            <strong>
+              {t.amount > 0 ? "+" : ""}
+              {t.amount} pegels
+            </strong>
+            <div>{t.reason}</div>
+            {t.groups?.name && <div style={styles.subtle}>{t.groups.name}</div>}
+            <div style={styles.subtle}>{formatDate(t.created_at)}</div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+  const NoGroupScreen = () => (
+    <div style={styles.card}>
+      <h2>Je bent nog niet aan een groep gekoppeld</h2>
+
+      <p>
+        Je account is aangemaakt, maar de organisatie heeft je nog niet aan een
+        groep gekoppeld. Zodra dit is gedaan, verschijnt hier automatisch jullie
+        groepsdashboard.
+      </p>
+
+      <div style={styles.card}>
+        <strong>Account</strong>
+        <div style={styles.subtle}>
+          {profile?.display_name || profile?.email}
+        </div>
+        <div style={styles.subtle}>{profile?.email}</div>
+      </div>
+
+      <p style={styles.subtle}>
+        Vraag de organisatie om je account aan een groep te koppelen. Daarna kun
+        je op verversen drukken.
+      </p>
+
+      <button style={styles.button} onClick={() => loadAppData(profile)}>
+        Ververs
+      </button>
+
+      <button style={styles.buttonSecondary} onClick={handleLogout}>
+        Uitloggen
+      </button>
+    </div>
+  );
+  const ParticipantGroupBar = () => (
+    <div style={styles.card}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <div style={styles.subtle}>Mijn groep</div>
+          <strong>{myGroup?.name || "Nog geen groep"}</strong>
+        </div>
+
+        <div>
+          <div style={styles.subtle}>Pegels</div>
+          <strong>💰 {myGroup?.credits || 0}</strong>
+        </div>
+
+        <div>
+          <div style={styles.subtle}>Aanwijzingen</div>
+          <strong>📄 {purchasedClueIds.length}</strong>
+        </div>
+      </div>
+    </div>
+  );
+  const ParticipantDashboard = () => (
+    <>
+      {ParticipantGroupBar()}
+
+      <div style={styles.grid}>
+        <div style={styles.card}>
+          <h2>Volgende activiteit</h2>
+          {nextAgendaItem ? (
+            <>
+              <strong>
+                {getAgendaIcon(nextAgendaItem.item_type)} {nextAgendaItem.title}
+              </strong>
+              <div style={styles.subtle}>
+                {formatDate(nextAgendaItem.starts_at)}
+              </div>
+              {nextAgendaItem.credits_reward > 0 && (
+                <span style={styles.badge}>
+                  💰 {nextAgendaItem.credits_reward} pegels
+                </span>
+              )}
+            </>
+          ) : (
+            <p style={styles.subtle}>Geen volgende activiteit.</p>
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h2>Laatste melding</h2>
+          {notifications[0] ? (
+            <>
+              <strong>{notifications[0].title}</strong>
+              <div>{notifications[0].message}</div>
+              <div style={styles.subtle}>
+                {formatDate(notifications[0].created_at)}
+              </div>
+            </>
+          ) : (
+            <p style={styles.subtle}>Nog geen meldingen.</p>
+          )}
+        </div>
+      </div>
+
+      <div style={styles.card}>
+        <h2>Verdachten overzicht</h2>
+        {suspects.filter((s) => s.is_active).length === 0 ? (
+          <p style={styles.subtle}>Nog geen verdachten.</p>
+        ) : (
+          suspects
+            .filter((s) => s.is_active)
+            .map((s) => {
+              const statusRecord = suspectStatuses.find(
+                (x) => x.group_id === myGroup?.id && x.suspect_id === s.id
+              );
+
+              return (
+                <div key={s.id} style={styles.card}>
+                  {SuspectImage({ src: s.photo_url, alt: s.name })}
+                  <h3 style={{ marginTop: 0 }}>{s.name}</h3>
+                  {s.description && (
+                    <div style={styles.subtle}>{s.description}</div>
+                  )}
+                  {StatusBadge({ status: statusRecord?.status || "unknown" })}
+                </div>
+              );
+            })
+        )}
+      </div>
+    </>
+  );
+
+  const ParticipantFinalReport = () => {
+    const existingReport = finalReports.find(
+      (report) => report.group_id === myGroup?.id
+    );
+
+    const selectedSuspect =
+      suspects.find((suspect) => suspect.id === existingReport?.suspect_id) ||
+      suspects.find((suspect) => suspect.id === finalReportSuspect);
+
+    if (!finalReportsOpen) {
+      return (
+        <>
+          {ParticipantGroupBar()}
+
+          <div style={styles.card}>
+            <h2>Eindrapport gesloten</h2>
+
+            {existingReport ? (
+              <>
+                <p style={styles.subtle}>
+                  De organisatie heeft de eindrapporten gesloten. Jullie kunnen
+                  het ingediende rapport nog bekijken, maar niet meer aanpassen.
+                </p>
+
+                <div style={styles.card}>
+                  <strong>Ingediend eindrapport</strong>
+
+                  <div style={styles.subtle}>
+                    Laatst opgeslagen:{" "}
+                    {formatDate(
+                      existingReport.updated_at || existingReport.submitted_at
+                    )}
+                  </div>
+
+                  <span style={styles.badge}>
+                    Gekozen verdachte:{" "}
+                    {existingReport.suspects?.name ||
+                      suspects.find((s) => s.id === existingReport.suspect_id)
+                        ?.name ||
+                      "Onbekende verdachte"}
+                  </span>
+
+                  <h3>Motief / verklaring</h3>
+                  <div style={{ whiteSpace: "pre-wrap" }}>
+                    {existingReport.motive}
+                  </div>
+
+                  <h3>Bewijs / redenering</h3>
+                  <div style={{ whiteSpace: "pre-wrap" }}>
+                    {existingReport.evidence}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>
+                  De organisatie heeft de eindrapporten gesloten. Jullie hebben
+                  geen eindrapport ingediend.
+                </p>
+
+                <p style={styles.subtle}>
+                  Dit onderdeel kan nu niet meer worden ingevuld.
+                </p>
+              </>
+            )}
+          </div>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {ParticipantGroupBar()}
+
+        <div style={styles.card}>
+          <h2>Eindrapport</h2>
+
+          <p style={styles.subtle}>
+            De eindrapporten zijn geopend. Klik op de knop om jullie
+            eindverdachte, motief en bewijs in te voeren. Zolang de organisatie
+            de eindrapporten open laat, kunnen jullie dit nog aanpassen.
+          </p>
+
+          {existingReport ? (
+            <div style={styles.card}>
+              <strong>Laatste versie opgeslagen</strong>
+
+              <div style={styles.subtle}>
+                {formatDate(
+                  existingReport.updated_at || existingReport.submitted_at
+                )}
+              </div>
+
+              <span style={styles.badge}>
+                Gekozen verdachte:{" "}
+                {existingReport.suspects?.name ||
+                  selectedSuspect?.name ||
+                  "Onbekende verdachte"}
+              </span>
+
+              <h3>Motief / verklaring</h3>
+              <div style={{ whiteSpace: "pre-wrap" }}>
+                {existingReport.motive}
+              </div>
+
+              <h3>Bewijs / redenering</h3>
+              <div style={{ whiteSpace: "pre-wrap" }}>
+                {existingReport.evidence}
+              </div>
+            </div>
+          ) : (
+            <p style={styles.subtle}>
+              Jullie hebben nog geen eindrapport ingediend.
+            </p>
+          )}
+
+          <button
+            style={styles.button}
+            onClick={() => {
+              setFinalReportSuspect(existingReport?.suspect_id || "");
+              setShowFinalReportEditor(true);
+            }}
+          >
+            {existingReport ? "Eindrapport aanpassen" : "Eindrapport invullen"}
+          </button>
+        </div>
+      </>
+    );
+  };
+
+  const ParticipantClues = () => {
+    const visibleClues = clues.filter((clue) => clue.is_visible);
+
+    const unlockedClues = visibleClues.filter((clue) => {
+      const purchased = purchasedClueIds.includes(clue.id);
+      return clue.is_free || clue.is_global || purchased;
+    });
+
+    const buyableClues = visibleClues.filter((clue) => {
+      const purchased = purchasedClueIds.includes(clue.id);
+      return !clue.is_free && !clue.is_global && !purchased;
+    });
+
+    const renderClueCard = (clue, mode) => (
+      <div key={clue.id} style={styles.card}>
+        <h3 style={{ marginTop: 0 }}>{clue.title}</h3>
+
+        {clue.suspects?.name && (
+          <span style={styles.badge}>🕵️ {clue.suspects.name}</span>
+        )}
+
+        {clue.is_free && <span style={styles.badge}>Gratis</span>}
+        {clue.is_global && <span style={styles.badge}>Voor iedereen</span>}
+        {!clue.is_free && (
+          <span style={styles.badge}>💰 {clue.price} pegels</span>
+        )}
+
+        {clue.description && <p>{clue.description}</p>}
+
+        {mode === "unlocked" ? (
+          <>
+            <span style={styles.badge}>Ontgrendeld</span>
+
+            {clue.file_url ? (
+              <div style={{ marginTop: 10 }}>
+                <a
+                  href={clue.file_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={styles.link}
+                >
+                  Bestand openen
+                </a>
+              </div>
+            ) : (
+              <div style={styles.subtle}>Geen bestand gekoppeld.</div>
+            )}
+          </>
+        ) : (
+          <button style={styles.button} onClick={() => purchaseClue(clue.id)}>
+            Kopen
+          </button>
+        )}
+      </div>
+    );
+
+    return (
+      <>
+        {ParticipantGroupBar()}
+
+        <div style={styles.card}>
+          <h2>Te koop</h2>
+
+          {buyableClues.length === 0 ? (
+            <p style={styles.subtle}>Geen aanwijzingen te koop.</p>
+          ) : (
+            buyableClues.map((clue) => renderClueCard(clue, "buyable"))
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h2>Ontgrendeld</h2>
+
+          {unlockedClues.length === 0 ? (
+            <p style={styles.subtle}>Nog geen aanwijzingen ontgrendeld.</p>
+          ) : (
+            unlockedClues.map((clue) => renderClueCard(clue, "unlocked"))
+          )}
+        </div>
+      </>
+    );
+  };
+
+  const groupNotesBy = (notes, getKey) => {
+    return notes.reduce((acc, note) => {
+      const key = getKey(note) || "unknown";
+
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+
+      acc[key].push(note);
+      return acc;
+    }, {});
+  };
+  const ParticipantSuspects = () => {
+    const activeSuspects = suspects.filter((s) => s.is_active);
+
+    return (
+      <>
+        <div style={styles.card}>
+          <h2>Verdachten overzicht</h2>
+
+          {activeSuspects.length === 0 ? (
+            <p style={styles.subtle}>Nog geen actieve verdachten.</p>
+          ) : (
+            activeSuspects.map((s) => {
+              const statusRecord = suspectStatuses.find(
+                (x) => x.group_id === myGroup?.id && x.suspect_id === s.id
+              );
+
+              return (
+                <div key={s.id} style={styles.card}>
+                  {SuspectImage({ src: s.photo_url, alt: s.name })}
+
+                  <h3 style={{ marginTop: 0 }}>{s.name}</h3>
+
+                  {s.description && (
+                    <div style={styles.subtle}>{s.description}</div>
+                  )}
+
+                  <div style={{ marginTop: 8 }}>
+                    {StatusBadge({ status: statusRecord?.status || "unknown" })}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h2>Status aanpassen</h2>
+
+          <select
+            style={styles.select}
+            value={selectedStatusSuspect}
+            onChange={(e) => setSelectedStatusSuspect(e.target.value)}
+          >
+            <option value="">Kies verdachte</option>
+            {activeSuspects.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            style={styles.select}
+            value={newStatus}
+            onChange={(e) => setNewStatus(e.target.value)}
+          >
+            <option value="unknown">Onbekend</option>
+            <option value="suspect">Verdacht</option>
+            <option value="doubt">Twijfel</option>
+            <option value="excluded">Uitgesloten</option>
+          </select>
+
+          <button style={styles.button} onClick={saveParticipantStatus}>
+            Status opslaan
+          </button>
+        </div>
+
+        <div style={styles.card}>
+          <h2>Notitie toevoegen</h2>
+
+          <select
+            style={styles.select}
+            value={selectedNoteSuspect}
+            onChange={(e) => setSelectedNoteSuspect(e.target.value)}
+          >
+            <option value="">Kies verdachte</option>
+            {activeSuspects.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+
+          <textarea
+            style={styles.textarea}
+            placeholder="Notitie"
+            value={newNote}
+            onChange={(e) => setNewNote(e.target.value)}
+          />
+
+          <button style={styles.button} onClick={addParticipantNote}>
+            Notitie opslaan
+          </button>
+        </div>
+
+        <div style={styles.card}>
+          <h2>Onze notities</h2>
+
+          {suspectNotes.length === 0 ? (
+            <p style={styles.subtle}>Nog geen notities.</p>
+          ) : (
+            Object.entries(
+              groupNotesBy(suspectNotes, (note) => note.suspect_id)
+            ).map(([suspectId, notes]) => {
+              const suspect =
+                suspects.find((s) => s.id === suspectId) || notes[0]?.suspects;
+
+              const sortedNotes = [...notes].sort(
+                (a, b) => new Date(a.created_at) - new Date(b.created_at)
+              );
+
+              return (
+                <div key={suspectId} style={styles.card}>
+                  <h3 style={{ marginTop: 0 }}>
+                    {suspect?.name || "Onbekende verdachte"}
+                  </h3>
+
+                  <div
+                    style={{
+                      background: "#09090b",
+                      border: "1px solid #27272a",
+                      borderRadius: 12,
+                      padding: 12,
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {sortedNotes.map((note, index) => (
+                      <div key={note.id} style={{ marginBottom: 12 }}>
+                        {index > 0 && (
+                          <div
+                            style={{
+                              borderTop: "1px solid #27272a",
+                              margin: "10px 0",
+                            }}
+                          />
+                        )}
+
+                        {editingNoteId === note.id ? (
+                          <>
+                            <textarea
+                              style={styles.textarea}
+                              value={editNoteText}
+                              onChange={(e) => setEditNoteText(e.target.value)}
+                            />
+
+                            <button
+                              style={styles.button}
+                              onClick={saveEditNote}
+                            >
+                              Opslaan
+                            </button>
+
+                            <button
+                              style={styles.buttonSecondary}
+                              onClick={cancelEditNote}
+                            >
+                              Annuleren
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <div>{note.note}</div>
+
+                            <div style={styles.subtle}>
+                              {note.profiles?.display_name ||
+                                note.profiles?.email ||
+                                "onbekend"}{" "}
+                              · {formatDate(note.created_at)}
+                            </div>
+
+                            {note.user_id === profile?.id && (
+                              <div style={{ marginTop: 8 }}>
+                                <button
+                                  style={styles.buttonSecondary}
+                                  onClick={() => startEditNote(note)}
+                                >
+                                  Bewerken
+                                </button>
+
+                                <button
+                                  style={styles.buttonDanger}
+                                  onClick={() => deleteNote(note)}
+                                >
+                                  Verwijderen
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </>
+    );
+  };
+  const AdminParticipantPreview = () => {
+    const activeSuspects = suspects.filter((suspect) => suspect.is_active);
+    const visibleClues = clues.filter((clue) => clue.is_visible);
+    const visibleAgenda = agendaItems
+      .filter((item) => item.is_visible)
+      .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+
+    const freeOrGlobalClues = visibleClues.filter(
+      (clue) => clue.is_free || clue.is_global
+    );
+
+    const buyableClues = visibleClues.filter(
+      (clue) => !clue.is_free && !clue.is_global
+    );
+
+    const previewWarnings = [];
+
+    if (visibleAgenda.length === 0) {
+      previewWarnings.push("Deelnemers zien nog geen agenda-items.");
+    }
+
+    if (visibleClues.length === 0) {
+      previewWarnings.push("Deelnemers zien nog geen aanwijzingen.");
+    }
+
+    if (activeSuspects.length === 0) {
+      previewWarnings.push("Deelnemers zien nog geen actieve verdachten.");
+    }
+
+    return (
+      <div style={styles.card}>
+        <h2>Deelnemer-preview</h2>
+        <p style={styles.subtle}>
+          Controleer hier snel wat deelnemers ongeveer zien zonder opnieuw als
+          deelnemer in te loggen.
+        </p>
+
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <h3>Agenda zichtbaar</h3>
+            <div style={styles.statNumber}>{visibleAgenda.length}</div>
+            <div style={styles.subtle}>Zichtbare agenda-items</div>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Aanwijzingen zichtbaar</h3>
+            <div style={styles.statNumber}>{visibleClues.length}</div>
+            <span style={styles.badge}>
+              Gratis/global: {freeOrGlobalClues.length}
+            </span>
+            <span style={styles.badge}>Te koop: {buyableClues.length}</span>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Verdachten zichtbaar</h3>
+            <div style={styles.statNumber}>{activeSuspects.length}</div>
+            <div style={styles.subtle}>Actieve verdachten</div>
+          </div>
+        </div>
+
+        <div style={styles.card}>
+          <h3>Preview-waarschuwingen</h3>
+
+          {previewWarnings.length === 0 ? (
+            <p style={styles.ok}>De deelnemerweergave lijkt gevuld.</p>
+          ) : (
+            previewWarnings.map((warning) => (
+              <div key={warning} style={styles.error}>
+                ⚠️ {warning}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h3>Agenda zoals deelnemer die ziet</h3>
+
+          {visibleAgenda.length === 0 ? (
+            <p style={styles.subtle}>Geen zichtbare agenda-items.</p>
+          ) : (
+            visibleAgenda.map((item) => (
+              <div key={item.id} style={styles.card}>
+                <strong>
+                  {getAgendaIcon(item.item_type)} {item.title}
+                </strong>
+                <div style={styles.subtle}>
+                  {formatDate(item.starts_at)}
+                  {item.ends_at ? ` - ${formatDate(item.ends_at)}` : ""}
+                </div>
+                {item.description && <div>{item.description}</div>}
+                {item.credits_reward > 0 && (
+                  <span style={styles.badge}>
+                    💰 {item.credits_reward} pegels
+                  </span>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h3>Aanwijzingen zoals deelnemer die ziet</h3>
+
+          {visibleClues.length === 0 ? (
+            <p style={styles.subtle}>Geen zichtbare aanwijzingen.</p>
+          ) : (
+            visibleClues.map((clue) => (
+              <div key={clue.id} style={styles.card}>
+                <strong>{clue.title}</strong>
+
+                {clue.suspects?.name && (
+                  <span style={styles.badge}>🕵️ {clue.suspects.name}</span>
+                )}
+
+                {clue.is_free && <span style={styles.badge}>Gratis</span>}
+                {clue.is_global && (
+                  <span style={styles.badge}>Voor iedereen</span>
+                )}
+
+                {!clue.is_free && !clue.is_global && (
+                  <span style={styles.badge}>💰 {clue.price} pegels</span>
+                )}
+
+                {clue.description && <p>{clue.description}</p>}
+
+                {clue.file_url ? (
+                  <div style={styles.subtle}>Bestand gekoppeld</div>
+                ) : (
+                  <div style={styles.error}>Geen bestand gekoppeld</div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h3>Verdachten zoals deelnemer die ziet</h3>
+
+          {activeSuspects.length === 0 ? (
+            <p style={styles.subtle}>Geen actieve verdachten.</p>
+          ) : (
+            activeSuspects.map((suspect) => (
+              <div key={suspect.id} style={styles.card}>
+                {SuspectImage({
+                  src: suspect.photo_url,
+                  alt: suspect.name,
+                })}
+
+                <strong>{suspect.name}</strong>
+
+                {suspect.description && (
+                  <div style={styles.subtle}>{suspect.description}</div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+  const AdminSetupCheck = () => {
+    const participantProfiles = profiles.filter((p) => p.role !== "admin");
+
+    const usersWithoutGroup = participantProfiles.filter((p) => {
+      return !memberships.some((m) => m.user_id === p.id);
+    });
+
+    const activeGroups = groups.filter((group) => group.is_active);
+    const inactiveGroups = groups.filter((group) => !group.is_active);
+
+    const activeSuspects = suspects.filter((suspect) => suspect.is_active);
+    const inactiveSuspects = suspects.filter((suspect) => !suspect.is_active);
+
+    const visibleClues = clues.filter((clue) => clue.is_visible);
+    const hiddenClues = clues.filter((clue) => !clue.is_visible);
+    const cluesWithoutFile = clues.filter((clue) => !clue.file_url);
+
+    const visibleAgendaItems = agendaItems.filter((item) => item.is_visible);
+    const hiddenAgendaItems = agendaItems.filter((item) => !item.is_visible);
+
+    const setupWarnings = [];
+
+    if (activeGroups.length === 0) {
+      setupWarnings.push("Er zijn nog geen actieve groepen.");
+    }
+
+    if (usersWithoutGroup.length > 0) {
+      setupWarnings.push(
+        `${usersWithoutGroup.length} deelnemer(s) zijn nog niet aan een groep gekoppeld.`
+      );
+    }
+
+    if (activeSuspects.length === 0) {
+      setupWarnings.push("Er zijn nog geen actieve verdachten.");
+    }
+
+    if (visibleClues.length === 0) {
+      setupWarnings.push("Er zijn nog geen zichtbare aanwijzingen.");
+    }
+
+    if (cluesWithoutFile.length > 0) {
+      setupWarnings.push(
+        `${cluesWithoutFile.length} aanwijzing(en) hebben nog geen bestand.`
+      );
+    }
+
+    if (visibleAgendaItems.length === 0) {
+      setupWarnings.push("Er zijn nog geen zichtbare agenda-items.");
+    }
+
+    return (
+      <div style={styles.card}>
+        <h2>Spel klaarzetten</h2>
+
+        <div style={styles.card}>
+          <h3>Spelmodus</h3>
+
+          <span
+            style={{
+              ...styles.badge,
+              borderColor: gameMode === "live" ? "#ef4444" : "#22c55e",
+            }}
+          >
+            {gameMode === "live" ? "🔴 LIVE SPEL" : "🧪 TESTMODUS"}
+          </span>
+
+          <p style={styles.subtle}>
+            In testmodus kun je testdata resetten. In live-modus wordt resetten
+            geblokkeerd en is extra voorzichtigheid nodig bij beheeracties.
+          </p>
+
+          {gameMode === "test" ? (
+            <button
+              style={styles.buttonDanger}
+              onClick={() => updateGameMode("live")}
+            >
+              Zet spel live
+            </button>
+          ) : (
+            <button
+              style={styles.buttonSecondary}
+              onClick={() => updateGameMode("test")}
+            >
+              Terug naar testmodus
+            </button>
+          )}
+        </div>
+        <div style={styles.card}>
+          <h3>Backup & export</h3>
+
+          <p style={styles.subtle}>
+            Download de huidige speldata. Handig vóór een reset, vóór livegang
+            of voor evaluatie na afloop.
+          </p>
+
+          <button style={styles.button} onClick={exportFullBackup}>
+            Volledige backup JSON
+          </button>
+
+          <button style={styles.buttonSecondary} onClick={exportNotesCsv}>
+            Notities CSV
+          </button>
+
+          <button style={styles.buttonSecondary} onClick={exportStatusesCsv}>
+            Statussen CSV
+          </button>
+
+          <button style={styles.buttonSecondary} onClick={exportPurchasesCsv}>
+            Aankopen CSV
+          </button>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={exportTransactionsCsv}
+          >
+            Pegels CSV
+          </button>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={exportFinalReportsCsv}
+          >
+            Eindrapporten CSV
+          </button>
+        </div>
+        <p style={styles.subtle}>
+          Controlepaneel vóór de start: hiermee zie je snel of groepen,
+          deelnemers, verdachten, aanwijzingen en agenda klaarstaan.
+        </p>
+
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <h3>Groepen</h3>
+            <div style={styles.statNumber}>{groups.length}</div>
+            <span style={styles.badge}>Actief: {activeGroups.length}</span>
+            <span style={styles.badge}>Inactief: {inactiveGroups.length}</span>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Deelnemers</h3>
+            <div style={styles.statNumber}>{participantProfiles.length}</div>
+            <span style={styles.badge}>
+              Zonder groep: {usersWithoutGroup.length}
+            </span>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Verdachten</h3>
+            <div style={styles.statNumber}>{suspects.length}</div>
+            <span style={styles.badge}>Actief: {activeSuspects.length}</span>
+            <span style={styles.badge}>
+              Inactief: {inactiveSuspects.length}
+            </span>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Aanwijzingen</h3>
+            <div style={styles.statNumber}>{clues.length}</div>
+            <span style={styles.badge}>Zichtbaar: {visibleClues.length}</span>
+            <span style={styles.badge}>Verborgen: {hiddenClues.length}</span>
+            <span style={styles.badge}>
+              Zonder bestand: {cluesWithoutFile.length}
+            </span>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Agenda</h3>
+            <div style={styles.statNumber}>{agendaItems.length}</div>
+            <span style={styles.badge}>
+              Zichtbaar: {visibleAgendaItems.length}
+            </span>
+            <span style={styles.badge}>
+              Verborgen: {hiddenAgendaItems.length}
+            </span>
+          </div>
+        </div>
+
+        <div style={styles.card}>
+          <h3>Waarschuwingen</h3>
+
+          {setupWarnings.length === 0 ? (
+            <p style={styles.ok}>Alles lijkt klaar voor de start.</p>
+          ) : (
+            setupWarnings.map((warning) => (
+              <div key={warning} style={styles.error}>
+                ⚠️ {warning}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h3>Deelnemers zonder groep</h3>
+
+          {usersWithoutGroup.length === 0 ? (
+            <p style={styles.ok}>
+              Alle deelnemers zijn gekoppeld aan een groep.
+            </p>
+          ) : (
+            usersWithoutGroup.map((p) => (
+              <div key={p.id} style={styles.card}>
+                <strong>{p.display_name || p.email}</strong>
+                <div style={styles.subtle}>{p.email}</div>
+                <div style={styles.error}>
+                  Nog niet gekoppeld aan een groep.
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h3>Aanwijzingen zonder bestand</h3>
+
+          {cluesWithoutFile.length === 0 ? (
+            <p style={styles.ok}>
+              Alle aanwijzingen hebben een bestand of link.
+            </p>
+          ) : (
+            cluesWithoutFile.map((clue) => (
+              <div key={clue.id} style={styles.card}>
+                <strong>{clue.title}</strong>
+                <div style={styles.subtle}>
+                  {clue.suspects?.name || "Algemeen"}
+                </div>
+                <div style={styles.error}>Geen bestand gekoppeld.</div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+  const AdminLiveGameStatus = () => (
+    <div style={styles.card}>
+      <h2>Live spelstatus per groep</h2>
+      <p style={styles.subtle}>
+        Snel overzicht voor de organisatie: wie loopt lekker, wie moet misschien
+        een duwtje krijgen en wie zit zonder pegels in het speurmoeras.
+      </p>
+
+      {groups.length === 0 ? (
+        <p style={styles.subtle}>Nog geen groepen.</p>
+      ) : (
+        groups.map((group) => {
+          const bought = groupClues.filter(
+            (item) => item.group_id === group.id
+          );
+          const notes = suspectNotes.filter(
+            (item) => item.group_id === group.id
+          );
+          const statuses = suspectStatuses.filter(
+            (item) => item.group_id === group.id
+          );
+          const groupNotifications = notifications.filter(
+            (item) => item.group_id === group.id
+          );
+
+          const lastNotification = groupNotifications[0];
+          const lastActivity = getGroupLastActivity(group.id);
+
+          const warnings = [];
+
+          if ((group.credits || 0) <= 3) {
+            warnings.push("Weinig pegels over");
+          }
+
+          if (bought.length >= 3 && notes.length === 0) {
+            warnings.push("Veel gekocht, maar nog geen notities");
+          }
+
+          if (
+            bought.length === 0 &&
+            notes.length === 0 &&
+            statuses.length === 0
+          ) {
+            warnings.push("Nog weinig activiteit");
+          }
+          if (lastActivity) {
+            const minutesSinceActivity =
+              (new Date() - new Date(lastActivity)) / 1000 / 60;
+
+            if (minutesSinceActivity > 60) {
+              warnings.push("Al meer dan 60 minuten geen activiteit");
+            }
+          }
+
+          if (!group.is_active) {
+            warnings.push("Groep staat inactief");
+          }
+
+          return (
+            <div key={group.id} style={styles.card}>
+              <h3 style={{ marginTop: 0 }}>{group.name}</h3>
+
+              <span style={styles.badge}>💰 {group.credits || 0} pegels</span>
+              <span style={styles.badge}>📄 {bought.length} aanwijzingen</span>
+              <span style={styles.badge}>📝 {notes.length} notities</span>
+              <span style={styles.badge}>🎯 {statuses.length} statussen</span>
+              <span style={styles.badge}>
+                🕒 {lastActivity ? formatDate(lastActivity) : "Geen activiteit"}
+              </span>
+              {group.is_active ? (
+                <span style={styles.badge}>Actief</span>
+              ) : (
+                <span style={styles.badge}>Inactief</span>
+              )}
+
+              <div style={{ marginTop: 12 }}>
+                <strong>Laatste melding</strong>
+                {lastNotification ? (
+                  <>
+                    <div>{lastNotification.title}</div>
+                    {lastNotification.message && (
+                      <div style={styles.subtle}>
+                        {lastNotification.message}
+                      </div>
+                    )}
+                    <div style={styles.subtle}>
+                      {formatDate(lastNotification.created_at)}
+                    </div>
+                  </>
+                ) : (
+                  <div style={styles.subtle}>Nog geen meldingen.</div>
+                )}
+              </div>
+
+              {warnings.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <strong>Waarschuwingen</strong>
+                  {warnings.map((warning) => (
+                    <div key={warning} style={styles.error}>
+                      ⚠️ {warning}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+
+  const AdminFinalReportStatusCard = () => {
+    const activeGroups = groups.filter((group) => group.is_active);
+
+    const submittedGroupIds = finalReports
+      .map((report) => report.group_id)
+      .filter(Boolean);
+
+    const missingGroups = activeGroups.filter(
+      (group) => !submittedGroupIds.includes(group.id)
+    );
+
+    const submittedCount = activeGroups.length - missingGroups.length;
+
+    return (
+      <div style={styles.card}>
+        <h2>Finale / eindrapporten</h2>
+
+        <span
+          style={{
+            ...styles.badge,
+            borderColor: finalReportsOpen ? "#22c55e" : "#ef4444",
+          }}
+        >
+          {finalReportsOpen ? "Open voor deelnemers" : "Gesloten"}
+        </span>
+
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <h3>Actieve groepen</h3>
+            <div style={styles.statNumber}>{activeGroups.length}</div>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Ingediend</h3>
+            <div style={styles.statNumber}>{submittedCount}</div>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Nog ontbrekend</h3>
+            <div style={styles.statNumber}>{missingGroups.length}</div>
+          </div>
+        </div>
+
+        {missingGroups.length === 0 && activeGroups.length > 0 ? (
+          <p style={styles.ok}>
+            Alle actieve groepen hebben een eindrapport ingediend.
+          </p>
+        ) : (
+          <div style={styles.card}>
+            <strong>Ontbrekende groepen</strong>
+
+            {missingGroups.length === 0 ? (
+              <p style={styles.subtle}>Geen actieve groepen.</p>
+            ) : (
+              missingGroups.map((group) => (
+                <span key={group.id} style={styles.badge}>
+                  {group.name}
+                </span>
+              ))
+            )}
+          </div>
+        )}
+
+        <button
+          style={styles.buttonSecondary}
+          onClick={() => setActiveAdminTab("final")}
+        >
+          Naar finale-overzicht
+        </button>
+      </div>
+    );
+  };
+  const AdminDashboard = () => {
+    const activeGroups = groups.filter((group) => group.is_active).length;
+    const inactiveGroups = groups.filter((group) => !group.is_active).length;
+
+    const activeSuspects = suspects.filter(
+      (suspect) => suspect.is_active
+    ).length;
+    const inactiveSuspects = suspects.filter(
+      (suspect) => !suspect.is_active
+    ).length;
+
+    const visibleClues = clues.filter((clue) => clue.is_visible).length;
+    const hiddenClues = clues.filter((clue) => !clue.is_visible).length;
+
+    return (
+      <>
+        {AdminLiveGameStatus()}
+
+        {AdminFinalReportStatusCard()}
+
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <h2>Groepen</h2>
+            <div style={styles.statNumber}>{groups.length}</div>
+            <div style={styles.subtle}>Totaal aantal groepen</div>
+            <span style={styles.badge}>Actief: {activeGroups}</span>
+            <span style={styles.badge}>Inactief: {inactiveGroups}</span>
+          </div>
+
+          <div style={styles.card}>
+            <h2>Aanwijzingen</h2>
+            <div style={styles.statNumber}>{clues.length}</div>
+            <div style={styles.subtle}>Totaal aantal aanwijzingen</div>
+            <span style={styles.badge}>Zichtbaar: {visibleClues}</span>
+            <span style={styles.badge}>Verborgen: {hiddenClues}</span>
+          </div>
+
+          <div style={styles.card}>
+            <h2>Aankopen</h2>
+            <div style={styles.statNumber}>{groupClues.length}</div>
+            <div style={styles.subtle}>Gekochte/toegewezen aanwijzingen</div>
+          </div>
+
+          <div style={styles.card}>
+            <h2>Verdachten</h2>
+            <div style={styles.statNumber}>{suspects.length}</div>
+            <div style={styles.subtle}>Totaal aantal verdachten</div>
+            <span style={styles.badge}>Actief: {activeSuspects}</span>
+            <span style={styles.badge}>Inactief: {inactiveSuspects}</span>
+          </div>
+
+          <div style={styles.card}>
+            <h2>Notities</h2>
+            <div style={styles.statNumber}>{suspectNotes.length}</div>
+            <div style={styles.subtle}>Door groepjes ingevoerd</div>
+          </div>
+
+          <div style={styles.card}>
+            <h2>Statussen</h2>
+            <div style={styles.statNumber}>{suspectStatuses.length}</div>
+            <div style={styles.subtle}>Verdachte statussen door groepjes</div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  const AdminManage = () => (
+    <div style={styles.grid}>
+      <div style={styles.card}>
+        <h2>Nieuwe groep</h2>
+        <input
+          style={styles.input}
+          placeholder="Groepsnaam"
+          value={newGroupName}
+          onChange={(e) => setNewGroupName(e.target.value)}
+        />
+        <button style={styles.button} onClick={createGroup}>
+          Groep maken
+        </button>
+
+        <h2>Gebruiker koppelen aan groep</h2>
+        <select
+          style={styles.select}
+          value={selectedUser}
+          onChange={(e) => setSelectedUser(e.target.value)}
+        >
+          <option value="">Selecteer gebruiker</option>
+          {profiles.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.display_name || p.email} ({p.email})
+            </option>
+          ))}
+        </select>
+
+        <select
+          style={styles.select}
+          value={selectedGroup}
+          onChange={(e) => setSelectedGroup(e.target.value)}
+        >
+          <option value="">Selecteer groep</option>
+          {groups
+            .filter((group) => group.is_active)
+            .map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+        </select>
+
+        <button style={styles.button} onClick={addUserToGroup}>
+          Toevoegen
+        </button>
+        <h2>Suspect-account koppelen</h2>
+
+        <p style={styles.subtle}>
+          Koppel een gebruiker met rol suspect aan een verdachte. Deze gebruiker
+          krijgt daarna een eigen verdachte-dashboard.
+        </p>
+
+        <select
+          style={styles.select}
+          value={selectedSuspectUser}
+          onChange={(e) => setSelectedSuspectUser(e.target.value)}
+        >
+          <option value="">Selecteer suspect-gebruiker</option>
+          {profiles
+            .filter((p) => p.role === "suspect")
+            .map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.display_name || p.email} ({p.email})
+              </option>
+            ))}
+        </select>
+
+        <select
+          style={styles.select}
+          value={selectedProfileSuspect}
+          onChange={(e) => setSelectedProfileSuspect(e.target.value)}
+        >
+          <option value="">Selecteer verdachte</option>
+          {suspects.map((suspect) => (
+            <option key={suspect.id} value={suspect.id}>
+              {suspect.name}
+            </option>
+          ))}
+        </select>
+
+        <button style={styles.button} onClick={linkUserToSuspect}>
+          Suspect koppelen
+        </button>
+
+        <div style={{ marginTop: 12 }}>
+          <strong>Gekoppelde suspect-accounts</strong>
+
+          {profiles.filter((p) => p.role === "suspect").length === 0 ? (
+            <div style={styles.subtle}>Nog geen suspect-gebruikers.</div>
+          ) : (
+            profiles
+              .filter((p) => p.role === "suspect")
+              .map((p) => {
+                const linkedSuspect = suspects.find(
+                  (s) => s.id === p.suspect_id
+                );
+
+                return (
+                  <div key={p.id} style={styles.card}>
+                    <strong>{p.display_name || p.email}</strong>
+                    <div style={styles.subtle}>{p.email}</div>
+                    <span style={styles.badge}>
+                      {linkedSuspect
+                        ? `Gekoppeld aan: ${linkedSuspect.name}`
+                        : "Nog niet gekoppeld"}
+                    </span>
+                  </div>
+                );
+              })
+          )}
+        </div>
+      </div>
+
+      <div style={styles.card}>
+        <h2>Verdachte toevoegen</h2>
+        <input
+          style={styles.input}
+          placeholder="Naam verdachte"
+          value={newSuspectName}
+          onChange={(e) => setNewSuspectName(e.target.value)}
+        />
+        <textarea
+          style={styles.textarea}
+          placeholder="Omschrijving"
+          value={newSuspectDescription}
+          onChange={(e) => setNewSuspectDescription(e.target.value)}
+        />
+        <input
+          style={styles.input}
+          placeholder="Foto URL, optioneel"
+          value={newSuspectPhotoUrl}
+          onChange={(e) => setNewSuspectPhotoUrl(e.target.value)}
+        />
+        <input
+          style={styles.input}
+          type="file"
+          id="suspect-file"
+          accept="image/*"
+        />
+        <button
+          style={styles.button}
+          onClick={() => {
+            const file = document.getElementById("suspect-file")?.files?.[0];
+            createSuspect(file);
+          }}
+        >
+          Verdachte toevoegen
+        </button>
+        <div style={{ marginTop: 18 }}>
+          <h3>Verdachten beheren</h3>
+
+          {suspects.length === 0 ? (
+            <p style={styles.subtle}>Nog geen verdachten.</p>
+          ) : (
+            suspects.map((suspect) => (
+              <div key={suspect.id} style={styles.card}>
+                {editingSuspectId === suspect.id ? (
+                  <>
+                    <h3>Verdachte bewerken</h3>
+
+                    <input
+                      style={styles.input}
+                      placeholder="Naam verdachte"
+                      value={editSuspectName}
+                      onChange={(e) => setEditSuspectName(e.target.value)}
+                    />
+
+                    <textarea
+                      style={styles.textarea}
+                      placeholder="Omschrijving"
+                      value={editSuspectDescription}
+                      onChange={(e) =>
+                        setEditSuspectDescription(e.target.value)
+                      }
+                    />
+
+                    <input
+                      style={styles.input}
+                      placeholder="Foto URL"
+                      value={editSuspectPhotoUrl}
+                      onChange={(e) => setEditSuspectPhotoUrl(e.target.value)}
+                    />
+
+                    <div style={styles.card}>
+                      <strong>Foto vervangen</strong>
+
+                      <p style={styles.subtle}>
+                        Kies alleen een nieuw bestand als je de bestaande foto
+                        wilt vervangen. Laat dit leeg om de huidige foto of
+                        foto-URL te behouden.
+                      </p>
+
+                      {suspect.photo_url ? (
+                        <div style={{ marginBottom: 10 }}>
+                          {SuspectImage({
+                            src: suspect.photo_url,
+                            alt: suspect.name,
+                          })}
+                        </div>
+                      ) : (
+                        <div style={styles.subtle}>
+                          Er is nog geen foto gekoppeld.
+                        </div>
+                      )}
+
+                      <input
+                        style={styles.input}
+                        type="file"
+                        accept="image/*"
+                        ref={editSuspectFileRef}
+                      />
+                    </div>
+
+                    <button style={styles.button} onClick={saveEditSuspect}>
+                      Opslaan
+                    </button>
+
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={cancelEditSuspect}
+                    >
+                      Annuleren
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {SuspectImage({
+                      src: suspect.photo_url,
+                      alt: suspect.name,
+                    })}
+
+                    <strong>{suspect.name}</strong>
+
+                    <div style={styles.subtle}>
+                      {suspect.description || "Geen omschrijving."}
+                    </div>
+
+                    {suspect.is_active ? (
+                      <span style={styles.badge}>Actief</span>
+                    ) : (
+                      <span style={styles.badge}>Inactief</span>
+                    )}
+
+                    <div style={{ marginTop: 10 }}>
+                      <button
+                        style={styles.buttonSecondary}
+                        onClick={() => startEditSuspect(suspect)}
+                      >
+                        Bewerken
+                      </button>
+
+                      <button
+                        style={styles.buttonSecondary}
+                        onClick={() => toggleSuspectActive(suspect)}
+                      >
+                        {suspect.is_active
+                          ? "Verdachte inactief zetten"
+                          : "Verdachte actief zetten"}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div style={styles.card}>
+        <h2>Agenda-item toevoegen</h2>
+        <input
+          style={styles.input}
+          placeholder="Titel"
+          value={newAgenda.title}
+          onChange={(e) =>
+            setNewAgenda((p) => ({ ...p, title: e.target.value }))
+          }
+        />
+        <textarea
+          style={styles.textarea}
+          placeholder="Omschrijving"
+          value={newAgenda.description}
+          onChange={(e) =>
+            setNewAgenda((p) => ({ ...p, description: e.target.value }))
+          }
+        />
+        <input
+          style={styles.input}
+          type="datetime-local"
+          value={newAgenda.starts_at}
+          onChange={(e) =>
+            setNewAgenda((p) => ({ ...p, starts_at: e.target.value }))
+          }
+        />
+        <input
+          style={styles.input}
+          type="datetime-local"
+          value={newAgenda.ends_at}
+          onChange={(e) =>
+            setNewAgenda((p) => ({ ...p, ends_at: e.target.value }))
+          }
+        />
+        <select
+          style={styles.select}
+          value={newAgenda.item_type}
+          onChange={(e) =>
+            setNewAgenda((p) => ({ ...p, item_type: e.target.value }))
+          }
+        >
+          <option value="activity">🕵️ Activiteit</option>
+          <option value="food">🍽️ Eten</option>
+          <option value="credits">💰 Pegels verdienen</option>
+          <option value="deadline">⏰ Deadline</option>
+          <option value="free_time">💤 Vrije tijd</option>
+        </select>
+        <input
+          style={styles.input}
+          type="number"
+          placeholder="Pegels te verdienen"
+          value={newAgenda.credits_reward}
+          onChange={(e) =>
+            setNewAgenda((p) => ({ ...p, credits_reward: e.target.value }))
+          }
+        />
+        <label>
+          <input
+            type="checkbox"
+            checked={newAgenda.is_visible}
+            onChange={(e) =>
+              setNewAgenda((p) => ({ ...p, is_visible: e.target.checked }))
+            }
+          />{" "}
+          Zichtbaar voor deelnemers
+        </label>
+        <br />
+        <br />
+        <button style={styles.button} onClick={createAgendaItem}>
+          Agenda-item toevoegen
+        </button>
+        <div style={{ marginTop: 18 }}>
+          <h3>Agenda beheren</h3>
+
+          {agendaItems.length === 0 ? (
+            <p style={styles.subtle}>Nog geen agenda-items.</p>
+          ) : (
+            agendaItems.map((item) => (
+              <div key={item.id} style={styles.card}>
+                {editingAgendaId === item.id ? (
+                  <>
+                    <h3>Agenda-item bewerken</h3>
+
+                    <input
+                      style={styles.input}
+                      placeholder="Titel"
+                      value={editAgenda.title}
+                      onChange={(e) =>
+                        setEditAgenda((p) => ({ ...p, title: e.target.value }))
+                      }
+                    />
+
+                    <textarea
+                      style={styles.textarea}
+                      placeholder="Omschrijving"
+                      value={editAgenda.description}
+                      onChange={(e) =>
+                        setEditAgenda((p) => ({
+                          ...p,
+                          description: e.target.value,
+                        }))
+                      }
+                    />
+
+                    <input
+                      style={styles.input}
+                      type="datetime-local"
+                      value={editAgenda.starts_at}
+                      onChange={(e) =>
+                        setEditAgenda((p) => ({
+                          ...p,
+                          starts_at: e.target.value,
+                        }))
+                      }
+                    />
+
+                    <input
+                      style={styles.input}
+                      type="datetime-local"
+                      value={editAgenda.ends_at}
+                      onChange={(e) =>
+                        setEditAgenda((p) => ({
+                          ...p,
+                          ends_at: e.target.value,
+                        }))
+                      }
+                    />
+
+                    <select
+                      style={styles.select}
+                      value={editAgenda.item_type}
+                      onChange={(e) =>
+                        setEditAgenda((p) => ({
+                          ...p,
+                          item_type: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="activity">🕵️ Activiteit</option>
+                      <option value="food">🍽️ Eten</option>
+                      <option value="credits">💰 Pegels verdienen</option>
+                      <option value="deadline">⏰ Deadline</option>
+                      <option value="free_time">💤 Vrije tijd</option>
+                    </select>
+
+                    <input
+                      style={styles.input}
+                      type="number"
+                      placeholder="Pegels te verdienen"
+                      value={editAgenda.credits_reward}
+                      onChange={(e) =>
+                        setEditAgenda((p) => ({
+                          ...p,
+                          credits_reward: e.target.value,
+                        }))
+                      }
+                    />
+
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={editAgenda.is_visible}
+                        onChange={(e) =>
+                          setEditAgenda((p) => ({
+                            ...p,
+                            is_visible: e.target.checked,
+                          }))
+                        }
+                      />{" "}
+                      Zichtbaar voor deelnemers
+                    </label>
+
+                    <br />
+                    <br />
+
+                    <button style={styles.button} onClick={saveEditAgenda}>
+                      Opslaan
+                    </button>
+
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={cancelEditAgenda}
+                    >
+                      Annuleren
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <strong>
+                      {getAgendaIcon(item.item_type)} {item.title}
+                    </strong>
+
+                    <div style={styles.subtle}>
+                      {formatDate(item.starts_at)}
+                      {item.ends_at ? ` - ${formatDate(item.ends_at)}` : ""}
+                    </div>
+
+                    {item.description && <div>{item.description}</div>}
+
+                    {item.credits_reward > 0 && (
+                      <span style={styles.badge}>
+                        💰 {item.credits_reward} pegels
+                      </span>
+                    )}
+
+                    {item.is_visible ? (
+                      <span style={styles.badge}>Zichtbaar</span>
+                    ) : (
+                      <span style={styles.badge}>Verborgen</span>
+                    )}
+
+                    <div style={{ marginTop: 10 }}>
+                      <button
+                        style={styles.buttonSecondary}
+                        onClick={() => startEditAgenda(item)}
+                      >
+                        Bewerken
+                      </button>
+
+                      <button
+                        style={styles.buttonSecondary}
+                        onClick={() => toggleAgendaVisible(item)}
+                      >
+                        {item.is_visible ? "Verbergen" : "Zichtbaar maken"}
+                      </button>
+
+                      <button
+                        style={styles.buttonDanger}
+                        onClick={() => deleteAgendaItem(item)}
+                      >
+                        Verwijderen
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+      <div style={styles.card}>
+        <h2>Testdata resetten</h2>
+
+        {gameMode === "test" ? (
+          <>
+            <p style={styles.subtle}>
+              Hiermee verwijder je gekochte aanwijzingen, notities, statussen,
+              meldingen en pegel-transacties. Groepen, gebruikers, verdachten,
+              agenda-items en aanwijzingen blijven bestaan.
+            </p>
+
+            <button style={styles.buttonDanger} onClick={resetTestData}>
+              Reset testdata
+            </button>
+          </>
+        ) : (
+          <p style={styles.error}>
+            Reset testdata is uitgeschakeld omdat het spel live staat.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+  const AdminClues = () => (
+    <>
+      <div style={styles.card}>
+        <h2>Aanwijzing toevoegen</h2>
+        <input
+          style={styles.input}
+          placeholder="Titel"
+          value={newClueTitle}
+          onChange={(e) => setNewClueTitle(e.target.value)}
+        />
+        <textarea
+          style={styles.textarea}
+          placeholder="Omschrijving"
+          value={newClueDescription}
+          onChange={(e) => setNewClueDescription(e.target.value)}
+        />
+        <select
+          style={styles.select}
+          value={newClueSuspect}
+          onChange={(e) => setNewClueSuspect(e.target.value)}
+        >
+          <option value="">Geen verdachte / algemeen</option>
+          {suspects.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+        <input
+          style={styles.input}
+          type="number"
+          placeholder="Prijs"
+          value={newCluePrice}
+          onChange={(e) => setNewCluePrice(e.target.value)}
+        />
+        <label>
+          <input
+            type="checkbox"
+            checked={newClueIsFree}
+            onChange={(e) => setNewClueIsFree(e.target.checked)}
+          />{" "}
+          Gratis
+        </label>
+        <br />
+        <label>
+          <input
+            type="checkbox"
+            checked={newClueIsGlobal}
+            onChange={(e) => setNewClueIsGlobal(e.target.checked)}
+          />{" "}
+          Voor iedereen direct zichtbaar
+        </label>
+        <br />
+        <br />
+        <input style={styles.input} type="file" id="clue-file" />
+        <button
+          style={styles.button}
+          onClick={() => {
+            const file = document.getElementById("clue-file")?.files?.[0];
+            createClue(file);
+          }}
+        >
+          Aanwijzing toevoegen
+        </button>
+      </div>
+      <div style={styles.card}>
+        <h2>Aanwijzing handmatig toewijzen</h2>
+
+        <p style={styles.subtle}>
+          Geef een aanwijzing gratis aan één groep, alle actieve groepen of een
+          selectie van groepen. Groepen die deze aanwijzing al hebben worden
+          automatisch overgeslagen.
+        </p>
+
+        <select
+          style={styles.select}
+          value={manualClueId}
+          onChange={(e) => setManualClueId(e.target.value)}
+        >
+          <option value="">Selecteer aanwijzing</option>
+          {clues.map((clue) => (
+            <option key={clue.id} value={clue.id}>
+              {clue.title}
+            </option>
+          ))}
+        </select>
+
+        <div style={styles.card}>
+          <strong>Ontvangers</strong>
+
+          <label style={{ display: "block", marginTop: 10 }}>
+            <input
+              type="radio"
+              name="manualClueMode"
+              checked={manualClueMode === "single"}
+              onChange={() => setManualClueMode("single")}
+            />{" "}
+            Eén groep
+          </label>
+
+          <label style={{ display: "block", marginTop: 10 }}>
+            <input
+              type="radio"
+              name="manualClueMode"
+              checked={manualClueMode === "all"}
+              onChange={() => setManualClueMode("all")}
+            />{" "}
+            Alle actieve groepen
+          </label>
+
+          <label style={{ display: "block", marginTop: 10 }}>
+            <input
+              type="radio"
+              name="manualClueMode"
+              checked={manualClueMode === "selection"}
+              onChange={() => setManualClueMode("selection")}
+            />{" "}
+            Selectie van groepen
+          </label>
+        </div>
+
+        {manualClueMode === "single" && (
+          <select
+            style={styles.select}
+            value={manualClueGroup}
+            onChange={(e) => setManualClueGroup(e.target.value)}
+          >
+            <option value="">Selecteer groep</option>
+            {groups
+              .filter((group) => group.is_active)
+              .map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+          </select>
+        )}
+
+        {manualClueMode === "all" && (
+          <div style={styles.card}>
+            <strong>Alle actieve groepen</strong>
+            <div style={styles.subtle}>
+              Deze aanwijzing wordt toegewezen aan maximaal{" "}
+              {groups.filter((group) => group.is_active).length} actieve
+              groep(en). Groepen die de aanwijzing al hebben worden
+              overgeslagen.
+            </div>
+          </div>
+        )}
+
+        {manualClueMode === "selection" && (
+          <div style={styles.card}>
+            <strong>Selecteer groepen</strong>
+
+            {groups.filter((group) => group.is_active).length === 0 ? (
+              <p style={styles.subtle}>Geen actieve groepen beschikbaar.</p>
+            ) : (
+              groups
+                .filter((group) => group.is_active)
+                .map((group) => (
+                  <label
+                    key={group.id}
+                    style={{
+                      display: "block",
+                      marginTop: 10,
+                      padding: 10,
+                      border: "1px solid #27272a",
+                      borderRadius: 12,
+                      background: selectedManualClueGroups.includes(group.id)
+                        ? "#27272a"
+                        : "#09090b",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedManualClueGroups.includes(group.id)}
+                      onChange={() => toggleSelectedManualClueGroup(group.id)}
+                    />{" "}
+                    {group.name}
+                  </label>
+                ))
+            )}
+
+            <div style={styles.subtle}>
+              Geselecteerd: {selectedManualClueGroups.length} groep(en)
+            </div>
+          </div>
+        )}
+
+        <button style={styles.button} onClick={assignClueToGroup}>
+          {manualClueMode === "all"
+            ? "Aanwijzing toewijzen aan alle actieve groepen"
+            : manualClueMode === "selection"
+            ? `Aanwijzing toewijzen aan ${selectedManualClueGroups.length} groep(en)`
+            : "Aanwijzing toewijzen"}
+        </button>
+      </div>
+
+      <div style={styles.card}>
+        <h2>Alle aanwijzingen beheren</h2>
+
+        {clues.length === 0 ? (
+          <p style={styles.subtle}>Nog geen aanwijzingen.</p>
+        ) : (
+          clues.map((clue) => (
+            <div key={clue.id} style={styles.card}>
+              {editingClueId === clue.id ? (
+                <>
+                  <h3>Aanwijzing bewerken</h3>
+
+                  <input
+                    style={styles.input}
+                    placeholder="Titel"
+                    value={editClueTitle}
+                    onChange={(e) => setEditClueTitle(e.target.value)}
+                  />
+
+                  <textarea
+                    style={styles.textarea}
+                    placeholder="Omschrijving"
+                    value={editClueDescription}
+                    onChange={(e) => setEditClueDescription(e.target.value)}
+                  />
+
+                  <select
+                    style={styles.select}
+                    value={editClueSuspect}
+                    onChange={(e) => setEditClueSuspect(e.target.value)}
+                  >
+                    <option value="">Geen verdachte / algemeen</option>
+                    {suspects.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <input
+                    style={styles.input}
+                    type="number"
+                    placeholder="Prijs"
+                    value={editCluePrice}
+                    onChange={(e) => setEditCluePrice(e.target.value)}
+                  />
+
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editClueIsFree}
+                      onChange={(e) => setEditClueIsFree(e.target.checked)}
+                    />{" "}
+                    Gratis
+                  </label>
+
+                  <br />
+
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editClueIsGlobal}
+                      onChange={(e) => setEditClueIsGlobal(e.target.checked)}
+                    />{" "}
+                    Voor iedereen direct zichtbaar
+                  </label>
+
+                  <br />
+
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editClueIsVisible}
+                      onChange={(e) => setEditClueIsVisible(e.target.checked)}
+                    />{" "}
+                    Zichtbaar
+                  </label>
+
+                  <br />
+                  <br />
+
+                  <div style={styles.card}>
+                    <strong>Bestand vervangen</strong>
+
+                    <p style={styles.subtle}>
+                      Kies alleen een nieuw bestand als je het bestaande bestand
+                      wilt vervangen. Laat dit leeg om het huidige bestand te
+                      behouden.
+                    </p>
+
+                    {clue.file_url ? (
+                      <div style={{ marginBottom: 10 }}>
+                        <a
+                          href={clue.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={styles.link}
+                        >
+                          Huidig bestand openen
+                        </a>
+                      </div>
+                    ) : (
+                      <div style={styles.subtle}>
+                        Er is nog geen bestand gekoppeld.
+                      </div>
+                    )}
+
+                    <input
+                      style={styles.input}
+                      type="file"
+                      ref={editClueFileRef}
+                    />
+                  </div>
+
+                  <button style={styles.button} onClick={saveEditClue}>
+                    Opslaan
+                  </button>
+
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={cancelEditClue}
+                  >
+                    Annuleren
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 style={{ marginTop: 0 }}>{clue.title}</h3>
+
+                  {clue.suspects?.name && (
+                    <span style={styles.badge}>🕵️ {clue.suspects.name}</span>
+                  )}
+
+                  <span style={styles.badge}>💰 {clue.price}</span>
+                  {clue.is_free && <span style={styles.badge}>Gratis</span>}
+                  {clue.is_global && <span style={styles.badge}>Global</span>}
+                  {clue.is_visible ? (
+                    <span style={styles.badge}>Zichtbaar</span>
+                  ) : (
+                    <span style={styles.badge}>Verborgen</span>
+                  )}
+
+                  <p>{clue.description}</p>
+
+                  {clue.file_url && (
+                    <div style={{ marginBottom: 10 }}>
+                      <a
+                        href={clue.file_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={styles.link}
+                      >
+                        Bestand openen
+                      </a>
+                    </div>
+                  )}
+
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={() => startEditClue(clue)}
+                  >
+                    Bewerken
+                  </button>
+
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={() => toggleClueVisible(clue)}
+                  >
+                    {clue.is_visible ? "Verbergen" : "Zichtbaar maken"}
+                  </button>
+
+                  <button
+                    style={styles.buttonDanger}
+                    onClick={() => deleteClue(clue)}
+                  >
+                    Verwijderen
+                  </button>
+                </>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </>
+  );
+
+  const AdminCreditsAndNotifications = () => (
+    <div style={styles.grid}>
+      <div style={styles.card}>
+        <h2>Pegels beheren</h2>
+        <select
+          style={styles.select}
+          value={creditGroup}
+          onChange={(e) => setCreditGroup(e.target.value)}
+        >
+          <option value="">Selecteer groep</option>
+          {groups
+            .filter((group) => group.is_active)
+            .map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+        </select>
+        <input
+          style={styles.input}
+          type="number"
+          placeholder="Aantal pegels, mag negatief zijn"
+          value={creditAmount}
+          onChange={(e) => setCreditAmount(e.target.value)}
+        />
+        <input
+          style={styles.input}
+          placeholder="Reden"
+          value={creditReason}
+          onChange={(e) => setCreditReason(e.target.value)}
+        />
+        <button style={styles.button} onClick={giveCredits}>
+          Pegels aanpassen
+        </button>
+        <div style={{ marginTop: 10 }}>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() =>
+              changeCredits(creditGroup, 1, "Snelle correctie: +1 pegel")
+            }
+          >
+            +1
+          </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() =>
+              changeCredits(creditGroup, 5, "Snelle correctie: +5 pegels")
+            }
+          >
+            +5
+          </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() =>
+              changeCredits(creditGroup, 10, "Snelle correctie: +10 pegels")
+            }
+          >
+            +10
+          </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() =>
+              changeCredits(creditGroup, -1, "Snelle correctie: -1 pegel")
+            }
+          >
+            -1
+          </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() =>
+              changeCredits(creditGroup, -5, "Snelle correctie: -5 pegels")
+            }
+          >
+            -5
+          </button>
+        </div>
+      </div>
+
+      <div style={styles.card}>
+        <h2>Notificatie sturen</h2>
+
+        <div style={styles.card}>
+          <strong>Ontvangers</strong>
+
+          <label style={{ display: "block", marginTop: 10 }}>
+            <input
+              type="radio"
+              name="notificationMode"
+              checked={notificationMode === "single"}
+              onChange={() => setNotificationMode("single")}
+            />{" "}
+            Eén groep
+          </label>
+
+          <label style={{ display: "block", marginTop: 10 }}>
+            <input
+              type="radio"
+              name="notificationMode"
+              checked={notificationMode === "all"}
+              onChange={() => setNotificationMode("all")}
+            />{" "}
+            Alle actieve groepen
+          </label>
+
+          <label style={{ display: "block", marginTop: 10 }}>
+            <input
+              type="radio"
+              name="notificationMode"
+              checked={notificationMode === "selection"}
+              onChange={() => setNotificationMode("selection")}
+            />{" "}
+            Selectie van groepen
+          </label>
+        </div>
+
+        {notificationMode === "single" && (
+          <select
+            style={styles.select}
+            value={newNotificationGroup}
+            onChange={(e) => setNewNotificationGroup(e.target.value)}
+          >
+            <option value="">Selecteer groep</option>
+            {groups
+              .filter((group) => group.is_active)
+              .map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+          </select>
+        )}
+
+        {notificationMode === "all" && (
+          <div style={styles.card}>
+            <strong>Alle actieve groepen</strong>
+            <div style={styles.subtle}>
+              Deze melding wordt naar{" "}
+              {groups.filter((group) => group.is_active).length} actieve
+              groep(en) gestuurd.
+            </div>
+          </div>
+        )}
+
+        {notificationMode === "selection" && (
+          <div style={styles.card}>
+            <strong>Selecteer groepen</strong>
+
+            {groups.filter((group) => group.is_active).length === 0 ? (
+              <p style={styles.subtle}>Geen actieve groepen beschikbaar.</p>
+            ) : (
+              groups
+                .filter((group) => group.is_active)
+                .map((group) => (
+                  <label
+                    key={group.id}
+                    style={{
+                      display: "block",
+                      marginTop: 10,
+                      padding: 10,
+                      border: "1px solid #27272a",
+                      borderRadius: 12,
+                      background: selectedNotificationGroups.includes(group.id)
+                        ? "#27272a"
+                        : "#09090b",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedNotificationGroups.includes(group.id)}
+                      onChange={() => toggleSelectedNotificationGroup(group.id)}
+                    />{" "}
+                    {group.name}
+                  </label>
+                ))
+            )}
+
+            <div style={styles.subtle}>
+              Geselecteerd: {selectedNotificationGroups.length} groep(en)
+            </div>
+          </div>
+        )}
+
+        <input
+          style={styles.input}
+          placeholder="Titel"
+          value={newNotificationTitle}
+          onChange={(e) => setNewNotificationTitle(e.target.value)}
+        />
+
+        <textarea
+          style={styles.textarea}
+          placeholder="Bericht"
+          value={newNotificationMessage}
+          onChange={(e) => setNewNotificationMessage(e.target.value)}
+        />
+
+        <button style={styles.button} onClick={sendNotification}>
+          {notificationMode === "all"
+            ? "Versturen naar alle actieve groepen"
+            : notificationMode === "selection"
+            ? `Versturen naar ${selectedNotificationGroups.length} groep(en)`
+            : "Versturen"}
+        </button>
+      </div>
+
+      {NotificationsBlock()}
+      {TransactionsBlock()}
+    </div>
+  );
+
+  const AdminGroupsList = () => (
+    <div style={styles.card}>
+      <h2>Groepen & gekochte aanwijzingen</h2>
+
+      {groups.length === 0 ? (
+        <p style={styles.subtle}>Nog geen groepen.</p>
+      ) : (
+        groups.map((g) => {
+          const members = memberships.filter((m) => m.group_id === g.id);
+          const bought = groupClues.filter((c) => c.group_id === g.id);
+
+          return (
+            <div key={g.id} style={styles.card}>
+              {editingGroupId === g.id ? (
+                <div>
+                  <h3 style={{ marginTop: 0 }}>Groep bewerken</h3>
+
+                  <input
+                    style={styles.input}
+                    placeholder="Groepsnaam"
+                    value={editGroupName}
+                    onChange={(e) => setEditGroupName(e.target.value)}
+                  />
+
+                  <button style={styles.button} onClick={saveEditGroup}>
+                    Opslaan
+                  </button>
+
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={cancelEditGroup}
+                  >
+                    Annuleren
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h3 style={{ marginTop: 0 }}>{g.name}</h3>
+
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={() => startEditGroup(g)}
+                  >
+                    Groepsnaam bewerken
+                  </button>
+                </>
+              )}
+
+              <span style={styles.badge}>💰 {g.credits} pegels</span>
+              <span style={styles.badge}>👥 {members.length} leden</span>
+              <span style={styles.badge}>📄 {bought.length} gekocht</span>
+              {g.is_active ? (
+                <span style={styles.badge}>Actief</span>
+              ) : (
+                <span style={styles.badge}>Inactief</span>
+              )}
+
+              <div style={{ marginTop: 10 }}>
+                <button
+                  style={styles.buttonSecondary}
+                  onClick={() => toggleGroupActive(g)}
+                >
+                  {g.is_active
+                    ? "Groep inactief zetten"
+                    : "Groep actief zetten"}
+                </button>
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <strong>Leden</strong>
+
+                {members.length === 0 ? (
+                  <div style={styles.subtle}>Geen leden gekoppeld.</div>
+                ) : (
+                  members.map((m) => {
+                    const p = profiles.find((x) => x.id === m.user_id);
+
+                    return (
+                      <div key={m.id} style={styles.card}>
+                        <strong>
+                          {p?.display_name || p?.email || m.user_id}
+                        </strong>
+                        {p?.email && <div style={styles.subtle}>{p.email}</div>}
+
+                        <button
+                          style={styles.buttonDanger}
+                          onClick={() => removeUserFromGroup(m)}
+                        >
+                          Verwijderen uit groep
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div style={{ marginTop: 14 }}>
+                <strong>Gekochte aanwijzingen</strong>
+
+                {bought.length === 0 ? (
+                  <div style={styles.subtle}>
+                    Nog geen aanwijzingen gekocht.
+                  </div>
+                ) : (
+                  bought.map((purchase) => {
+                    const clue =
+                      purchase.clues ||
+                      clues.find((item) => item.id === purchase.clue_id);
+
+                    const suspectName =
+                      clue?.suspects?.name ||
+                      suspects.find((s) => s.id === clue?.suspect_id)?.name ||
+                      "Algemeen";
+
+                    return (
+                      <div key={purchase.id} style={styles.card}>
+                        <strong>{clue?.title || "Onbekende aanwijzing"}</strong>
+
+                        <div>
+                          <span style={styles.badge}>🕵️ {suspectName}</span>
+                          {clue?.price !== undefined && (
+                            <span style={styles.badge}>💰 {clue.price}</span>
+                          )}
+                        </div>
+
+                        {purchase.purchased_at && (
+                          <div style={styles.subtle}>
+                            Gekocht op: {formatDate(purchase.purchased_at)}
+                          </div>
+                        )}
+
+                        {clue?.file_url && (
+                          <div style={{ marginTop: 8 }}>
+                            <a
+                              href={clue.file_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={styles.link}
+                            >
+                              Bestand openen
+                            </a>
+                          </div>
+                        )}
+                        <div style={{ marginTop: 10 }}>
+                          <button
+                            style={styles.buttonDanger}
+                            onClick={() => removeGroupClue(purchase)}
+                          >
+                            {gameMode === "test"
+                              ? "Verwijderen bij groep"
+                              : "Verwijderen geblokkeerd live"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+  const AdminFinalReports = () => {
+    const activeGroups = groups.filter((group) => group.is_active);
+
+    return (
+      <div style={styles.card}>
+        <h2>Eindrapporten</h2>
+
+        <div style={styles.card}>
+          <h3>Status eindrapporten</h3>
+
+          <span
+            style={{
+              ...styles.badge,
+              borderColor: finalReportsOpen ? "#22c55e" : "#ef4444",
+            }}
+          >
+            {finalReportsOpen ? "Open voor deelnemers" : "Gesloten"}
+          </span>
+
+          <p style={styles.subtle}>
+            Zolang eindrapporten open zijn, kunnen groepen hun rapport indienen
+            en aanpassen. Zodra je sluit, kunnen ze niet meer wijzigen.
+          </p>
+
+          {finalReportsOpen ? (
+            <button
+              style={styles.buttonDanger}
+              onClick={() => updateFinalReportsOpen(false)}
+            >
+              Eindrapporten sluiten
+            </button>
+          ) : (
+            <button
+              style={styles.button}
+              onClick={() => updateFinalReportsOpen(true)}
+            >
+              Eindrapporten openen
+            </button>
+          )}
+        </div>
+
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <h3>Ingediend</h3>
+            <div style={styles.statNumber}>{finalReports.length}</div>
+            <div style={styles.subtle}>Aantal ontvangen eindrapporten</div>
+          </div>
+
+          <div style={styles.card}>
+            <h3>Nog niet ingediend</h3>
+            <div style={styles.statNumber}>
+              {Math.max(activeGroups.length - finalReports.length, 0)}
+            </div>
+            <div style={styles.subtle}>Actieve groepen zonder eindrapport</div>
+          </div>
+        </div>
+
+        <div style={styles.card}>
+          <h3>Overzicht per groep</h3>
+
+          {activeGroups.length === 0 ? (
+            <p style={styles.subtle}>Geen actieve groepen.</p>
+          ) : (
+            activeGroups.map((group) => {
+              const report = finalReports.find(
+                (item) => item.group_id === group.id
+              );
+
+              return (
+                <div key={group.id} style={styles.card}>
+                  <h3 style={{ marginTop: 0 }}>{group.name}</h3>
+
+                  {report ? (
+                    <>
+                      <span style={styles.badge}>Ingediend</span>
+                      <span style={styles.badge}>
+                        Verdachte:{" "}
+                        {report.suspects?.name ||
+                          suspects.find((s) => s.id === report.suspect_id)
+                            ?.name ||
+                          "Onbekend"}
+                      </span>
+
+                      <div style={styles.subtle}>
+                        Ingediend: {formatDate(report.submitted_at)}
+                      </div>
+
+                      <h4>Motief / verklaring</h4>
+                      <div style={{ whiteSpace: "pre-wrap" }}>
+                        {report.motive}
+                      </div>
+
+                      <h4>Bewijs / redenering</h4>
+                      <div style={{ whiteSpace: "pre-wrap" }}>
+                        {report.evidence}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <span style={styles.badge}>Nog niet ingediend</span>
+                      <p style={styles.subtle}>
+                        Deze groep heeft nog geen eindrapport opgeslagen.
+                      </p>
+                    </>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const AdminInterrogationPanel = () => {
+    const visibleSuspects = selectedInterrogationSuspect
+      ? suspects.filter(
+          (suspect) => suspect.id === selectedInterrogationSuspect
+        )
+      : suspects;
+
+    return (
+      <div style={styles.card}>
+        <h2>Verhoorpaneel per verdachte</h2>
+        <p style={styles.subtle}>
+          Gebruik dit scherm tijdens verhoren om snel te zien wat de groepjes
+          denken, welke notities ze hebben gemaakt en welke aanwijzingen rond
+          deze verdachte zijn gekocht.
+        </p>
+
+        <select
+          style={styles.select}
+          value={selectedInterrogationSuspect}
+          onChange={(e) => setSelectedInterrogationSuspect(e.target.value)}
+        >
+          <option value="">Alle verdachten</option>
+          {suspects.map((suspect) => (
+            <option key={suspect.id} value={suspect.id}>
+              {suspect.name}
+            </option>
+          ))}
+        </select>
+
+        {suspects.length === 0 ? (
+          <p style={styles.subtle}>Nog geen verdachten aangemaakt.</p>
+        ) : (
+          visibleSuspects.map((suspect) => {
+            const notesForSuspect = suspectNotes.filter(
+              (note) => note.suspect_id === suspect.id
+            );
+
+            const statusesForSuspect = suspectStatuses.filter(
+              (status) => status.suspect_id === suspect.id
+            );
+
+            const boughtCluesForSuspect = groupClues.filter((purchase) => {
+              const clue =
+                purchase.clues ||
+                clues.find((item) => item.id === purchase.clue_id);
+
+              return clue?.suspect_id === suspect.id;
+            });
+
+            const suspectCount = statusesForSuspect.filter(
+              (item) => item.status === "suspect"
+            ).length;
+
+            const doubtCount = statusesForSuspect.filter(
+              (item) => item.status === "doubt"
+            ).length;
+
+            const excludedCount = statusesForSuspect.filter(
+              (item) => item.status === "excluded"
+            ).length;
+
+            return (
+              <div key={suspect.id} style={styles.card}>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                  <div>
+                    {SuspectImage({
+                      src: suspect.photo_url,
+                      alt: suspect.name,
+                    })}
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 220 }}>
+                    <h3 style={{ marginTop: 0 }}>{suspect.name}</h3>
+
+                    {suspect.description && (
+                      <p style={styles.subtle}>{suspect.description}</p>
+                    )}
+
+                    {suspect.is_active ? (
+                      <span style={styles.badge}>Actief</span>
+                    ) : (
+                      <span style={styles.badge}>Inactief</span>
+                    )}
+
+                    <span style={styles.badge}>Verdacht: {suspectCount}</span>
+                    <span style={styles.badge}>Twijfel: {doubtCount}</span>
+                    <span style={styles.badge}>
+                      Uitgesloten: {excludedCount}
+                    </span>
+                    <span style={styles.badge}>
+                      Notities: {notesForSuspect.length}
+                    </span>
+                    <span style={styles.badge}>
+                      Gekochte aanwijzingen: {boughtCluesForSuspect.length}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={styles.grid}>
+                  <div style={styles.card}>
+                    <h3>Status per groep</h3>
+
+                    {groups.length === 0 ? (
+                      <p style={styles.subtle}>Nog geen groepen.</p>
+                    ) : (
+                      groups.map((group) => {
+                        const statusRecord = statusesForSuspect.find(
+                          (item) => item.group_id === group.id
+                        );
+
+                        return (
+                          <div key={group.id} style={{ marginBottom: 10 }}>
+                            <strong>{group.name}</strong>
+                            <div>
+                              {StatusBadge({
+                                status: statusRecord?.status || "unknown",
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div style={styles.card}>
+                    <h3>Notities over deze verdachte</h3>
+
+                    {notesForSuspect.length === 0 ? (
+                      <p style={styles.subtle}>
+                        Nog geen notities over deze verdachte.
+                      </p>
+                    ) : (
+                      Object.entries(
+                        groupNotesBy(notesForSuspect, (note) => note.group_id)
+                      ).map(([groupId, notes]) => {
+                        const group =
+                          groups.find((g) => g.id === groupId) ||
+                          notes[0]?.groups;
+
+                        const sortedNotes = [...notes].sort(
+                          (a, b) =>
+                            new Date(a.created_at) - new Date(b.created_at)
+                        );
+
+                        return (
+                          <div key={groupId} style={styles.card}>
+                            <h4 style={{ marginTop: 0 }}>
+                              {group?.name || "Onbekende groep"}
+                            </h4>
+
+                            <div
+                              style={{
+                                background: "#09090b",
+                                border: "1px solid #27272a",
+                                borderRadius: 12,
+                                padding: 12,
+                                whiteSpace: "pre-wrap",
+                              }}
+                            >
+                              {sortedNotes.map((note, index) => (
+                                <div key={note.id} style={{ marginBottom: 12 }}>
+                                  {index > 0 && (
+                                    <div
+                                      style={{
+                                        borderTop: "1px solid #27272a",
+                                        margin: "10px 0",
+                                      }}
+                                    />
+                                  )}
+
+                                  {editingNoteId === note.id ? (
+                                    <>
+                                      <textarea
+                                        style={styles.textarea}
+                                        value={editNoteText}
+                                        onChange={(e) =>
+                                          setEditNoteText(e.target.value)
+                                        }
+                                      />
+
+                                      <button
+                                        style={styles.button}
+                                        onClick={saveEditNote}
+                                      >
+                                        Opslaan
+                                      </button>
+
+                                      <button
+                                        style={styles.buttonSecondary}
+                                        onClick={cancelEditNote}
+                                      >
+                                        Annuleren
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div>{note.note}</div>
+
+                                      <div style={styles.subtle}>
+                                        Door:{" "}
+                                        {note.profiles?.display_name ||
+                                          note.profiles?.email ||
+                                          "onbekend"}{" "}
+                                        · {formatDate(note.created_at)}
+                                      </div>
+
+                                      <div style={{ marginTop: 8 }}>
+                                        <button
+                                          style={styles.buttonSecondary}
+                                          onClick={() => startEditNote(note)}
+                                        >
+                                          Bewerken
+                                        </button>
+
+                                        <button
+                                          style={styles.buttonDanger}
+                                          onClick={() => deleteNote(note)}
+                                        >
+                                          Verwijderen
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div style={styles.card}>
+                    <h3>Gekochte aanwijzingen rond deze verdachte</h3>
+
+                    {boughtCluesForSuspect.length === 0 ? (
+                      <p style={styles.subtle}>
+                        Nog geen groep heeft aanwijzingen rond deze verdachte
+                        gekocht.
+                      </p>
+                    ) : (
+                      boughtCluesForSuspect.map((purchase) => {
+                        const clue =
+                          purchase.clues ||
+                          clues.find((item) => item.id === purchase.clue_id);
+
+                        return (
+                          <div key={purchase.id} style={styles.card}>
+                            <strong>
+                              {clue?.title || "Onbekende aanwijzing"}
+                            </strong>
+
+                            <div>
+                              <span style={styles.badge}>
+                                {purchase.groups?.name || "Onbekende groep"}
+                              </span>
+
+                              {clue?.price !== undefined && (
+                                <span style={styles.badge}>
+                                  💰 {clue.price}
+                                </span>
+                              )}
+                            </div>
+
+                            {purchase.purchased_at && (
+                              <div style={styles.subtle}>
+                                Gekocht op: {formatDate(purchase.purchased_at)}
+                              </div>
+                            )}
+
+                            {clue?.file_url && (
+                              <div style={{ marginTop: 8 }}>
+                                <a
+                                  href={clue.file_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={styles.link}
+                                >
+                                  Bestand openen
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    );
+  };
+  const SuspectDashboard = () => {
+    const linkedSuspect = suspects.find((s) => s.id === profile?.suspect_id);
+
+    if (!linkedSuspect) {
+      return (
+        <div style={styles.app} {...appFocusHandlers}>
+          <div style={styles.shell}>
+            {Header({
+              title: "CSI HIT Verdachte",
+              subtitle: `Ingelogd als ${profile.display_name || profile.email}`,
+            })}
+
+            {LoadingBlock()}
+
+            <div style={styles.card}>
+              <h2>Je suspect-account is nog niet gekoppeld</h2>
+              <p>
+                Je account heeft de rol <strong>suspect</strong>, maar is nog
+                niet gekoppeld aan een verdachte.
+              </p>
+              <p style={styles.subtle}>
+                Vraag de organisatie om jouw account te koppelen aan de juiste
+                verdachte via Beheer → Suspect-account koppelen.
+              </p>
+
+              <button
+                style={styles.button}
+                onClick={() => loadAppData(profile)}
+              >
+                Ververs
+              </button>
+
+              <button style={styles.buttonSecondary} onClick={handleLogout}>
+                Uitloggen
+              </button>
+            </div>
+
+            {MessageBlock()}
+          </div>
+        </div>
+      );
+    }
+
+    const notesForMe = suspectNotes.filter(
+      (note) => note.suspect_id === linkedSuspect.id
+    );
+
+    const statusesForMe = suspectStatuses.filter(
+      (status) => status.suspect_id === linkedSuspect.id
+    );
+
+    const boughtCluesForMe = groupClues.filter((purchase) => {
+      const clue =
+        purchase.clues || clues.find((item) => item.id === purchase.clue_id);
+
+      return clue?.suspect_id === linkedSuspect.id;
+    });
+
+    const suspectCount = statusesForMe.filter(
+      (item) => item.status === "suspect"
+    ).length;
+
+    const doubtCount = statusesForMe.filter(
+      (item) => item.status === "doubt"
+    ).length;
+
+    const excludedCount = statusesForMe.filter(
+      (item) => item.status === "excluded"
+    ).length;
+
+    return (
+      <div style={styles.app} {...appFocusHandlers}>
+        <div style={styles.shell}>
+          {Header({
+            title: "CSI HIT Verdachte",
+            subtitle: `Ingelogd als ${profile.display_name || profile.email}`,
+          })}
+
+          <div style={styles.card}>
+            <h2>Mijn verdachteprofiel</h2>
+
+            {SuspectImage({
+              src: linkedSuspect.photo_url,
+              alt: linkedSuspect.name,
+            })}
+
+            <h3 style={{ marginTop: 0 }}>{linkedSuspect.name}</h3>
+
+            {linkedSuspect.description && (
+              <p style={styles.subtle}>{linkedSuspect.description}</p>
+            )}
+
+            <span style={styles.badge}>Verdacht: {suspectCount}</span>
+            <span style={styles.badge}>Twijfel: {doubtCount}</span>
+            <span style={styles.badge}>Uitgesloten: {excludedCount}</span>
+            <span style={styles.badge}>Notities: {notesForMe.length}</span>
+            <span style={styles.badge}>
+              Aanwijzingen gekocht: {boughtCluesForMe.length}
+            </span>
+          </div>
+
+          <div style={styles.grid}>
+            <div style={styles.card}>
+              <h2>Status per groep</h2>
+
+              {groups.length === 0 ? (
+                <p style={styles.subtle}>Nog geen groepen zichtbaar.</p>
+              ) : (
+                groups.map((group) => {
+                  const statusRecord = statusesForMe.find(
+                    (item) => item.group_id === group.id
+                  );
+
+                  return (
+                    <div key={group.id} style={styles.card}>
+                      <strong>{group.name}</strong>
+                      <div style={{ marginTop: 8 }}>
+                        {StatusBadge({
+                          status: statusRecord?.status || "unknown",
+                        })}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div style={styles.card}>
+              <h2>Notities over mij</h2>
+
+              {notesForMe.length === 0 ? (
+                <p style={styles.subtle}>
+                  Er zijn nog geen notities over deze verdachte.
+                </p>
+              ) : (
+                Object.entries(
+                  groupNotesBy(notesForMe, (note) => note.group_id)
+                ).map(([groupId, notes]) => {
+                  const group =
+                    groups.find((g) => g.id === groupId) || notes[0]?.groups;
+
+                  const sortedNotes = [...notes].sort(
+                    (a, b) => new Date(a.created_at) - new Date(b.created_at)
+                  );
+
+                  return (
+                    <div key={groupId} style={styles.card}>
+                      <h3 style={{ marginTop: 0 }}>
+                        {group?.name || "Onbekende groep"}
+                      </h3>
+
+                      <div
+                        style={{
+                          background: "#09090b",
+                          border: "1px solid #27272a",
+                          borderRadius: 12,
+                          padding: 12,
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {sortedNotes.map((note, index) => (
+                          <div key={note.id} style={{ marginBottom: 12 }}>
+                            {index > 0 && (
+                              <div
+                                style={{
+                                  borderTop: "1px solid #27272a",
+                                  margin: "10px 0",
+                                }}
+                              />
+                            )}
+
+                            <div>{note.note}</div>
+
+                            <div style={styles.subtle}>
+                              Door:{" "}
+                              {note.profiles?.display_name ||
+                                note.profiles?.email ||
+                                "onbekend"}{" "}
+                              · {formatDate(note.created_at)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div style={styles.card}>
+              <h2>Gekochte aanwijzingen over mij</h2>
+
+              {boughtCluesForMe.length === 0 ? (
+                <p style={styles.subtle}>
+                  Nog geen groep heeft aanwijzingen rond deze verdachte gekocht.
+                </p>
+              ) : (
+                boughtCluesForMe.map((purchase) => {
+                  const clue =
+                    purchase.clues ||
+                    clues.find((item) => item.id === purchase.clue_id);
+
+                  return (
+                    <div key={purchase.id} style={styles.card}>
+                      <strong>{clue?.title || "Onbekende aanwijzing"}</strong>
+
+                      <div>
+                        <span style={styles.badge}>
+                          {purchase.groups?.name || "Onbekende groep"}
+                        </span>
+
+                        {clue?.price !== undefined && (
+                          <span style={styles.badge}>💰 {clue.price}</span>
+                        )}
+                      </div>
+
+                      {purchase.purchased_at && (
+                        <div style={styles.subtle}>
+                          Gekocht op: {formatDate(purchase.purchased_at)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {MessageBlock()}
+          {ImageModal()}
+        </div>
+      </div>
+    );
+  };
+  const LoginScreen = () => (
+    <div style={styles.app}>
+      <div style={{ ...styles.card, maxWidth: 520, margin: "40px auto" }}>
+        <h1>CSI HIT Login</h1>
+        <input
+          style={styles.input}
+          placeholder="Naam, alleen nodig bij registreren"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+        />
+        <input
+          style={styles.input}
+          placeholder="E-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          style={styles.input}
+          type="password"
+          placeholder="Wachtwoord"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button style={styles.button} onClick={handleLogin}>
+          Inloggen
+        </button>
+        <button style={styles.buttonSecondary} onClick={handleRegister}>
+          Registreren
+        </button>
+        {MessageBlock()}
+      </div>
+    </div>
+  );
+
+  if (!session || !profile) {
+    return LoginScreen();
+  }
+
+  if (profile.role === "suspect") {
+    return SuspectDashboard();
+  }
+
+  if (profile.role === "admin") {
+    return (
+      <div style={styles.app} {...appFocusHandlers}>
+        <div style={styles.shell}>
+          {Header({
+            title: "CSI HIT Control Room",
+            subtitle: `Ingelogd als ${profile.display_name || profile.email}`,
+          })}
+
+          <div style={styles.card}>
+            <strong>Admin navigatie</strong>
+            <div style={styles.subtle}>
+              Gebruik de onderbalk om te schakelen tussen Dashboard,
+              Klaarzetten, Groepen, Beheer, Clues, Preview, Pegels, Finale en
+              Verhoor.
+            </div>
+          </div>
+
+          {LoadingBlock()}
+
+          <ErrorBoundary key={activeAdminTab}>
+            {activeAdminTab === "dashboard" && AdminDashboard()}
+
+            {activeAdminTab === "setup" && AdminSetupCheck()}
+
+            {activeAdminTab === "groups" && AdminGroupsList()}
+
+            {activeAdminTab === "manage" && (
+              <>
+                {AdminManage()}
+                {AgendaBlock()}
+              </>
+            )}
+
+            {activeAdminTab === "clues" && AdminClues()}
+
+            {activeAdminTab === "preview" && AdminParticipantPreview()}
+
+            {activeAdminTab === "credits" && AdminCreditsAndNotifications()}
+
+            {activeAdminTab === "final" && AdminFinalReports()}
+
+            {activeAdminTab === "interrogation" && AdminInterrogationPanel()}
+          </ErrorBoundary>
+
+          {MessageBlock()}
+          {ImageModal()}
+        </div>
+
+        <div style={styles.adminMobileNav}>
+          <button
+            style={styles.navButton(activeAdminTab === "dashboard")}
+            onClick={() => setActiveAdminTab("dashboard")}
+          >
+            📊
+            <br />
+            Dash
+          </button>
+
+          <button
+            style={styles.navButton(activeAdminTab === "setup")}
+            onClick={() => setActiveAdminTab("setup")}
+          >
+            ✅
+            <br />
+            Klaar
+          </button>
+
+          <button
+            style={styles.navButton(activeAdminTab === "groups")}
+            onClick={() => setActiveAdminTab("groups")}
+          >
+            👥
+            <br />
+            Groepen
+          </button>
+
+          <button
+            style={styles.navButton(activeAdminTab === "manage")}
+            onClick={() => setActiveAdminTab("manage")}
+          >
+            ⚙️
+            <br />
+            Beheer
+          </button>
+
+          <button
+            style={styles.navButton(activeAdminTab === "clues")}
+            onClick={() => setActiveAdminTab("clues")}
+          >
+            📄
+            <br />
+            Clues
+          </button>
+          <button
+            style={styles.navButton(activeAdminTab === "preview")}
+            onClick={() => setActiveAdminTab("preview")}
+          >
+            👁️
+            <br />
+            Preview
+          </button>
+          <button
+            style={styles.navButton(activeAdminTab === "credits")}
+            onClick={() => setActiveAdminTab("credits")}
+          >
+            💰
+            <br />
+            Pegels
+          </button>
+
+          <button
+            style={styles.navButton(activeAdminTab === "final")}
+            onClick={() => setActiveAdminTab("final")}
+          >
+            🏁
+            <br />
+            Finale
+          </button>
+
+          <button
+            style={styles.navButton(activeAdminTab === "interrogation")}
+            onClick={() => setActiveAdminTab("interrogation")}
+          >
+            🕵️
+            <br />
+            Verhoor
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.app} {...appFocusHandlers}>
+      <div style={styles.shell}>
+        {Header({
+          title: "CSI HIT",
+          subtitle: `Welkom ${profile.display_name || profile.email}`,
+        })}
+        {LoadingBlock()}
+        <ErrorBoundary key={activeParticipantTab}>
+          {!myGroup ? (
+            NoGroupScreen()
+          ) : (
+            <>
+              {activeParticipantTab === "dashboard" && ParticipantDashboard()}
+
+              {activeParticipantTab === "agenda" && (
+                <>
+                  {ParticipantGroupBar()}
+                  {AgendaBlock()}
+                </>
+              )}
+
+              {activeParticipantTab === "clues" && ParticipantClues()}
+
+              {activeParticipantTab === "suspects" && (
+                <>
+                  {ParticipantGroupBar()}
+                  {ParticipantSuspects()}
+                </>
+              )}
+
+              {activeParticipantTab === "messages" && (
+                <>
+                  {ParticipantGroupBar()}
+                  {NotificationsBlock()}
+                  {TransactionsBlock()}
+                </>
+              )}
+
+              {activeParticipantTab === "final" && ParticipantFinalReport()}
+            </>
+          )}
+        </ErrorBoundary>
+        {MessageBlock()}
+        {FinalReportEditorModal()}
+        {ImageModal()}
+      </div>
+
+      <div style={styles.mobileNav}>
+        <button
+          style={styles.navButton(activeParticipantTab === "dashboard")}
+          onClick={() => setActiveParticipantTab("dashboard")}
+        >
+          🏠
+          <br />
+          Home
+        </button>
+
+        <button
+          style={styles.navButton(activeParticipantTab === "agenda")}
+          onClick={() => setActiveParticipantTab("agenda")}
+        >
+          🗓️
+          <br />
+          Agenda
+        </button>
+
+        <button
+          style={styles.navButton(activeParticipantTab === "clues")}
+          onClick={() => setActiveParticipantTab("clues")}
+        >
+          📄
+          <br />
+          Clues
+        </button>
+
+        <button
+          style={styles.navButton(activeParticipantTab === "suspects")}
+          onClick={() => setActiveParticipantTab("suspects")}
+        >
+          🕵️
+          <br />
+          Verdachten
+        </button>
+
+        <button
+          style={styles.navButton(activeParticipantTab === "messages")}
+          onClick={() => setActiveParticipantTab("messages")}
+        >
+          🔔
+          <br />
+          Meldingen
+        </button>
+        <button
+          style={styles.navButton(activeParticipantTab === "final")}
+          onClick={() => setActiveParticipantTab("final")}
+        >
+          🏁
+          <br />
+          Finale
+        </button>
+      </div>
+    </div>
+  );
+}
