@@ -276,6 +276,108 @@ const styles = {
     color: "#93c5fd",
     fontWeight: 700,
   },
+
+  landingPage: {
+    minHeight: "100vh",
+    background:
+      "radial-gradient(circle at top left, rgba(153, 27, 27, 0.35), transparent 34%), radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.18), transparent 30%), #050509",
+    color: "#f8fafc",
+    padding: 24,
+    boxSizing: "border-box",
+  },
+
+  landingHero: {
+    maxWidth: 980,
+    margin: "0 auto",
+    padding: "72px 0 40px",
+  },
+
+  landingBadge: {
+    display: "inline-flex",
+    padding: "8px 14px",
+    border: "1px solid #22c55e",
+    borderRadius: 999,
+    color: "#bbf7d0",
+    fontWeight: 800,
+    letterSpacing: 1,
+    marginBottom: 18,
+    background: "rgba(34, 197, 94, 0.08)",
+  },
+
+  landingTitle: {
+    fontSize: "clamp(38px, 7vw, 82px)",
+    lineHeight: 0.95,
+    margin: "0 0 20px",
+    maxWidth: 900,
+  },
+
+  landingText: {
+    fontSize: 18,
+    lineHeight: 1.6,
+    maxWidth: 720,
+    color: "#cbd5e1",
+  },
+
+  landingActions: {
+    display: "flex",
+    gap: 12,
+    flexWrap: "wrap",
+    marginTop: 28,
+  },
+
+  landingButton: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "13px 18px",
+    borderRadius: 14,
+    background: "#991b1b",
+    color: "white",
+    textDecoration: "none",
+    fontWeight: 800,
+    border: "1px solid #ef4444",
+  },
+
+  landingButtonSecondary: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "13px 18px",
+    borderRadius: 14,
+    background: "#18181b",
+    color: "white",
+    border: "1px solid #3f3f46",
+    textDecoration: "none",
+    fontWeight: 800,
+  },
+
+  landingGrid: {
+    maxWidth: 980,
+    margin: "0 auto",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: 16,
+  },
+
+  landingCard: {
+    background: "#111114",
+    border: "1px solid #27272a",
+    borderRadius: 22,
+    padding: 22,
+    color: "#e5e7eb",
+  },
+
+  landingFooter: {
+    maxWidth: 980,
+    margin: "36px auto 0",
+    paddingTop: 20,
+    borderTop: "1px solid #27272a",
+    color: "#94a3b8",
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+  },
 };
 
 function formatDate(value) {
@@ -426,6 +528,11 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [imageModal, setImageModal] = useState(null);
   const [gameMode, setGameMode] = useState("test");
+
+  const isLandingDomain =
+    window.location.hostname === "www.csi-hit.nl" ||
+    window.location.hostname === "csi-hit.nl";
+
   const [isLoading, setIsLoading] = useState(false);
   const [finalReportsOpen, setFinalReportsOpen] = useState(false);
   const [finalReports, setFinalReports] = useState([]);
@@ -6578,6 +6685,69 @@ export default function App() {
       </div>
     );
   };
+  const LandingPage = () => {
+    return (
+      <div style={styles.landingPage}>
+        <div style={styles.landingHero}>
+          <div style={styles.landingBadge}>CSI HIT</div>
+
+          <h1 style={styles.landingTitle}>
+            Het weekend waarin ieder spoor telt
+          </h1>
+
+          <p style={styles.landingText}>
+            CSI HIT is de digitale regiekamer voor een interactief mysteriespel.
+            Groepen verzamelen aanwijzingen, volgen verdachten, maken notities
+            en dienen aan het einde hun eindrapport in.
+          </p>
+
+          <div style={styles.landingActions}>
+            <a href="https://app.csi-hit.nl" style={styles.landingButton}>
+              Naar de app
+            </a>
+
+            <a
+              href="https://app.csi-hit.nl"
+              style={styles.landingButtonSecondary}
+            >
+              Inloggen
+            </a>
+          </div>
+        </div>
+
+        <div style={styles.landingGrid}>
+          <div style={styles.landingCard}>
+            <h2>Voor deelnemers</h2>
+            <p>
+              Koop aanwijzingen, beoordeel verdachten, maak notities en bouw
+              samen aan jullie onderzoek.
+            </p>
+          </div>
+
+          <div style={styles.landingCard}>
+            <h2>Voor verdachten</h2>
+            <p>
+              Bekijk wat groepen over jou denken en volg live hoe het onderzoek
+              zich ontwikkelt.
+            </p>
+          </div>
+
+          <div style={styles.landingCard}>
+            <h2>Voor organisatie</h2>
+            <p>
+              Beheer groepen, pegels, aanwijzingen, meldingen, finale en het
+              verhoor vanuit één overzicht.
+            </p>
+          </div>
+        </div>
+
+        <div style={styles.landingFooter}>
+          <span>CSI HIT</span>
+          <span>Camping Meijenzorgh editie</span>
+        </div>
+      </div>
+    );
+  };
   const LoginScreen = () => (
     <div style={styles.app}>
       <div style={{ ...styles.card, maxWidth: 520, margin: "40px auto" }}>
@@ -6611,6 +6781,9 @@ export default function App() {
       </div>
     </div>
   );
+  if (isLandingDomain) {
+    return LandingPage();
+  }
 
   if (!session || !profile) {
     return LoginScreen();
