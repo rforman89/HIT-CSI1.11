@@ -242,7 +242,7 @@ const styles = {
     background: "#18181b",
     borderTop: "1px solid #3f3f46",
     display: "grid",
-    gridTemplateColumns: "repeat(6,1fr)",
+    gridTemplateColumns: "repeat(auto-fit, minmax(64px, 1fr))",
     gap: 0,
   },
   adminMobileNav: {
@@ -645,6 +645,28 @@ export default function App() {
     setFinalReportMotive(existingReport.motive || "");
     setFinalReportEvidence(existingReport.evidence || "");
   }, [finalReports, myGroup?.id, profile]);
+
+  useEffect(() => {
+    if (!profile) return;
+    if (profile.role === "admin" || profile.role === "suspect") return;
+    if (!myGroup) return;
+
+    const existingReport = finalReports.find(
+      (report) => report.group_id === myGroup.id
+    );
+
+    const finaleIsRelevant = finalReportsOpen || Boolean(existingReport);
+
+    if (activeParticipantTab === "final" && !finaleIsRelevant) {
+      setActiveParticipantTab("dashboard");
+    }
+  }, [
+    activeParticipantTab,
+    finalReportsOpen,
+    finalReports,
+    myGroup?.id,
+    profile?.role,
+  ]);
 
   const clearAppData = () => {
     setGroups([]);
@@ -1836,6 +1858,54 @@ export default function App() {
     return dates.sort((a, b) => new Date(b) - new Date(a))[0];
   };
 
+  const getGroupFinalReport = (groupId) => {
+    return finalReports.find((report) => report.group_id === groupId);
+  };
+
+  const getParticipantProgress = () => {
+    if (!myGroup) {
+      return {
+        unlockedCount: 0,
+        buyableCount: 0,
+        noteCount: 0,
+        statusCount: 0,
+        finalReport: null,
+      };
+    }
+
+    const visibleClues = clues.filter((clue) => clue.is_visible);
+
+    const unlockedCount = visibleClues.filter((clue) => {
+      const purchased = purchasedClueIds.includes(clue.id);
+      return clue.is_free || clue.is_global || purchased;
+    }).length;
+
+    const buyableCount = visibleClues.filter((clue) => {
+      const purchased = purchasedClueIds.includes(clue.id);
+      return !clue.is_free && !clue.is_global && !purchased;
+    }).length;
+
+    return {
+      unlockedCount,
+      buyableCount,
+      noteCount: suspectNotes.length,
+      statusCount: suspectStatuses.length,
+      finalReport: finalReports.find(
+        (report) => report.group_id === myGroup.id
+      ),
+    };
+  };
+
+  const shouldShowParticipantFinalTab = () => {
+    if (!myGroup) return false;
+
+    const existingReport = finalReports.find(
+      (report) => report.group_id === myGroup.id
+    );
+
+    return finalReportsOpen || Boolean(existingReport);
+  };
+
   const assignClueToGroup = async () => {
     setError("");
     setMessage("");
@@ -2801,26 +2871,55 @@ export default function App() {
     </div>
   );
 
-  const NotificationsBlock = () => (
-    <div style={styles.card}>
-      <h2>Meldingen</h2>
+  const NotificationsBlock = () => {
+    const latestNotifications = notifications.slice(0, 10);
 
-      {notifications.length === 0 ? (
-        <p style={styles.subtle}>Nog geen meldingen.</p>
-      ) : (
-        notifications.map((n) => (
-          <div key={n.id} style={{ marginBottom: 14 }}>
-            <strong>{n.title}</strong>
-            <div>{n.message}</div>
-            <div style={styles.subtle}>{formatDate(n.created_at)}</div>
-            {n.groups?.name && (
-              <span style={styles.badge}>{n.groups.name}</span>
-            )}
+    return (
+      <div style={styles.card}>
+        <h2>Meldingen</h2>
+
+        {latestNotifications.length === 0 ? (
+          <div style={styles.card}>
+            <strong>Nog geen meldingen</strong>
+            <p style={styles.subtle}>
+              Nieuwe berichten van de organisatie verschijnen hier.
+            </p>
           </div>
-        ))
-      )}
-    </div>
-  );
+        ) : (
+          latestNotifications.map((notification) => (
+            <div key={notification.id} style={styles.card}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  flexWrap: "wrap",
+                }}
+              >
+                <strong>{notification.title}</strong>
+
+                <span style={styles.badge}>
+                  {notification.notification_type?.includes("clue")
+                    ? "Aanwijzing"
+                    : notification.notification_type?.includes("broadcast")
+                    ? "Algemeen"
+                    : notification.notification_type?.includes("credit")
+                    ? "Pegels"
+                    : "Melding"}
+                </span>
+              </div>
+
+              {notification.message && <p>{notification.message}</p>}
+
+              <div style={styles.subtle}>
+                {formatDate(notification.created_at)}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    );
+  };
 
   const TransactionsBlock = () => (
     <div style={styles.card}>
@@ -2902,75 +3001,192 @@ export default function App() {
       </div>
     </div>
   );
-  const ParticipantDashboard = () => (
-    <>
-      {ParticipantGroupBar()}
+  const ParticipantDashboard = () => {
+    const progress = getParticipantProgress();
 
-      <div style={styles.grid}>
-        <div style={styles.card}>
-          <h2>Volgende activiteit</h2>
-          {nextAgendaItem ? (
-            <>
-              <strong>
-                {getAgendaIcon(nextAgendaItem.item_type)} {nextAgendaItem.title}
-              </strong>
-              <div style={styles.subtle}>
-                {formatDate(nextAgendaItem.starts_at)}
-              </div>
-              {nextAgendaItem.credits_reward > 0 && (
-                <span style={styles.badge}>
-                  💰 {nextAgendaItem.credits_reward} pegels
-                </span>
-              )}
-            </>
-          ) : (
-            <p style={styles.subtle}>Geen volgende activiteit.</p>
-          )}
-        </div>
+    return (
+      <>
+        {ParticipantGroupBar()}
 
         <div style={styles.card}>
-          <h2>Laatste melding</h2>
-          {notifications[0] ? (
-            <>
-              <strong>{notifications[0].title}</strong>
-              <div>{notifications[0].message}</div>
+          <h2>Startpagina</h2>
+          <p style={styles.subtle}>
+            Jullie centrale overzicht: pegels, aanwijzingen, verdachten,
+            meldingen en finale.
+          </p>
+
+          <div style={styles.grid}>
+            <div style={styles.card}>
+              <strong>Pegels</strong>
+              <div style={styles.statNumber}>💰 {myGroup?.credits || 0}</div>
+              <div style={styles.subtle}>Beschikbaar voor aanwijzingen</div>
+            </div>
+
+            <div style={styles.card}>
+              <strong>Aanwijzingen</strong>
+              <div style={styles.statNumber}>{progress.unlockedCount}</div>
               <div style={styles.subtle}>
-                {formatDate(notifications[0].created_at)}
+                Ontgrendeld · {progress.buyableCount} nog te koop
               </div>
-            </>
-          ) : (
-            <p style={styles.subtle}>Nog geen meldingen.</p>
-          )}
+            </div>
+
+            <div style={styles.card}>
+              <strong>Notities</strong>
+              <div style={styles.statNumber}>{progress.noteCount}</div>
+              <div style={styles.subtle}>Door jullie groep opgeslagen</div>
+            </div>
+
+            <div style={styles.card}>
+              <strong>Statussen</strong>
+              <div style={styles.statNumber}>{progress.statusCount}</div>
+              <div style={styles.subtle}>Verdachten beoordeeld</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div style={styles.card}>
-        <h2>Verdachten overzicht</h2>
-        {suspects.filter((s) => s.is_active).length === 0 ? (
-          <p style={styles.subtle}>Nog geen verdachten.</p>
-        ) : (
-          suspects
-            .filter((s) => s.is_active)
-            .map((s) => {
-              const statusRecord = suspectStatuses.find(
-                (x) => x.group_id === myGroup?.id && x.suspect_id === s.id
-              );
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <h2>Volgende activiteit</h2>
 
-              return (
-                <div key={s.id} style={styles.card}>
-                  {SuspectImage({ src: s.photo_url, alt: s.name })}
-                  <h3 style={{ marginTop: 0 }}>{s.name}</h3>
-                  {s.description && (
-                    <div style={styles.subtle}>{s.description}</div>
-                  )}
-                  {StatusBadge({ status: statusRecord?.status || "unknown" })}
+            {nextAgendaItem ? (
+              <>
+                <strong>
+                  {getAgendaIcon(nextAgendaItem.item_type)}{" "}
+                  {nextAgendaItem.title}
+                </strong>
+
+                <div style={styles.subtle}>
+                  {formatDate(nextAgendaItem.starts_at)}
+                  {nextAgendaItem.ends_at
+                    ? ` - ${formatDate(nextAgendaItem.ends_at)}`
+                    : ""}
                 </div>
-              );
-            })
+
+                {nextAgendaItem.description && (
+                  <p>{nextAgendaItem.description}</p>
+                )}
+
+                {nextAgendaItem.credits_reward > 0 && (
+                  <span style={styles.badge}>
+                    💰 {nextAgendaItem.credits_reward} pegels te verdienen
+                  </span>
+                )}
+              </>
+            ) : (
+              <p style={styles.subtle}>
+                Er staat nu geen volgende activiteit gepland.
+              </p>
+            )}
+
+            <button
+              style={styles.buttonSecondary}
+              onClick={() => setActiveParticipantTab("agenda")}
+            >
+              Naar agenda
+            </button>
+          </div>
+
+          <div style={styles.card}>
+            <h2>Laatste melding</h2>
+
+            {notifications[0] ? (
+              <>
+                <strong>{notifications[0].title}</strong>
+                <div>{notifications[0].message}</div>
+                <div style={styles.subtle}>
+                  {formatDate(notifications[0].created_at)}
+                </div>
+              </>
+            ) : (
+              <p style={styles.subtle}>Nog geen meldingen ontvangen.</p>
+            )}
+
+            <button
+              style={styles.buttonSecondary}
+              onClick={() => setActiveParticipantTab("messages")}
+            >
+              Naar meldingen
+            </button>
+          </div>
+        </div>
+
+        {(finalReportsOpen || progress.finalReport) && (
+          <div style={styles.card}>
+            <h2>Finale</h2>
+
+            {progress.finalReport ? (
+              <>
+                <span style={styles.badge}>Eindrapport ingediend</span>
+                <div style={styles.subtle}>
+                  Laatst opgeslagen:{" "}
+                  {formatDate(
+                    progress.finalReport.updated_at ||
+                      progress.finalReport.submitted_at
+                  )}
+                </div>
+              </>
+            ) : finalReportsOpen ? (
+              <>
+                <span style={styles.badge}>Eindrapport open</span>
+                <p style={styles.subtle}>
+                  De organisatie heeft de finale geopend. Jullie kunnen nu een
+                  eindrapport invullen.
+                </p>
+              </>
+            ) : (
+              <>
+                <span style={styles.badge}>Eindrapport gesloten</span>
+                <p style={styles.subtle}>
+                  Jullie kunnen het ingediende rapport nog bekijken.
+                </p>
+              </>
+            )}
+
+            <button
+              style={styles.button}
+              onClick={() => setActiveParticipantTab("final")}
+            >
+              Naar finale
+            </button>
+          </div>
         )}
-      </div>
-    </>
-  );
+
+        <div style={styles.card}>
+          <h2>Snel naar</h2>
+
+          <button
+            style={styles.button}
+            onClick={() => setActiveParticipantTab("clues")}
+          >
+            📄 Aanwijzingen
+          </button>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveParticipantTab("suspects")}
+          >
+            🕵️ Verdachten
+          </button>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveParticipantTab("messages")}
+          >
+            🔔 Meldingen
+          </button>
+
+          {finalReportsOpen || progress.finalReport ? (
+            <button
+              style={styles.buttonSecondary}
+              onClick={() => setActiveParticipantTab("final")}
+            >
+              🏁 Finale
+            </button>
+          ) : null}
+        </div>
+      </>
+    );
+  };
 
   const ParticipantFinalReport = () => {
     const existingReport = finalReports.find(
@@ -3115,285 +3331,532 @@ export default function App() {
       return !clue.is_free && !clue.is_global && !purchased;
     });
 
-    const renderClueCard = (clue, mode) => (
-      <div key={clue.id} style={styles.card}>
-        <h3 style={{ marginTop: 0 }}>{clue.title}</h3>
+    const getClueSuspectName = (clue) => {
+      return (
+        clue.suspects?.name ||
+        suspects.find((suspect) => suspect.id === clue.suspect_id)?.name ||
+        ""
+      );
+    };
 
-        {clue.suspects?.name && (
-          <span style={styles.badge}>🕵️ {clue.suspects.name}</span>
-        )}
+    const renderCompactClueCard = (clue, mode) => {
+      const suspectName = getClueSuspectName(clue);
+      const isUnlocked = mode === "unlocked";
 
-        {clue.is_free && <span style={styles.badge}>Gratis</span>}
-        {clue.is_global && <span style={styles.badge}>Voor iedereen</span>}
-        {!clue.is_free && (
-          <span style={styles.badge}>💰 {clue.price} pegels</span>
-        )}
+      return (
+        <div key={clue.id} style={styles.card}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "flex-start",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <h3 style={{ marginTop: 0, marginBottom: 6 }}>{clue.title}</h3>
 
-        {clue.description && <p>{clue.description}</p>}
+              {suspectName ? (
+                <span style={styles.badge}>🕵️ {suspectName}</span>
+              ) : (
+                <span style={styles.badge}>Algemeen</span>
+              )}
 
-        {mode === "unlocked" ? (
-          <>
-            <span style={styles.badge}>Ontgrendeld</span>
+              {clue.is_free && <span style={styles.badge}>Gratis</span>}
+              {clue.is_global && (
+                <span style={styles.badge}>Voor iedereen</span>
+              )}
 
-            {clue.file_url ? (
-              <div style={{ marginTop: 10 }}>
-                <a
-                  href={clue.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={styles.link}
+              {isUnlocked ? (
+                <span style={styles.badge}>Ontgrendeld</span>
+              ) : (
+                <span style={styles.badge}>💰 {clue.price} pegels</span>
+              )}
+            </div>
+
+            <div>
+              {isUnlocked ? (
+                clue.file_url ? (
+                  <a
+                    href={clue.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={styles.link}
+                  >
+                    Bestand openen
+                  </a>
+                ) : (
+                  <span style={styles.subtle}>Geen bestand</span>
+                )
+              ) : (
+                <button
+                  style={styles.button}
+                  onClick={() => purchaseClue(clue.id)}
                 >
-                  Bestand openen
-                </a>
-              </div>
-            ) : (
-              <div style={styles.subtle}>Geen bestand gekoppeld.</div>
-            )}
-          </>
-        ) : (
-          <button style={styles.button} onClick={() => purchaseClue(clue.id)}>
-            Kopen
-          </button>
-        )}
-      </div>
-    );
+                  Kopen
+                </button>
+              )}
+            </div>
+          </div>
+
+          {clue.description && (
+            <details style={{ marginTop: 10 }}>
+              <summary style={{ cursor: "pointer", fontWeight: 700 }}>
+                Omschrijving
+              </summary>
+              <p style={{ marginBottom: 0 }}>{clue.description}</p>
+            </details>
+          )}
+        </div>
+      );
+    };
 
     return (
       <>
         {ParticipantGroupBar()}
 
         <div style={styles.card}>
-          <h2>Te koop</h2>
+          <h2>Aanwijzingen</h2>
 
-          {buyableClues.length === 0 ? (
-            <p style={styles.subtle}>Geen aanwijzingen te koop.</p>
-          ) : (
-            buyableClues.map((clue) => renderClueCard(clue, "buyable"))
-          )}
+          <div style={styles.grid}>
+            <div style={styles.card}>
+              <strong>Ontgrendeld</strong>
+              <div style={styles.statNumber}>{unlockedClues.length}</div>
+              <div style={styles.subtle}>Beschikbaar voor jullie groep</div>
+            </div>
+
+            <div style={styles.card}>
+              <strong>Te koop</strong>
+              <div style={styles.statNumber}>{buyableClues.length}</div>
+              <div style={styles.subtle}>Nog te kopen met pegels</div>
+            </div>
+
+            <div style={styles.card}>
+              <strong>Pegels</strong>
+              <div style={styles.statNumber}>💰 {myGroup?.credits || 0}</div>
+              <div style={styles.subtle}>Huidig saldo</div>
+            </div>
+          </div>
         </div>
 
         <div style={styles.card}>
           <h2>Ontgrendeld</h2>
 
           {unlockedClues.length === 0 ? (
-            <p style={styles.subtle}>Nog geen aanwijzingen ontgrendeld.</p>
+            <p style={styles.subtle}>
+              Jullie hebben nog geen aanwijzingen ontgrendeld. Gratis of
+              algemene aanwijzingen verschijnen hier ook.
+            </p>
           ) : (
-            unlockedClues.map((clue) => renderClueCard(clue, "unlocked"))
+            unlockedClues.map((clue) => renderCompactClueCard(clue, "unlocked"))
+          )}
+        </div>
+
+        <div style={styles.card}>
+          <h2>Te koop</h2>
+
+          {buyableClues.length === 0 ? (
+            <p style={styles.subtle}>
+              Er staan geen aanwijzingen meer te koop. Alles wat beschikbaar is,
+              staat hierboven bij Ontgrendeld.
+            </p>
+          ) : (
+            buyableClues.map((clue) => renderCompactClueCard(clue, "buyable"))
           )}
         </div>
       </>
     );
   };
-
-  const groupNotesBy = (notes, getKey) => {
-    return notes.reduce((acc, note) => {
-      const key = getKey(note) || "unknown";
-
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-
-      acc[key].push(note);
-      return acc;
-    }, {});
-  };
   const ParticipantSuspects = () => {
     const activeSuspects = suspects.filter((s) => s.is_active);
+
+    const getNotesForSuspect = (suspectId) => {
+      return suspectNotes
+        .filter((note) => note.suspect_id === suspectId)
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    };
+
+    const getStatusForSuspect = (suspectId) => {
+      return suspectStatuses.find(
+        (item) => item.group_id === myGroup?.id && item.suspect_id === suspectId
+      );
+    };
+
+    const saveStatusForSuspect = async (suspectId, status) => {
+      setError("");
+      setMessage("");
+
+      if (!myGroup) {
+        setError("Je bent nog niet aan een groep gekoppeld.");
+        return;
+      }
+
+      const { error } = await supabase.from("suspect_statuses").upsert(
+        {
+          group_id: myGroup.id,
+          suspect_id: suspectId,
+          status,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "group_id,suspect_id" }
+      );
+
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      setMessage("Status opgeslagen.");
+      await loadAppData(profile);
+    };
+
+    const addNoteForSuspect = async (suspectId) => {
+      setError("");
+      setMessage("");
+
+      if (!myGroup) {
+        setError("Je bent nog niet aan een groep gekoppeld.");
+        return;
+      }
+
+      if (!newNote.trim()) {
+        setError("Vul een notitie in.");
+        return;
+      }
+
+      const { error } = await supabase.from("suspect_notes").insert({
+        group_id: myGroup.id,
+        suspect_id: suspectId,
+        user_id: profile.id,
+        note: newNote.trim(),
+      });
+
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      setSelectedNoteSuspect("");
+      setNewNote("");
+      setMessage("Notitie opgeslagen.");
+      await loadAppData(profile);
+    };
 
     return (
       <>
         <div style={styles.card}>
-          <h2>Verdachten overzicht</h2>
+          <h2>Verdachten</h2>
 
-          {activeSuspects.length === 0 ? (
+          <p style={styles.subtle}>
+            Beheer per verdachte jullie status en notities.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}
+          >
+            <span style={styles.badge}>
+              📝 {suspectNotes.length} notitie(s)
+            </span>
+            <span style={styles.badge}>
+              🏷️ {suspectStatuses.length} status(sen)
+            </span>
+          </div>
+        </div>
+
+        {activeSuspects.length === 0 ? (
+          <div style={styles.card}>
             <p style={styles.subtle}>Nog geen actieve verdachten.</p>
-          ) : (
-            activeSuspects.map((s) => {
-              const statusRecord = suspectStatuses.find(
-                (x) => x.group_id === myGroup?.id && x.suspect_id === s.id
-              );
+          </div>
+        ) : (
+          activeSuspects.map((suspect) => {
+            const statusRecord = getStatusForSuspect(suspect.id);
+            const notesForSuspect = getNotesForSuspect(suspect.id);
+            const isAddingNote = selectedNoteSuspect === suspect.id;
 
-              return (
-                <div key={s.id} style={styles.card}>
-                  {SuspectImage({ src: s.photo_url, alt: s.name })}
+            return (
+              <div key={suspect.id} style={styles.card}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    alignItems: "flex-start",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    {suspect.photo_url ? (
+                      <img
+                        src={suspect.photo_url}
+                        alt={suspect.name}
+                        style={{
+                          ...styles.img,
+                          width: 82,
+                          height: 82,
+                          marginBottom: 0,
+                        }}
+                        onClick={() =>
+                          setImageModal({
+                            src: suspect.photo_url,
+                            alt: suspect.name,
+                          })
+                        }
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 82,
+                          height: 82,
+                          borderRadius: 12,
+                          border: "1px solid #52525b",
+                          background: "#09090b",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 28,
+                        }}
+                      >
+                        🕵️
+                      </div>
+                    )}
+                  </div>
 
-                  <h3 style={{ marginTop: 0 }}>{s.name}</h3>
+                  <div style={{ flex: 1, minWidth: 220 }}>
+                    <h3 style={{ marginTop: 0, marginBottom: 6 }}>
+                      {suspect.name}
+                    </h3>
 
-                  {s.description && (
-                    <div style={styles.subtle}>{s.description}</div>
+                    <div style={{ marginBottom: 8 }}>
+                      {StatusBadge({
+                        status: statusRecord?.status || "unknown",
+                      })}
+                      <span style={styles.badge}>
+                        📝 {notesForSuspect.length} notitie(s)
+                      </span>
+                    </div>
+
+                    {suspect.description && (
+                      <details style={{ marginTop: 10 }}>
+                        <summary
+                          style={{
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "6px 10px",
+                            border: "1px solid #3f3f46",
+                            borderRadius: 999,
+                            background: "#18181b",
+                            width: "fit-content",
+                          }}
+                        >
+                          Profiel bekijken
+                        </summary>
+
+                        <div
+                          style={{
+                            ...styles.subtle,
+                            marginTop: 10,
+                            padding: 10,
+                            border: "1px solid #27272a",
+                            borderRadius: 12,
+                            background: "#09090b",
+                          }}
+                        >
+                          {suspect.description}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                </div>
+
+                <div style={styles.card}>
+                  <strong>Status</strong>
+
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      style={
+                        statusRecord?.status === "suspect"
+                          ? styles.button
+                          : styles.buttonSecondary
+                      }
+                      onClick={() =>
+                        saveStatusForSuspect(suspect.id, "suspect")
+                      }
+                    >
+                      Verdacht
+                    </button>
+
+                    <button
+                      style={
+                        statusRecord?.status === "doubt"
+                          ? styles.button
+                          : styles.buttonSecondary
+                      }
+                      onClick={() => saveStatusForSuspect(suspect.id, "doubt")}
+                    >
+                      Twijfel
+                    </button>
+
+                    <button
+                      style={
+                        statusRecord?.status === "excluded"
+                          ? styles.button
+                          : styles.buttonSecondary
+                      }
+                      onClick={() =>
+                        saveStatusForSuspect(suspect.id, "excluded")
+                      }
+                    >
+                      Uitgesloten
+                    </button>
+
+                    <button
+                      style={
+                        !statusRecord || statusRecord.status === "unknown"
+                          ? styles.button
+                          : styles.buttonSecondary
+                      }
+                      onClick={() =>
+                        saveStatusForSuspect(suspect.id, "unknown")
+                      }
+                    >
+                      Onbekend
+                    </button>
+                  </div>
+                </div>
+
+                <div style={styles.card}>
+                  <strong>Notities</strong>
+
+                  {notesForSuspect.length === 0 ? (
+                    <p style={styles.subtle}>
+                      Nog geen notities over deze verdachte.
+                    </p>
+                  ) : (
+                    <div
+                      style={{
+                        background: "#09090b",
+                        border: "1px solid #27272a",
+                        borderRadius: 12,
+                        padding: 12,
+                        marginTop: 10,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {notesForSuspect.map((note, index) => (
+                        <div key={note.id} style={{ marginBottom: 12 }}>
+                          {index > 0 && (
+                            <div
+                              style={{
+                                borderTop: "1px solid #27272a",
+                                margin: "10px 0",
+                              }}
+                            />
+                          )}
+
+                          {editingNoteId === note.id ? (
+                            <>
+                              <textarea
+                                style={styles.textarea}
+                                value={editNoteText}
+                                onChange={(e) =>
+                                  setEditNoteText(e.target.value)
+                                }
+                              />
+
+                              <button
+                                style={styles.button}
+                                onClick={saveEditNote}
+                              >
+                                Opslaan
+                              </button>
+
+                              <button
+                                style={styles.buttonSecondary}
+                                onClick={cancelEditNote}
+                              >
+                                Annuleren
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <div>{note.note}</div>
+
+                              <div style={styles.subtle}>
+                                {note.profiles?.display_name ||
+                                  note.profiles?.email ||
+                                  "onbekend"}{" "}
+                                · {formatDate(note.created_at)}
+                              </div>
+
+                              {note.user_id === profile?.id && (
+                                <div style={{ marginTop: 8 }}>
+                                  <button
+                                    style={styles.buttonSecondary}
+                                    onClick={() => startEditNote(note)}
+                                  >
+                                    Bewerken
+                                  </button>
+
+                                  <button
+                                    style={styles.buttonDanger}
+                                    onClick={() => deleteNote(note)}
+                                  >
+                                    Verwijderen
+                                  </button>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
 
-                  <div style={{ marginTop: 8 }}>
-                    {StatusBadge({ status: statusRecord?.status || "unknown" })}
-                  </div>
+                  {isAddingNote ? (
+                    <div style={{ marginTop: 12 }}>
+                      <textarea
+                        style={styles.textarea}
+                        placeholder={`Nieuwe notitie over ${suspect.name}`}
+                        value={newNote}
+                        onChange={(e) => setNewNote(e.target.value)}
+                      />
+
+                      <button
+                        style={styles.button}
+                        onClick={() => addNoteForSuspect(suspect.id)}
+                      >
+                        Notitie opslaan
+                      </button>
+
+                      <button
+                        style={styles.buttonSecondary}
+                        onClick={() => {
+                          setSelectedNoteSuspect("");
+                          setNewNote("");
+                        }}
+                      >
+                        Annuleren
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={() => {
+                        setSelectedNoteSuspect(suspect.id);
+                        setNewNote("");
+                      }}
+                    >
+                      Notitie toevoegen
+                    </button>
+                  )}
                 </div>
-              );
-            })
-          )}
-        </div>
-
-        <div style={styles.card}>
-          <h2>Status aanpassen</h2>
-
-          <select
-            style={styles.select}
-            value={selectedStatusSuspect}
-            onChange={(e) => setSelectedStatusSuspect(e.target.value)}
-          >
-            <option value="">Kies verdachte</option>
-            {activeSuspects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            style={styles.select}
-            value={newStatus}
-            onChange={(e) => setNewStatus(e.target.value)}
-          >
-            <option value="unknown">Onbekend</option>
-            <option value="suspect">Verdacht</option>
-            <option value="doubt">Twijfel</option>
-            <option value="excluded">Uitgesloten</option>
-          </select>
-
-          <button style={styles.button} onClick={saveParticipantStatus}>
-            Status opslaan
-          </button>
-        </div>
-
-        <div style={styles.card}>
-          <h2>Notitie toevoegen</h2>
-
-          <select
-            style={styles.select}
-            value={selectedNoteSuspect}
-            onChange={(e) => setSelectedNoteSuspect(e.target.value)}
-          >
-            <option value="">Kies verdachte</option>
-            {activeSuspects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-
-          <textarea
-            style={styles.textarea}
-            placeholder="Notitie"
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-          />
-
-          <button style={styles.button} onClick={addParticipantNote}>
-            Notitie opslaan
-          </button>
-        </div>
-
-        <div style={styles.card}>
-          <h2>Onze notities</h2>
-
-          {suspectNotes.length === 0 ? (
-            <p style={styles.subtle}>Nog geen notities.</p>
-          ) : (
-            Object.entries(
-              groupNotesBy(suspectNotes, (note) => note.suspect_id)
-            ).map(([suspectId, notes]) => {
-              const suspect =
-                suspects.find((s) => s.id === suspectId) || notes[0]?.suspects;
-
-              const sortedNotes = [...notes].sort(
-                (a, b) => new Date(a.created_at) - new Date(b.created_at)
-              );
-
-              return (
-                <div key={suspectId} style={styles.card}>
-                  <h3 style={{ marginTop: 0 }}>
-                    {suspect?.name || "Onbekende verdachte"}
-                  </h3>
-
-                  <div
-                    style={{
-                      background: "#09090b",
-                      border: "1px solid #27272a",
-                      borderRadius: 12,
-                      padding: 12,
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {sortedNotes.map((note, index) => (
-                      <div key={note.id} style={{ marginBottom: 12 }}>
-                        {index > 0 && (
-                          <div
-                            style={{
-                              borderTop: "1px solid #27272a",
-                              margin: "10px 0",
-                            }}
-                          />
-                        )}
-
-                        {editingNoteId === note.id ? (
-                          <>
-                            <textarea
-                              style={styles.textarea}
-                              value={editNoteText}
-                              onChange={(e) => setEditNoteText(e.target.value)}
-                            />
-
-                            <button
-                              style={styles.button}
-                              onClick={saveEditNote}
-                            >
-                              Opslaan
-                            </button>
-
-                            <button
-                              style={styles.buttonSecondary}
-                              onClick={cancelEditNote}
-                            >
-                              Annuleren
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <div>{note.note}</div>
-
-                            <div style={styles.subtle}>
-                              {note.profiles?.display_name ||
-                                note.profiles?.email ||
-                                "onbekend"}{" "}
-                              · {formatDate(note.created_at)}
-                            </div>
-
-                            {note.user_id === profile?.id && (
-                              <div style={{ marginTop: 8 }}>
-                                <button
-                                  style={styles.buttonSecondary}
-                                  onClick={() => startEditNote(note)}
-                                >
-                                  Bewerken
-                                </button>
-
-                                <button
-                                  style={styles.buttonDanger}
-                                  onClick={() => deleteNote(note)}
-                                >
-                                  Verwijderen
-                                </button>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+              </div>
+            );
+          })
+        )}
       </>
     );
   };
@@ -3790,116 +4253,244 @@ export default function App() {
       </div>
     );
   };
-  const AdminLiveGameStatus = () => (
-    <div style={styles.card}>
-      <h2>Live spelstatus per groep</h2>
-      <p style={styles.subtle}>
-        Snel overzicht voor de organisatie: wie loopt lekker, wie moet misschien
-        een duwtje krijgen en wie zit zonder pegels in het speurmoeras.
-      </p>
+  const AdminLiveGameStatus = () => {
+    const activeGroups = groups.filter((group) => group.is_active);
 
-      {groups.length === 0 ? (
-        <p style={styles.subtle}>Nog geen groepen.</p>
-      ) : (
-        groups.map((group) => {
-          const bought = groupClues.filter(
-            (item) => item.group_id === group.id
-          );
-          const notes = suspectNotes.filter(
-            (item) => item.group_id === group.id
-          );
-          const statuses = suspectStatuses.filter(
-            (item) => item.group_id === group.id
-          );
-          const groupNotifications = notifications.filter(
-            (item) => item.group_id === group.id
-          );
+    return (
+      <div style={styles.card}>
+        <h2>Live spelstatus per groep</h2>
 
-          const lastNotification = groupNotifications[0];
-          const lastActivity = getGroupLastActivity(group.id);
+        <p style={styles.subtle}>
+          Snel overzicht voor de organisatie: pegels, activiteit, aanwijzingen,
+          notities, statussen en finale per groep.
+        </p>
 
-          const warnings = [];
+        {groups.length === 0 ? (
+          <p style={styles.subtle}>Nog geen groepen.</p>
+        ) : (
+          groups.map((group) => {
+            const bought = groupClues.filter(
+              (item) => item.group_id === group.id
+            );
 
-          if ((group.credits || 0) <= 3) {
-            warnings.push("Weinig pegels over");
-          }
+            const notes = suspectNotes.filter(
+              (item) => item.group_id === group.id
+            );
 
-          if (bought.length >= 3 && notes.length === 0) {
-            warnings.push("Veel gekocht, maar nog geen notities");
-          }
+            const statuses = suspectStatuses.filter(
+              (item) => item.group_id === group.id
+            );
 
-          if (
-            bought.length === 0 &&
-            notes.length === 0 &&
-            statuses.length === 0
-          ) {
-            warnings.push("Nog weinig activiteit");
-          }
-          if (lastActivity) {
-            const minutesSinceActivity =
-              (new Date() - new Date(lastActivity)) / 1000 / 60;
+            const groupNotifications = notifications.filter(
+              (item) => item.group_id === group.id
+            );
 
-            if (minutesSinceActivity > 60) {
-              warnings.push("Al meer dan 60 minuten geen activiteit");
+            const finalReport = getGroupFinalReport(group.id);
+            const lastNotification = groupNotifications[0];
+            const lastActivity = getGroupLastActivity(group.id);
+
+            const suspectCount = statuses.filter(
+              (item) => item.status === "suspect"
+            ).length;
+
+            const doubtCount = statuses.filter(
+              (item) => item.status === "doubt"
+            ).length;
+
+            const excludedCount = statuses.filter(
+              (item) => item.status === "excluded"
+            ).length;
+
+            const warnings = [];
+
+            if (!group.is_active) {
+              warnings.push("Groep staat inactief");
             }
-          }
 
-          if (!group.is_active) {
-            warnings.push("Groep staat inactief");
-          }
+            if ((group.credits || 0) <= 3) {
+              warnings.push("Weinig pegels over");
+            }
 
-          return (
-            <div key={group.id} style={styles.card}>
-              <h3 style={{ marginTop: 0 }}>{group.name}</h3>
+            if (bought.length === 0) {
+              warnings.push("Nog geen aanwijzingen");
+            }
 
-              <span style={styles.badge}>💰 {group.credits || 0} pegels</span>
-              <span style={styles.badge}>📄 {bought.length} aanwijzingen</span>
-              <span style={styles.badge}>📝 {notes.length} notities</span>
-              <span style={styles.badge}>🎯 {statuses.length} statussen</span>
-              <span style={styles.badge}>
-                🕒 {lastActivity ? formatDate(lastActivity) : "Geen activiteit"}
-              </span>
-              {group.is_active ? (
-                <span style={styles.badge}>Actief</span>
-              ) : (
-                <span style={styles.badge}>Inactief</span>
-              )}
+            if (bought.length >= 3 && notes.length === 0) {
+              warnings.push("Veel gekocht, maar nog geen notities");
+            }
 
-              <div style={{ marginTop: 12 }}>
-                <strong>Laatste melding</strong>
-                {lastNotification ? (
-                  <>
-                    <div>{lastNotification.title}</div>
-                    {lastNotification.message && (
-                      <div style={styles.subtle}>
-                        {lastNotification.message}
-                      </div>
+            if (
+              bought.length === 0 &&
+              notes.length === 0 &&
+              statuses.length === 0
+            ) {
+              warnings.push("Nog weinig activiteit");
+            }
+
+            if (finalReportsOpen && !finalReport && group.is_active) {
+              warnings.push("Eindrapport ontbreekt");
+            }
+
+            if (lastActivity) {
+              const minutesSinceActivity =
+                (new Date() - new Date(lastActivity)) / 1000 / 60;
+
+              if (minutesSinceActivity > 60) {
+                warnings.push("Al meer dan 60 minuten geen activiteit");
+              }
+            }
+
+            return (
+              <div key={group.id} style={styles.card}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <div>
+                    <h3 style={{ marginTop: 0, marginBottom: 6 }}>
+                      {group.name}
+                    </h3>
+
+                    {group.is_active ? (
+                      <span style={styles.badge}>Actief</span>
+                    ) : (
+                      <span style={styles.badge}>Inactief</span>
                     )}
+
+                    {finalReport ? (
+                      <span style={styles.badge}>🏁 Eindrapport ingediend</span>
+                    ) : (
+                      <span style={styles.badge}>🏁 Geen eindrapport</span>
+                    )}
+                  </div>
+
+                  <div>
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={() => setActiveAdminTab("groups")}
+                    >
+                      Groepen
+                    </button>
+
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={() => setActiveAdminTab("credits")}
+                    >
+                      Pegels / melding
+                    </button>
+
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={() => setActiveAdminTab("final")}
+                    >
+                      Finale
+                    </button>
+                  </div>
+                </div>
+
+                <div style={styles.grid}>
+                  <div style={styles.card}>
+                    <strong>Pegels</strong>
+                    <div style={styles.statNumber}>{group.credits || 0}</div>
+                  </div>
+
+                  <div style={styles.card}>
+                    <strong>Aanwijzingen</strong>
+                    <div style={styles.statNumber}>{bought.length}</div>
+                  </div>
+
+                  <div style={styles.card}>
+                    <strong>Notities</strong>
+                    <div style={styles.statNumber}>{notes.length}</div>
+                  </div>
+
+                  <div style={styles.card}>
+                    <strong>Statussen</strong>
+                    <div style={styles.statNumber}>{statuses.length}</div>
                     <div style={styles.subtle}>
-                      {formatDate(lastNotification.created_at)}
+                      Verdacht: {suspectCount} · Twijfel: {doubtCount} ·
+                      Uitgesloten: {excludedCount}
                     </div>
-                  </>
+                  </div>
+                </div>
+
+                <div style={styles.card}>
+                  <strong>Laatste activiteit</strong>
+                  <div style={styles.subtle}>
+                    {lastActivity
+                      ? formatDate(lastActivity)
+                      : "Geen activiteit"}
+                  </div>
+                </div>
+
+                <div style={styles.card}>
+                  <strong>Laatste melding</strong>
+
+                  {lastNotification ? (
+                    <>
+                      <div>{lastNotification.title}</div>
+                      {lastNotification.message && (
+                        <div style={styles.subtle}>
+                          {lastNotification.message}
+                        </div>
+                      )}
+                      <div style={styles.subtle}>
+                        {formatDate(lastNotification.created_at)}
+                      </div>
+                    </>
+                  ) : (
+                    <div style={styles.subtle}>Nog geen meldingen.</div>
+                  )}
+                </div>
+
+                {finalReport && (
+                  <div style={styles.card}>
+                    <strong>Eindrapport</strong>
+                    <div style={styles.subtle}>
+                      Laatst opgeslagen:{" "}
+                      {formatDate(
+                        finalReport.updated_at || finalReport.submitted_at
+                      )}
+                    </div>
+                    <span style={styles.badge}>
+                      Verdachte:{" "}
+                      {suspects.find((s) => s.id === finalReport.suspect_id)
+                        ?.name || "Onbekend"}
+                    </span>
+                  </div>
+                )}
+
+                {warnings.length > 0 ? (
+                  <div style={styles.card}>
+                    <strong>Waarschuwingen</strong>
+
+                    {warnings.map((warning) => (
+                      <div key={warning} style={styles.error}>
+                        ⚠️ {warning}
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <div style={styles.subtle}>Nog geen meldingen.</div>
+                  <p style={styles.ok}>Geen directe waarschuwingen.</p>
                 )}
               </div>
+            );
+          })
+        )}
 
-              {warnings.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <strong>Waarschuwingen</strong>
-                  {warnings.map((warning) => (
-                    <div key={warning} style={styles.error}>
-                      ⚠️ {warning}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
+        {activeGroups.length === 0 && groups.length > 0 && (
+          <p style={styles.error}>
+            Er zijn groepen, maar geen actieve groepen.
+          </p>
+        )}
+      </div>
+    );
+  };
 
   const AdminFinalReportStatusCard = () => {
     const activeGroups = groups.filter((group) => group.is_active);
@@ -5445,6 +6036,19 @@ export default function App() {
     );
   };
 
+  const groupNotesBy = (items, getKey) => {
+    return items.reduce((result, item) => {
+      const key = getKey(item) || "unknown";
+
+      if (!result[key]) {
+        result[key] = [];
+      }
+
+      result[key].push(item);
+      return result;
+    }, {});
+  };
+
   const AdminInterrogationPanel = () => {
     const visibleSuspects = selectedInterrogationSuspect
       ? suspects.filter(
@@ -6240,16 +6844,18 @@ export default function App() {
         >
           🔔
           <br />
-          Meldingen
+          Info
         </button>
-        <button
-          style={styles.navButton(activeParticipantTab === "final")}
-          onClick={() => setActiveParticipantTab("final")}
-        >
-          🏁
-          <br />
-          Finale
-        </button>
+        {shouldShowParticipantFinalTab() && (
+          <button
+            style={styles.navButton(activeParticipantTab === "final")}
+            onClick={() => setActiveParticipantTab("final")}
+          >
+            🏁
+            <br />
+            Finale
+          </button>
+        )}
       </div>
     </div>
   );
