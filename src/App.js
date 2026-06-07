@@ -3499,59 +3499,158 @@ export default function App() {
   );
   const ParticipantDashboard = () => {
     const progress = getParticipantProgress();
+    const activeSuspects = suspects.filter((suspect) => suspect.is_active);
+    const latestNotification = notifications[0];
+    const latestPurchase = groupClues
+      .map((purchase) => ({
+        purchase,
+        clue:
+          purchase.clues || clues.find((clue) => clue.id === purchase.clue_id),
+      }))
+      .filter((item) => item.clue)
+      .sort(
+        (a, b) =>
+          new Date(b.purchase.purchased_at || b.purchase.created_at || 0) -
+          new Date(a.purchase.purchased_at || a.purchase.created_at || 0)
+      )[0];
+
+    const suspectStatusCount = suspectStatuses.filter(
+      (status) => status.status === "suspect"
+    ).length;
 
     return (
       <>
-        {ParticipantGroupBar()}
+        <div
+          style={{
+            ...styles.card,
+            background:
+              "linear-gradient(135deg, rgba(153,27,27,0.22), rgba(24,24,27,0.98) 52%, rgba(9,9,11,0.98))",
+            borderColor: "#52525b",
+            padding: 22,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: 16,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 260 }}>
+              <span
+                style={{
+                  ...styles.badge,
+                  borderColor: "#ef4444",
+                  color: "#fecaca",
+                  background: "rgba(69,10,10,0.6)",
+                }}
+              >
+                Onderzoekscentrum
+              </span>
 
-        <div style={styles.card}>
-          <h2>Startpagina</h2>
-          <p style={styles.subtle}>
-            Jullie centrale overzicht: pegels, aanwijzingen, verdachten,
-            meldingen en finale.
-          </p>
+              <h2 style={{ fontSize: 34, margin: "10px 0 6px" }}>
+                Team {myGroup?.name || "Onbekend"}
+              </h2>
 
-          <div style={styles.grid}>
-            <div style={styles.card}>
-              <strong>Pegels</strong>
-              <div style={styles.statNumber}>💰 {myGroup?.credits || 0}</div>
-              <div style={styles.subtle}>Beschikbaar voor aanwijzingen</div>
+              <p style={{ ...styles.subtle, fontSize: 16, maxWidth: 760 }}>
+                Verzamel aanwijzingen, beoordeel verdachten en bouw stap voor
+                stap jullie theorie op. Alles wat jullie ontdekken, komt hier
+                samen.
+              </p>
             </div>
 
-            <div style={styles.card}>
-              <strong>Aanwijzingen</strong>
-              <div style={styles.statNumber}>{progress.unlockedCount}</div>
-              <div style={styles.subtle}>
-                Ontgrendeld · {progress.buyableCount} nog te koop
-              </div>
-            </div>
-
-            <div style={styles.card}>
-              <strong>Notities</strong>
-              <div style={styles.statNumber}>{progress.noteCount}</div>
-              <div style={styles.subtle}>Door jullie groep opgeslagen</div>
-            </div>
-
-            <div style={styles.card}>
-              <strong>Statussen</strong>
-              <div style={styles.statNumber}>{progress.statusCount}</div>
-              <div style={styles.subtle}>Verdachten beoordeeld</div>
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
+              }}
+            >
+              <span style={styles.badge}>
+                💰 {myGroup?.credits || 0} pegels
+              </span>
+              <span style={styles.badge}>
+                📄 {progress.unlockedCount} aanwijzingen
+              </span>
+              <span style={styles.badge}>
+                🕵️ {activeSuspects.length} verdachten
+              </span>
+              <span style={styles.badge}>📝 {progress.noteCount} notities</span>
             </div>
           </div>
         </div>
 
         <div style={styles.grid}>
-          <div style={styles.card}>
-            <h2>Volgende activiteit</h2>
+          <div
+            style={{
+              ...styles.card,
+              borderColor: "#f59e0b",
+              background:
+                "linear-gradient(180deg, rgba(120,53,15,0.22), #18181b)",
+            }}
+          >
+            <strong>💰 Pegels</strong>
+            <div style={styles.statNumber}>{myGroup?.credits || 0}</div>
+            <div style={styles.subtle}>Beschikbaar voor aanwijzingen</div>
+          </div>
+
+          <div
+            style={{
+              ...styles.card,
+              borderColor: "#3b82f6",
+              background:
+                "linear-gradient(180deg, rgba(30,64,175,0.18), #18181b)",
+            }}
+          >
+            <strong>📄 Aanwijzingen</strong>
+            <div style={styles.statNumber}>{progress.unlockedCount}</div>
+            <div style={styles.subtle}>
+              Ontgrendeld · {progress.buyableCount} nog te koop
+            </div>
+          </div>
+
+          <div
+            style={{
+              ...styles.card,
+              borderColor: "#a855f7",
+              background:
+                "linear-gradient(180deg, rgba(88,28,135,0.2), #18181b)",
+            }}
+          >
+            <strong>📝 Notities</strong>
+            <div style={styles.statNumber}>{progress.noteCount}</div>
+            <div style={styles.subtle}>Door jullie groep opgeslagen</div>
+          </div>
+
+          <div
+            style={{
+              ...styles.card,
+              borderColor: "#ef4444",
+              background:
+                "linear-gradient(180deg, rgba(127,29,29,0.22), #18181b)",
+            }}
+          >
+            <strong>🕵️ Verdacht gezet</strong>
+            <div style={styles.statNumber}>{suspectStatusCount}</div>
+            <div style={styles.subtle}>Verdachten door jullie gemarkeerd</div>
+          </div>
+        </div>
+
+        <div style={styles.grid}>
+          <div style={{ ...styles.card, minHeight: 190 }}>
+            <h2>🕒 Volgende activiteit</h2>
 
             {nextAgendaItem ? (
               <>
-                <strong>
+                <h3 style={{ marginBottom: 6 }}>
                   {getAgendaIcon(nextAgendaItem.item_type)}{" "}
                   {nextAgendaItem.title}
-                </strong>
+                </h3>
 
-                <div style={styles.subtle}>
+                <div style={{ ...styles.subtle, marginBottom: 10 }}>
                   {formatDate(nextAgendaItem.starts_at)}
                   {nextAgendaItem.ends_at
                     ? ` - ${formatDate(nextAgendaItem.ends_at)}`
@@ -3559,7 +3658,7 @@ export default function App() {
                 </div>
 
                 {nextAgendaItem.description && (
-                  <p>{nextAgendaItem.description}</p>
+                  <p style={{ fontSize: 16 }}>{nextAgendaItem.description}</p>
                 )}
 
                 {nextAgendaItem.credits_reward > 0 && (
@@ -3582,33 +3681,84 @@ export default function App() {
             </button>
           </div>
 
-          <div style={styles.card}>
-            <h2>Laatste melding</h2>
+          <div style={{ ...styles.card, minHeight: 190 }}>
+            <h2>📡 Laatste ontwikkeling</h2>
 
-            {notifications[0] ? (
+            {latestNotification ? (
               <>
-                <strong>{notifications[0].title}</strong>
-                <div>{notifications[0].message}</div>
+                <strong>{latestNotification.title}</strong>
+                {latestNotification.message && (
+                  <div>{latestNotification.message}</div>
+                )}
                 <div style={styles.subtle}>
-                  {formatDate(notifications[0].created_at)}
+                  {formatDate(latestNotification.created_at)}
+                </div>
+              </>
+            ) : latestPurchase ? (
+              <>
+                <strong>Laatste aankoop</strong>
+                <div>{latestPurchase.clue?.title}</div>
+                <div style={styles.subtle}>
+                  {formatDate(
+                    latestPurchase.purchase.purchased_at ||
+                      latestPurchase.purchase.created_at
+                  )}
                 </div>
               </>
             ) : (
-              <p style={styles.subtle}>Nog geen meldingen ontvangen.</p>
+              <p style={styles.subtle}>Nog geen meldingen of aankopen.</p>
             )}
 
             <button
               style={styles.buttonSecondary}
               onClick={() => setActiveParticipantTab("messages")}
             >
-              Naar meldingen
+              Naar info
             </button>
           </div>
         </div>
 
+        <div style={styles.card}>
+          <h2>🎯 Snel naar het onderzoek</h2>
+          <p style={styles.subtle}>
+            Kies je volgende stap: aanwijzingen bekijken, verdachten beoordelen
+            of berichten van de organisatie lezen.
+          </p>
+
+          <button
+            style={styles.button}
+            onClick={() => setActiveParticipantTab("clues")}
+          >
+            📄 Aanwijzingen
+          </button>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveParticipantTab("suspects")}
+          >
+            🕵️ Verdachten
+          </button>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveParticipantTab("messages")}
+          >
+            🔔 Info
+          </button>
+
+          {finalReportsOpen || progress.finalReport ? (
+            <button
+              style={styles.buttonSecondary}
+              onClick={() => setActiveParticipantTab("final")}
+            >
+              🏁 Finale
+            </button>
+          ) : null}
+        </div>
+
         {(finalReportsOpen || progress.finalReport) && (
           <div style={styles.card}>
-            <h2>Finale</h2>
+            <h2>🏁 Finale</h2>
 
             {progress.finalReport ? (
               <>
@@ -3646,40 +3796,6 @@ export default function App() {
             </button>
           </div>
         )}
-
-        <div style={styles.card}>
-          <h2>Snel naar</h2>
-
-          <button
-            style={styles.button}
-            onClick={() => setActiveParticipantTab("clues")}
-          >
-            📄 Aanwijzingen
-          </button>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveParticipantTab("suspects")}
-          >
-            🕵️ Verdachten
-          </button>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveParticipantTab("messages")}
-          >
-            🔔 Meldingen
-          </button>
-
-          {finalReportsOpen || progress.finalReport ? (
-            <button
-              style={styles.buttonSecondary}
-              onClick={() => setActiveParticipantTab("final")}
-            >
-              🏁 Finale
-            </button>
-          ) : null}
-        </div>
       </>
     );
   };
@@ -4782,11 +4898,11 @@ export default function App() {
 
     return (
       <div style={styles.card}>
-        <h2>Live spelstatus per groep</h2>
+        <h2>🖥️ Live spelstatus per groep</h2>
 
         <p style={styles.subtle}>
           Snel overzicht voor de organisatie: pegels, activiteit, aanwijzingen,
-          notities, statussen en finale per groep.
+          notities, statussen, waarschuwingen en finale per groep.
         </p>
 
         {groups.length === 0 ? (
@@ -4796,19 +4912,15 @@ export default function App() {
             const bought = groupClues.filter(
               (item) => item.group_id === group.id
             );
-
             const notes = suspectNotes.filter(
               (item) => item.group_id === group.id
             );
-
             const statuses = suspectStatuses.filter(
               (item) => item.group_id === group.id
             );
-
             const groupNotifications = notifications.filter(
               (item) => item.group_id === group.id
             );
-
             const finalReport = getGroupFinalReport(group.id);
             const lastNotification = groupNotifications[0];
             const lastActivity = getGroupLastActivity(group.id);
@@ -4816,56 +4928,48 @@ export default function App() {
             const suspectCount = statuses.filter(
               (item) => item.status === "suspect"
             ).length;
-
             const doubtCount = statuses.filter(
               (item) => item.status === "doubt"
             ).length;
-
             const excludedCount = statuses.filter(
               (item) => item.status === "excluded"
             ).length;
 
             const warnings = [];
 
-            if (!group.is_active) {
-              warnings.push("Groep staat inactief");
-            }
-
-            if ((group.credits || 0) <= 3) {
-              warnings.push("Weinig pegels over");
-            }
-
-            if (bought.length === 0) {
-              warnings.push("Nog geen aanwijzingen");
-            }
-
-            if (bought.length >= 3 && notes.length === 0) {
+            if (!group.is_active) warnings.push("Groep staat inactief");
+            if ((group.credits || 0) <= 3) warnings.push("Weinig pegels over");
+            if (bought.length === 0) warnings.push("Nog geen aanwijzingen");
+            if (bought.length >= 3 && notes.length === 0)
               warnings.push("Veel gekocht, maar nog geen notities");
-            }
-
             if (
               bought.length === 0 &&
               notes.length === 0 &&
               statuses.length === 0
-            ) {
+            )
               warnings.push("Nog weinig activiteit");
-            }
-
-            if (finalReportsOpen && !finalReport && group.is_active) {
+            if (finalReportsOpen && !finalReport && group.is_active)
               warnings.push("Eindrapport ontbreekt");
-            }
 
             if (lastActivity) {
               const minutesSinceActivity =
                 (new Date() - new Date(lastActivity)) / 1000 / 60;
-
-              if (minutesSinceActivity > 60) {
+              if (minutesSinceActivity > 60)
                 warnings.push("Al meer dan 60 minuten geen activiteit");
-              }
             }
 
             return (
-              <div key={group.id} style={styles.card}>
+              <div
+                key={group.id}
+                style={{
+                  ...styles.card,
+                  borderColor: warnings.length > 0 ? "#52525b" : "#166534",
+                  background:
+                    warnings.length > 0
+                      ? "linear-gradient(180deg, rgba(24,24,27,0.98), rgba(9,9,11,0.95))"
+                      : "linear-gradient(180deg, rgba(20,83,45,0.12), rgba(24,24,27,0.98))",
+                }}
+              >
                 <div
                   style={{
                     display: "flex",
@@ -4879,17 +4983,18 @@ export default function App() {
                     <h3 style={{ marginTop: 0, marginBottom: 6 }}>
                       {group.name}
                     </h3>
-
-                    {group.is_active ? (
-                      <span style={styles.badge}>Actief</span>
-                    ) : (
-                      <span style={styles.badge}>Inactief</span>
-                    )}
-
-                    {finalReport ? (
-                      <span style={styles.badge}>🏁 Eindrapport ingediend</span>
-                    ) : (
-                      <span style={styles.badge}>🏁 Geen eindrapport</span>
+                    <span style={styles.badge}>
+                      {group.is_active ? "Actief" : "Inactief"}
+                    </span>
+                    <span style={styles.badge}>
+                      {finalReport
+                        ? "🏁 Eindrapport ingediend"
+                        : "🏁 Geen eindrapport"}
+                    </span>
+                    {lastActivity && (
+                      <span style={styles.badge}>
+                        Laatste actie: {formatDate(lastActivity)}
+                      </span>
                     )}
                   </div>
 
@@ -4900,14 +5005,12 @@ export default function App() {
                     >
                       Groepen
                     </button>
-
                     <button
                       style={styles.buttonSecondary}
                       onClick={() => setActiveAdminTab("credits")}
                     >
                       Pegels / melding
                     </button>
-
                     <button
                       style={styles.buttonSecondary}
                       onClick={() => setActiveAdminTab("final")}
@@ -4919,22 +5022,19 @@ export default function App() {
 
                 <div style={styles.grid}>
                   <div style={styles.card}>
-                    <strong>Pegels</strong>
+                    <strong>💰 Pegels</strong>
                     <div style={styles.statNumber}>{group.credits || 0}</div>
                   </div>
-
                   <div style={styles.card}>
-                    <strong>Aanwijzingen</strong>
+                    <strong>📄 Aanwijzingen</strong>
                     <div style={styles.statNumber}>{bought.length}</div>
                   </div>
-
                   <div style={styles.card}>
-                    <strong>Notities</strong>
+                    <strong>📝 Notities</strong>
                     <div style={styles.statNumber}>{notes.length}</div>
                   </div>
-
                   <div style={styles.card}>
-                    <strong>Statussen</strong>
+                    <strong>🕵️ Statussen</strong>
                     <div style={styles.statNumber}>{statuses.length}</div>
                     <div style={styles.subtle}>
                       Verdacht: {suspectCount} · Twijfel: {doubtCount} ·
@@ -4943,65 +5043,39 @@ export default function App() {
                   </div>
                 </div>
 
-                <div style={styles.card}>
-                  <strong>Laatste activiteit</strong>
-                  <div style={styles.subtle}>
-                    {lastActivity
-                      ? formatDate(lastActivity)
-                      : "Geen activiteit"}
-                  </div>
-                </div>
-
-                <div style={styles.card}>
-                  <strong>Laatste melding</strong>
-
-                  {lastNotification ? (
-                    <>
-                      <div>{lastNotification.title}</div>
-                      {lastNotification.message && (
-                        <div style={styles.subtle}>
-                          {lastNotification.message}
-                        </div>
-                      )}
-                      <div style={styles.subtle}>
-                        {formatDate(lastNotification.created_at)}
-                      </div>
-                    </>
-                  ) : (
-                    <div style={styles.subtle}>Nog geen meldingen.</div>
-                  )}
-                </div>
-
-                {finalReport && (
+                <div style={styles.grid}>
                   <div style={styles.card}>
-                    <strong>Eindrapport</strong>
-                    <div style={styles.subtle}>
-                      Laatst opgeslagen:{" "}
-                      {formatDate(
-                        finalReport.updated_at || finalReport.submitted_at
-                      )}
-                    </div>
-                    <span style={styles.badge}>
-                      Verdachte:{" "}
-                      {suspects.find((s) => s.id === finalReport.suspect_id)
-                        ?.name || "Onbekend"}
-                    </span>
+                    <strong>Laatste melding</strong>
+                    {lastNotification ? (
+                      <>
+                        <div>{lastNotification.title}</div>
+                        {lastNotification.message && (
+                          <div style={styles.subtle}>
+                            {lastNotification.message}
+                          </div>
+                        )}
+                        <div style={styles.subtle}>
+                          {formatDate(lastNotification.created_at)}
+                        </div>
+                      </>
+                    ) : (
+                      <div style={styles.subtle}>Nog geen meldingen.</div>
+                    )}
                   </div>
-                )}
 
-                {warnings.length > 0 ? (
                   <div style={styles.card}>
                     <strong>Waarschuwingen</strong>
-
-                    {warnings.map((warning) => (
-                      <div key={warning} style={styles.error}>
-                        ⚠️ {warning}
-                      </div>
-                    ))}
+                    {warnings.length > 0 ? (
+                      warnings.map((warning) => (
+                        <div key={warning} style={styles.error}>
+                          ⚠️ {warning}
+                        </div>
+                      ))
+                    ) : (
+                      <p style={styles.ok}>Geen directe waarschuwingen.</p>
+                    )}
                   </div>
-                ) : (
-                  <p style={styles.ok}>Geen directe waarschuwingen.</p>
-                )}
+                </div>
               </div>
             );
           })
@@ -5091,19 +5165,99 @@ export default function App() {
   const AdminDashboard = () => {
     const activeGroups = groups.filter((group) => group.is_active).length;
     const inactiveGroups = groups.filter((group) => !group.is_active).length;
-
     const activeSuspects = suspects.filter(
       (suspect) => suspect.is_active
     ).length;
     const inactiveSuspects = suspects.filter(
       (suspect) => !suspect.is_active
     ).length;
-
     const visibleClues = clues.filter((clue) => clue.is_visible).length;
     const hiddenClues = clues.filter((clue) => !clue.is_visible).length;
+    const creditsInPlay = groups.reduce(
+      (total, group) => total + Number(group.credits || 0),
+      0
+    );
+    const creditsAwarded = transactions
+      .filter((transaction) => Number(transaction.amount) > 0)
+      .reduce(
+        (total, transaction) => total + Number(transaction.amount || 0),
+        0
+      );
+    const creditsSpentOrRemoved = Math.abs(
+      transactions
+        .filter((transaction) => Number(transaction.amount) < 0)
+        .reduce(
+          (total, transaction) => total + Number(transaction.amount || 0),
+          0
+        )
+    );
 
     return (
       <>
+        <div
+          style={{
+            ...styles.card,
+            background:
+              "linear-gradient(135deg, rgba(153,27,27,0.2), rgba(24,24,27,0.98) 55%, rgba(9,9,11,0.98))",
+            borderColor: "#52525b",
+            padding: 22,
+          }}
+        >
+          <span
+            style={{
+              ...styles.badge,
+              borderColor: "#ef4444",
+              color: "#fecaca",
+              background: "rgba(69,10,10,0.55)",
+            }}
+          >
+            Control Room overzicht
+          </span>
+          <h2 style={{ fontSize: 32, margin: "10px 0 8px" }}>
+            Spel in één oogopslag
+          </h2>
+          <p style={{ ...styles.subtle, fontSize: 16 }}>
+            Live stand van groepen, aanwijzingen, pegels, notities, statussen en
+            finale.
+          </p>
+
+          <div style={styles.grid}>
+            <div style={styles.card}>
+              <strong>👥 Actieve groepen</strong>
+              <div style={styles.statNumber}>{activeGroups}</div>
+              <span style={styles.badge}>Inactief: {inactiveGroups}</span>
+            </div>
+            <div style={styles.card}>
+              <strong>🕵️ Verdachten</strong>
+              <div style={styles.statNumber}>{suspects.length}</div>
+              <span style={styles.badge}>Actief: {activeSuspects}</span>
+              <span style={styles.badge}>Inactief: {inactiveSuspects}</span>
+            </div>
+            <div style={styles.card}>
+              <strong>📄 Aankopen</strong>
+              <div style={styles.statNumber}>{groupClues.length}</div>
+              <div style={styles.subtle}>Gekocht/toegewezen</div>
+            </div>
+            <div style={styles.card}>
+              <strong>📝 Notities</strong>
+              <div style={styles.statNumber}>{suspectNotes.length}</div>
+              <div style={styles.subtle}>Door groepjes ingevoerd</div>
+            </div>
+            <div style={styles.card}>
+              <strong>🏷️ Statussen</strong>
+              <div style={styles.statNumber}>{suspectStatuses.length}</div>
+              <div style={styles.subtle}>Verdachte beoordelingen</div>
+            </div>
+            <div style={styles.card}>
+              <strong>💰 Pegels in spel</strong>
+              <div style={styles.statNumber}>{creditsInPlay}</div>
+              <div style={styles.subtle}>
+                Uitgedeeld: {creditsAwarded} · Af: {creditsSpentOrRemoved}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {AdminLiveGameStatus()}
 
         {AdminFinalReportStatusCard()}
@@ -5126,29 +5280,15 @@ export default function App() {
           </div>
 
           <div style={styles.card}>
-            <h2>Aankopen</h2>
-            <div style={styles.statNumber}>{groupClues.length}</div>
-            <div style={styles.subtle}>Gekochte/toegewezen aanwijzingen</div>
+            <h2>Meldingen</h2>
+            <div style={styles.statNumber}>{notifications.length}</div>
+            <div style={styles.subtle}>Verstuurd naar groepen</div>
           </div>
 
           <div style={styles.card}>
-            <h2>Verdachten</h2>
-            <div style={styles.statNumber}>{suspects.length}</div>
-            <div style={styles.subtle}>Totaal aantal verdachten</div>
-            <span style={styles.badge}>Actief: {activeSuspects}</span>
-            <span style={styles.badge}>Inactief: {inactiveSuspects}</span>
-          </div>
-
-          <div style={styles.card}>
-            <h2>Notities</h2>
-            <div style={styles.statNumber}>{suspectNotes.length}</div>
-            <div style={styles.subtle}>Door groepjes ingevoerd</div>
-          </div>
-
-          <div style={styles.card}>
-            <h2>Statussen</h2>
-            <div style={styles.statNumber}>{suspectStatuses.length}</div>
-            <div style={styles.subtle}>Verdachte statussen door groepjes</div>
+            <h2>Finale</h2>
+            <div style={styles.statNumber}>{finalReports.length}</div>
+            <div style={styles.subtle}>Ingediende eindrapporten</div>
           </div>
         </div>
       </>
@@ -6582,11 +6722,10 @@ export default function App() {
 
     return (
       <div style={styles.card}>
-        <h2>Verhoorpaneel per verdachte</h2>
+        <h2>🎭 CSI Verhoorkamer</h2>
         <p style={styles.subtle}>
-          Gebruik dit scherm tijdens verhoren om snel te zien wat de groepjes
-          denken, welke notities ze hebben gemaakt en welke aanwijzingen rond
-          deze verdachte zijn gekocht.
+          Gebruik dit scherm tijdens verhoren: links het verdachteprofiel,
+          rechts direct wat de teams denken, noteren en kopen.
         </p>
 
         <select
@@ -6609,256 +6748,252 @@ export default function App() {
             const notesForSuspect = suspectNotes.filter(
               (note) => note.suspect_id === suspect.id
             );
-
             const statusesForSuspect = suspectStatuses.filter(
               (status) => status.suspect_id === suspect.id
             );
-
             const boughtCluesForSuspect = groupClues.filter((purchase) => {
               const clue =
                 purchase.clues ||
                 clues.find((item) => item.id === purchase.clue_id);
-
               return clue?.suspect_id === suspect.id;
             });
 
             const suspectCount = statusesForSuspect.filter(
               (item) => item.status === "suspect"
             ).length;
-
             const doubtCount = statusesForSuspect.filter(
               (item) => item.status === "doubt"
             ).length;
-
             const excludedCount = statusesForSuspect.filter(
               (item) => item.status === "excluded"
             ).length;
+            const latestNotes = [...notesForSuspect]
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .slice(0, 4);
 
             return (
-              <div key={suspect.id} style={styles.card}>
-                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                  <div>
-                    {SuspectImage({
-                      src: suspect.photo_url,
-                      alt: suspect.name,
-                    })}
-                  </div>
+              <div
+                key={suspect.id}
+                style={{
+                  ...styles.card,
+                  background:
+                    "linear-gradient(135deg, rgba(153,27,27,0.14), rgba(24,24,27,0.98) 44%, rgba(9,9,11,0.98))",
+                  borderColor: "#52525b",
+                }}
+              >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(220px, 320px) 1fr",
+                    gap: 18,
+                    alignItems: "start",
+                  }}
+                >
+                  <div style={styles.card}>
+                    {suspect.photo_url ? (
+                      <img
+                        src={suspect.photo_url}
+                        alt={suspect.name}
+                        style={{
+                          width: "100%",
+                          maxHeight: 310,
+                          objectFit: "cover",
+                          borderRadius: 16,
+                          border: "1px solid #52525b",
+                          cursor: "pointer",
+                          marginBottom: 12,
+                        }}
+                        onClick={() =>
+                          setImageModal({
+                            src: suspect.photo_url,
+                            alt: suspect.name,
+                          })
+                        }
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          height: 230,
+                          borderRadius: 16,
+                          border: "1px solid #52525b",
+                          background: "#09090b",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 48,
+                          marginBottom: 12,
+                        }}
+                      >
+                        🕵️
+                      </div>
+                    )}
 
-                  <div style={{ flex: 1, minWidth: 220 }}>
-                    <h3 style={{ marginTop: 0 }}>{suspect.name}</h3>
-
+                    <span style={styles.badge}>
+                      {suspect.is_active ? "Actief" : "Inactief"}
+                    </span>
+                    <h3 style={{ fontSize: 28, margin: "12px 0 8px" }}>
+                      {suspect.name}
+                    </h3>
                     {suspect.description && (
                       <p style={styles.subtle}>{suspect.description}</p>
                     )}
-
-                    {suspect.is_active ? (
-                      <span style={styles.badge}>Actief</span>
-                    ) : (
-                      <span style={styles.badge}>Inactief</span>
-                    )}
-
-                    <span style={styles.badge}>Verdacht: {suspectCount}</span>
-                    <span style={styles.badge}>Twijfel: {doubtCount}</span>
-                    <span style={styles.badge}>
-                      Uitgesloten: {excludedCount}
-                    </span>
-                    <span style={styles.badge}>
-                      Notities: {notesForSuspect.length}
-                    </span>
-                    <span style={styles.badge}>
-                      Gekochte aanwijzingen: {boughtCluesForSuspect.length}
-                    </span>
-                  </div>
-                </div>
-
-                <div style={styles.grid}>
-                  <div style={styles.card}>
-                    <h3>Status per groep</h3>
-
-                    {groups.length === 0 ? (
-                      <p style={styles.subtle}>Nog geen groepen.</p>
-                    ) : (
-                      groups.map((group) => {
-                        const statusRecord = statusesForSuspect.find(
-                          (item) => item.group_id === group.id
-                        );
-
-                        return (
-                          <div key={group.id} style={{ marginBottom: 10 }}>
-                            <strong>{group.name}</strong>
-                            <div>
-                              {StatusBadge({
-                                status: statusRecord?.status || "unknown",
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
                   </div>
 
-                  <div style={styles.card}>
-                    <h3>Notities over deze verdachte</h3>
+                  <div>
+                    <div style={styles.grid}>
+                      <div style={{ ...styles.card, borderColor: "#ef4444" }}>
+                        <strong>Verdacht</strong>
+                        <div style={styles.statNumber}>{suspectCount}</div>
+                      </div>
+                      <div style={{ ...styles.card, borderColor: "#f59e0b" }}>
+                        <strong>Twijfel</strong>
+                        <div style={styles.statNumber}>{doubtCount}</div>
+                      </div>
+                      <div style={{ ...styles.card, borderColor: "#22c55e" }}>
+                        <strong>Uitgesloten</strong>
+                        <div style={styles.statNumber}>{excludedCount}</div>
+                      </div>
+                      <div style={styles.card}>
+                        <strong>Notities</strong>
+                        <div style={styles.statNumber}>
+                          {notesForSuspect.length}
+                        </div>
+                      </div>
+                    </div>
 
-                    {notesForSuspect.length === 0 ? (
-                      <p style={styles.subtle}>
-                        Nog geen notities over deze verdachte.
-                      </p>
-                    ) : (
-                      Object.entries(
-                        groupNotesBy(notesForSuspect, (note) => note.group_id)
-                      ).map(([groupId, notes]) => {
-                        const group =
-                          groups.find((g) => g.id === groupId) ||
-                          notes[0]?.groups;
+                    <div style={styles.grid}>
+                      <div style={styles.card}>
+                        <h3>Status per groep</h3>
+                        {groups.length === 0 ? (
+                          <p style={styles.subtle}>Nog geen groepen.</p>
+                        ) : (
+                          groups.map((group) => {
+                            const statusRecord = statusesForSuspect.find(
+                              (item) => item.group_id === group.id
+                            );
+                            return (
+                              <div
+                                key={group.id}
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  gap: 10,
+                                  borderBottom: "1px solid #27272a",
+                                  padding: "8px 0",
+                                }}
+                              >
+                                <strong>{group.name}</strong>
+                                {StatusBadge({
+                                  status: statusRecord?.status || "unknown",
+                                })}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
 
-                        const sortedNotes = [...notes].sort(
-                          (a, b) =>
-                            new Date(a.created_at) - new Date(b.created_at)
-                        );
-
-                        return (
-                          <div key={groupId} style={styles.card}>
-                            <h4 style={{ marginTop: 0 }}>
-                              {group?.name || "Onbekende groep"}
-                            </h4>
-
+                      <div style={styles.card}>
+                        <h3>Laatste notities</h3>
+                        {latestNotes.length === 0 ? (
+                          <p style={styles.subtle}>
+                            Nog geen notities over deze verdachte.
+                          </p>
+                        ) : (
+                          latestNotes.map((note) => (
                             <div
+                              key={note.id}
                               style={{
                                 background: "#09090b",
                                 border: "1px solid #27272a",
-                                borderRadius: 12,
+                                borderRadius: 14,
                                 padding: 12,
-                                whiteSpace: "pre-wrap",
+                                marginBottom: 10,
                               }}
                             >
-                              {sortedNotes.map((note, index) => (
-                                <div key={note.id} style={{ marginBottom: 12 }}>
-                                  {index > 0 && (
-                                    <div
-                                      style={{
-                                        borderTop: "1px solid #27272a",
-                                        margin: "10px 0",
-                                      }}
-                                    />
-                                  )}
+                              <div style={{ whiteSpace: "pre-wrap" }}>
+                                {note.note}
+                              </div>
+                              <div style={styles.subtle}>
+                                📁{" "}
+                                {note.groups?.name ||
+                                  groups.find(
+                                    (group) => group.id === note.group_id
+                                  )?.name ||
+                                  "Onbekende groep"}{" "}
+                                · {formatDate(note.created_at)}
+                              </div>
+                              <div style={{ marginTop: 8 }}>
+                                <button
+                                  style={styles.buttonSecondary}
+                                  onClick={() => startEditNote(note)}
+                                >
+                                  Bewerken
+                                </button>
+                                <button
+                                  style={styles.buttonDanger}
+                                  onClick={() => deleteNote(note)}
+                                >
+                                  Verwijderen
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
 
-                                  {editingNoteId === note.id ? (
-                                    <>
-                                      <textarea
-                                        style={styles.textarea}
-                                        value={editNoteText}
-                                        onChange={(e) =>
-                                          setEditNoteText(e.target.value)
-                                        }
-                                      />
-
-                                      <button
-                                        style={styles.button}
-                                        onClick={saveEditNote}
-                                      >
-                                        Opslaan
-                                      </button>
-
-                                      <button
-                                        style={styles.buttonSecondary}
-                                        onClick={cancelEditNote}
-                                      >
-                                        Annuleren
-                                      </button>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div>{note.note}</div>
-
-                                      <div style={styles.subtle}>
-                                        Door:{" "}
-                                        {note.profiles?.display_name ||
-                                          note.profiles?.email ||
-                                          "onbekend"}{" "}
-                                        · {formatDate(note.created_at)}
-                                      </div>
-
-                                      <div style={{ marginTop: 8 }}>
-                                        <button
-                                          style={styles.buttonSecondary}
-                                          onClick={() => startEditNote(note)}
-                                        >
-                                          Bewerken
-                                        </button>
-
-                                        <button
-                                          style={styles.buttonDanger}
-                                          onClick={() => deleteNote(note)}
-                                        >
-                                          Verwijderen
-                                        </button>
-                                      </div>
-                                    </>
+                      <div style={styles.card}>
+                        <h3>Aanwijzingen gekocht over deze verdachte</h3>
+                        {boughtCluesForSuspect.length === 0 ? (
+                          <p style={styles.subtle}>
+                            Nog geen groep heeft aanwijzingen rond deze
+                            verdachte gekocht.
+                          </p>
+                        ) : (
+                          boughtCluesForSuspect.map((purchase) => {
+                            const clue =
+                              purchase.clues ||
+                              clues.find(
+                                (item) => item.id === purchase.clue_id
+                              );
+                            return (
+                              <div key={purchase.id} style={styles.card}>
+                                <strong>
+                                  {clue?.title || "Onbekende aanwijzing"}
+                                </strong>
+                                <div>
+                                  <span style={styles.badge}>
+                                    {purchase.groups?.name || "Onbekende groep"}
+                                  </span>
+                                  {clue?.price !== undefined && (
+                                    <span style={styles.badge}>
+                                      💰 {clue.price}
+                                    </span>
                                   )}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  <div style={styles.card}>
-                    <h3>Gekochte aanwijzingen rond deze verdachte</h3>
-
-                    {boughtCluesForSuspect.length === 0 ? (
-                      <p style={styles.subtle}>
-                        Nog geen groep heeft aanwijzingen rond deze verdachte
-                        gekocht.
-                      </p>
-                    ) : (
-                      boughtCluesForSuspect.map((purchase) => {
-                        const clue =
-                          purchase.clues ||
-                          clues.find((item) => item.id === purchase.clue_id);
-
-                        return (
-                          <div key={purchase.id} style={styles.card}>
-                            <strong>
-                              {clue?.title || "Onbekende aanwijzing"}
-                            </strong>
-
-                            <div>
-                              <span style={styles.badge}>
-                                {purchase.groups?.name || "Onbekende groep"}
-                              </span>
-
-                              {clue?.price !== undefined && (
-                                <span style={styles.badge}>
-                                  💰 {clue.price}
-                                </span>
-                              )}
-                            </div>
-
-                            {purchase.purchased_at && (
-                              <div style={styles.subtle}>
-                                Gekocht op: {formatDate(purchase.purchased_at)}
+                                {purchase.purchased_at && (
+                                  <div style={styles.subtle}>
+                                    Gekocht op:{" "}
+                                    {formatDate(purchase.purchased_at)}
+                                  </div>
+                                )}
+                                {clue?.file_url && (
+                                  <div style={{ marginTop: 8 }}>
+                                    <a
+                                      href={clue.file_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={styles.link}
+                                    >
+                                      Bestand openen
+                                    </a>
+                                  </div>
+                                )}
                               </div>
-                            )}
-
-                            {clue?.file_url && (
-                              <div style={{ marginTop: 8 }}>
-                                <a
-                                  href={clue.file_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  style={styles.link}
-                                >
-                                  Bestand openen
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -6868,6 +7003,7 @@ export default function App() {
       </div>
     );
   };
+
   const SuspectDashboard = () => {
     const linkedSuspect = suspects.find((s) => s.id === profile?.suspect_id);
 
