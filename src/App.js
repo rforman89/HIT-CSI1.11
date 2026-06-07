@@ -2403,6 +2403,497 @@ export default function App() {
     setMessage("Gekochte/toegewezen aanwijzing verwijderd bij groep.");
     await loadAppData(profile);
   };
+
+  const deleteDemoData = async ({ silent = false } = {}) => {
+    setError("");
+    if (!silent) setMessage("");
+
+    if (profile?.role !== "admin") {
+      setError("Alleen admin mag demo-data verwijderen.");
+      return false;
+    }
+
+    if (gameMode !== "test") {
+      setError(
+        "Demo-data verwijderen is geblokkeerd omdat het spel live staat."
+      );
+      return false;
+    }
+
+    if (!silent) {
+      const confirmation = window.prompt(
+        "Je verwijdert alleen demo-data met prefix DEMO -. Typ exact: VERWIJDER DEMO"
+      );
+
+      if (confirmation !== "VERWIJDER DEMO") {
+        setError("Demo-data verwijderen geannuleerd.");
+        return false;
+      }
+    }
+
+    const { data: demoGroups, error: groupLookupError } = await supabase
+      .from("groups")
+      .select("id")
+      .like("name", "DEMO -%");
+
+    if (groupLookupError) {
+      setError(groupLookupError.message);
+      return false;
+    }
+
+    const { data: demoSuspects, error: suspectLookupError } = await supabase
+      .from("suspects")
+      .select("id")
+      .like("name", "DEMO -%");
+
+    if (suspectLookupError) {
+      setError(suspectLookupError.message);
+      return false;
+    }
+
+    const { data: demoClues, error: clueLookupError } = await supabase
+      .from("clues")
+      .select("id")
+      .like("title", "DEMO -%");
+
+    if (clueLookupError) {
+      setError(clueLookupError.message);
+      return false;
+    }
+
+    const demoGroupIds = (demoGroups || []).map((item) => item.id);
+    const demoSuspectIds = (demoSuspects || []).map((item) => item.id);
+    const demoClueIds = (demoClues || []).map((item) => item.id);
+
+    if (demoGroupIds.length > 0) {
+      await supabase.from("group_clues").delete().in("group_id", demoGroupIds);
+      await supabase
+        .from("suspect_notes")
+        .delete()
+        .in("group_id", demoGroupIds);
+      await supabase
+        .from("suspect_statuses")
+        .delete()
+        .in("group_id", demoGroupIds);
+      await supabase
+        .from("notifications")
+        .delete()
+        .in("group_id", demoGroupIds);
+      await supabase
+        .from("credit_transactions")
+        .delete()
+        .in("group_id", demoGroupIds);
+      await supabase
+        .from("final_reports")
+        .delete()
+        .in("group_id", demoGroupIds);
+    }
+
+    if (demoClueIds.length > 0) {
+      await supabase.from("group_clues").delete().in("clue_id", demoClueIds);
+      await supabase.from("clues").delete().in("id", demoClueIds);
+    }
+
+    if (demoSuspectIds.length > 0) {
+      await supabase
+        .from("suspect_notes")
+        .delete()
+        .in("suspect_id", demoSuspectIds);
+      await supabase
+        .from("suspect_statuses")
+        .delete()
+        .in("suspect_id", demoSuspectIds);
+      await supabase
+        .from("final_reports")
+        .delete()
+        .in("suspect_id", demoSuspectIds);
+      await supabase.from("clues").delete().in("suspect_id", demoSuspectIds);
+      await supabase.from("suspects").delete().in("id", demoSuspectIds);
+    }
+
+    if (demoGroupIds.length > 0) {
+      await supabase.from("groups").delete().in("id", demoGroupIds);
+    }
+
+    if (!silent) {
+      setMessage("Demo-data verwijderd.");
+      await loadAppData(profile);
+    }
+
+    return true;
+  };
+
+  const loadDemoData = async () => {
+    setError("");
+    setMessage("");
+
+    if (profile?.role !== "admin") {
+      setError("Alleen admin mag demo-data laden.");
+      return;
+    }
+
+    if (gameMode !== "test") {
+      setError("Demo-data laden is geblokkeerd omdat het spel live staat.");
+      return;
+    }
+
+    const confirmation = window.prompt(
+      "Je laadt een gevulde demo-set. Bestaande demo-data met prefix DEMO - wordt eerst vervangen. Typ exact: LAAD DEMO"
+    );
+
+    if (confirmation !== "LAAD DEMO") {
+      setError("Demo-data laden geannuleerd.");
+      return;
+    }
+
+    const cleaned = await deleteDemoData({ silent: true });
+    if (!cleaned) return;
+
+    const demoGroupsToCreate = [
+      { name: "DEMO - Team Zaklamp", credits: 18, is_active: true },
+      { name: "DEMO - Team Bloedspoor", credits: 11, is_active: true },
+      { name: "DEMO - Team Alibi", credits: 24, is_active: true },
+      { name: "DEMO - Team Campingwacht", credits: 7, is_active: true },
+    ];
+
+    const { data: createdGroups, error: groupError } = await supabase
+      .from("groups")
+      .insert(demoGroupsToCreate)
+      .select("*");
+
+    if (groupError) {
+      setError(groupError.message);
+      return;
+    }
+
+    const demoSuspectsToCreate = [
+      {
+        name: "DEMO - Ferrie Bouwer",
+        description:
+          "Ferrie is handig, snel aangebrand en altijd net iets te toevallig in de buurt van problemen.",
+        is_active: true,
+        sort_order: 901,
+      },
+      {
+        name: "DEMO - Presilla De Paal-Kluivert",
+        description:
+          "Presilla kent de camping beter dan ze toegeeft en lijkt opvallend rustig onder druk.",
+        is_active: true,
+        sort_order: 902,
+      },
+      {
+        name: "DEMO - Wesley De Paal",
+        description:
+          "Wesley heeft een rommelig alibi en wordt door meerdere teams genoemd in hun eerste theorie.",
+        is_active: true,
+        sort_order: 903,
+      },
+      {
+        name: "DEMO - Nancey van der Snek",
+        description:
+          "Nancey hoort veel, ziet veel en vergeet zelden iets. Behalve wanneer het haar goed uitkomt.",
+        is_active: true,
+        sort_order: 904,
+      },
+      {
+        name: "DEMO - Ssjonn Meijenzorgh",
+        description:
+          "Ssjonn bewaakt de campingregels, maar sommige regels lijken voor hem optioneel.",
+        is_active: true,
+        sort_order: 905,
+      },
+      {
+        name: "DEMO - Mitch Kolder",
+        description:
+          "Mitch is technisch handig en had toegang tot plekken waar deelnemers liever niet komen.",
+        is_active: true,
+        sort_order: 906,
+      },
+    ];
+
+    const { data: createdSuspects, error: suspectError } = await supabase
+      .from("suspects")
+      .insert(demoSuspectsToCreate)
+      .select("*");
+
+    if (suspectError) {
+      setError(suspectError.message);
+      return;
+    }
+
+    const suspectByName = Object.fromEntries(
+      (createdSuspects || []).map((suspect) => [suspect.name, suspect])
+    );
+
+    const demoCluesToCreate = [
+      {
+        title: "DEMO - Bloedspoor bij sanitairgebouw",
+        description:
+          "Een donker spoor loopt richting de achterzijde van het sanitairgebouw. Niet iedereen kon daar zomaar komen.",
+        price: 5,
+        suspect_id: suspectByName["DEMO - Ferrie Bouwer"]?.id || null,
+        clue_type: "suspect",
+        is_free: false,
+        is_global: false,
+        is_visible: true,
+        sort_order: 901,
+      },
+      {
+        title: "DEMO - Appbericht om 22:14",
+        description:
+          "Een appbericht noemt een afspraak bij de kampvuurplek, kort voor het incident.",
+        price: 4,
+        suspect_id:
+          suspectByName["DEMO - Presilla De Paal-Kluivert"]?.id || null,
+        clue_type: "suspect",
+        is_free: false,
+        is_global: false,
+        is_visible: true,
+        sort_order: 902,
+      },
+      {
+        title: "DEMO - Getuige bij de slagboom",
+        description:
+          "Een getuige zag iemand gehaast richting de slagboom lopen, maar herkent alleen de jas.",
+        price: 3,
+        suspect_id: suspectByName["DEMO - Wesley De Paal"]?.id || null,
+        clue_type: "suspect",
+        is_free: false,
+        is_global: false,
+        is_visible: true,
+        sort_order: 903,
+      },
+      {
+        title: "DEMO - Gratis startaanwijzing",
+        description:
+          "Het slachtoffer is voor het laatst gezien bij de campingbar. Meerdere verklaringen spreken elkaar tegen.",
+        price: 0,
+        suspect_id: null,
+        clue_type: "free",
+        is_free: true,
+        is_global: true,
+        is_visible: true,
+        sort_order: 904,
+      },
+      {
+        title: "DEMO - Sleutelbos gevonden",
+        description:
+          "Een sleutelbos met een rood label is gevonden achter de recreatieruimte.",
+        price: 6,
+        suspect_id: suspectByName["DEMO - Nancey van der Snek"]?.id || null,
+        clue_type: "suspect",
+        is_free: false,
+        is_global: false,
+        is_visible: true,
+        sort_order: 905,
+      },
+      {
+        title: "DEMO - Camerabeeld receptie",
+        description:
+          "Het beeld hapert precies tijdens het belangrijkste kwartier. Toeval ruikt anders.",
+        price: 7,
+        suspect_id: suspectByName["DEMO - Mitch Kolder"]?.id || null,
+        clue_type: "suspect",
+        is_free: false,
+        is_global: false,
+        is_visible: true,
+        sort_order: 906,
+      },
+      {
+        title: "DEMO - Campingrooster aangepast",
+        description:
+          "Het dienstrooster is later aangepast. Wie daar toegang toe had, staat in het systeemlog.",
+        price: 5,
+        suspect_id: suspectByName["DEMO - Ssjonn Meijenzorgh"]?.id || null,
+        clue_type: "suspect",
+        is_free: false,
+        is_global: false,
+        is_visible: true,
+        sort_order: 907,
+      },
+      {
+        title: "DEMO - Bonnetje campingwinkel",
+        description:
+          "Op het bonnetje staan tie-wraps, batterijen en een energiedrank. Een verdacht boodschappenmandje.",
+        price: 4,
+        suspect_id: null,
+        clue_type: "general",
+        is_free: false,
+        is_global: false,
+        is_visible: true,
+        sort_order: 908,
+      },
+    ];
+
+    const { data: createdClues, error: clueError } = await supabase
+      .from("clues")
+      .insert(demoCluesToCreate)
+      .select("*");
+
+    if (clueError) {
+      setError(clueError.message);
+      return;
+    }
+
+    const activeDemoGroups = createdGroups || [];
+    const activeDemoSuspects = createdSuspects || [];
+    const activeDemoClues = createdClues || [];
+
+    const purchases = [
+      [0, 0],
+      [0, 3],
+      [0, 4],
+      [1, 1],
+      [1, 2],
+      [1, 7],
+      [2, 0],
+      [2, 5],
+      [2, 6],
+      [3, 2],
+      [3, 3],
+    ]
+      .filter(
+        ([groupIndex, clueIndex]) =>
+          activeDemoGroups[groupIndex] && activeDemoClues[clueIndex]
+      )
+      .map(([groupIndex, clueIndex]) => ({
+        group_id: activeDemoGroups[groupIndex].id,
+        clue_id: activeDemoClues[clueIndex].id,
+      }));
+
+    if (purchases.length > 0) {
+      const { error: purchaseError } = await supabase
+        .from("group_clues")
+        .insert(purchases);
+
+      if (purchaseError) {
+        setError(purchaseError.message);
+        return;
+      }
+    }
+
+    const statuses = [
+      [0, 2, "suspect"],
+      [0, 0, "doubt"],
+      [0, 1, "excluded"],
+      [1, 1, "suspect"],
+      [1, 2, "doubt"],
+      [1, 5, "excluded"],
+      [2, 0, "suspect"],
+      [2, 4, "suspect"],
+      [2, 2, "excluded"],
+      [3, 2, "suspect"],
+      [3, 3, "doubt"],
+    ]
+      .filter(
+        ([groupIndex, suspectIndex]) =>
+          activeDemoGroups[groupIndex] && activeDemoSuspects[suspectIndex]
+      )
+      .map(([groupIndex, suspectIndex, status]) => ({
+        group_id: activeDemoGroups[groupIndex].id,
+        suspect_id: activeDemoSuspects[suspectIndex].id,
+        status,
+        updated_at: new Date().toISOString(),
+      }));
+
+    if (statuses.length > 0) {
+      const { error: statusError } = await supabase
+        .from("suspect_statuses")
+        .insert(statuses);
+
+      if (statusError) {
+        setError(statusError.message);
+        return;
+      }
+    }
+
+    const demoNotes = [
+      [
+        0,
+        2,
+        "Wesley reageerde te snel toen we vroegen naar de slagboom. Alsof hij het antwoord had ingestudeerd.",
+      ],
+      [
+        0,
+        0,
+        "Ferrie zegt dat hij gereedschap zocht, maar niemand heeft hem bij de opslag gezien.",
+      ],
+      [
+        1,
+        1,
+        "Presilla blijft opvallend rustig. Misschien omdat ze meer weet dan ze laat merken.",
+      ],
+      [1, 2, "Wesley heeft geen sluitend alibi tussen 22:00 en 22:30."],
+      [
+        2,
+        0,
+        "Ferrie had modder aan zijn schoenen die lijkt op de plek bij het sanitairgebouw.",
+      ],
+      [2, 4, "Ssjonn had toegang tot het rooster en de sleutels."],
+      [
+        3,
+        2,
+        "Team denkt dat Wesley afleidingsmanoeuvre speelde, maar bewijs is nog dun.",
+      ],
+      [3, 3, "Nancey hoorde ruzie, maar zegt niet tussen wie. Dat is vreemd."],
+    ]
+      .filter(
+        ([groupIndex, suspectIndex]) =>
+          activeDemoGroups[groupIndex] && activeDemoSuspects[suspectIndex]
+      )
+      .map(([groupIndex, suspectIndex, note]) => ({
+        group_id: activeDemoGroups[groupIndex].id,
+        suspect_id: activeDemoSuspects[suspectIndex].id,
+        user_id: profile.id,
+        note,
+      }));
+
+    if (demoNotes.length > 0) {
+      const { error: noteError } = await supabase
+        .from("suspect_notes")
+        .insert(demoNotes);
+
+      if (noteError) {
+        setError(noteError.message);
+        return;
+      }
+    }
+
+    const notificationRows = activeDemoGroups.map((group, index) => ({
+      group_id: group.id,
+      title: "DEMO - Nieuwe wending in het onderzoek",
+      message:
+        index % 2 === 0
+          ? "Er is een nieuwe aanwijzing beschikbaar. Controleer jullie theorie voordat je pegels uitgeeft."
+          : "De organisatie heeft een tip ontvangen. Niet alles is wat het lijkt op Camping Meijenzorgh.",
+      notification_type: "demo_broadcast",
+      created_by: profile.id,
+    }));
+
+    if (notificationRows.length > 0) {
+      await supabase.from("notifications").insert(notificationRows);
+    }
+
+    const transactionRows = activeDemoGroups.map((group, index) => ({
+      group_id: group.id,
+      amount: [5, -4, 8, -3][index] || 1,
+      reason:
+        index % 2 === 0
+          ? "DEMO - Pegels verdiend met opdracht"
+          : "DEMO - Aanwijzing gekocht",
+      created_by: profile.id,
+    }));
+
+    if (transactionRows.length > 0) {
+      await supabase.from("credit_transactions").insert(transactionRows);
+    }
+
+    setMessage(
+      `Demo-data geladen: ${activeDemoGroups.length} groepen, ${activeDemoSuspects.length} verdachten en ${activeDemoClues.length} aanwijzingen.`
+    );
+
+    await loadAppData(profile);
+  };
   const purchaseClue = async (clueId) => {
     setError("");
     setMessage("");
@@ -4149,6 +4640,34 @@ export default function App() {
           >
             Eindrapporten CSV
           </button>
+        </div>
+        <div style={styles.card}>
+          <h3>Demo-data</h3>
+
+          <p style={styles.subtle}>
+            Laad een gevulde demo-set met groepen, verdachten, aanwijzingen,
+            notities, statussen, meldingen en pegeltransacties. Alleen data met
+            prefix <strong>DEMO -</strong> wordt vervangen of verwijderd.
+          </p>
+
+          {gameMode === "test" ? (
+            <>
+              <button style={styles.button} onClick={loadDemoData}>
+                Demo-data laden
+              </button>
+
+              <button
+                style={styles.buttonDanger}
+                onClick={() => deleteDemoData()}
+              >
+                Demo-data verwijderen
+              </button>
+            </>
+          ) : (
+            <p style={styles.error}>
+              Demo-data is geblokkeerd omdat het spel live staat.
+            </p>
+          )}
         </div>
         <p style={styles.subtle}>
           Controlepaneel vóór de start: hiermee zie je snel of groepen,
