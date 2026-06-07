@@ -6628,17 +6628,26 @@ export default function App() {
                 boxShadow: "0 30px 100px rgba(0,0,0,0.48)",
               }}
             >
-              <img
-                src="/csi-hit-logo.jpg"
-                alt="CSI HIT Alphen logo"
+              <div
                 style={{
-                  width: "min(500px, 90vw)",
-                  maxHeight: 310,
-                  objectFit: "contain",
-                  marginBottom: 22,
-                  filter: "drop-shadow(0 20px 34px rgba(0,0,0,0.52))",
+                  width: "100%",
+                  maxWidth: 500,
+                  margin: "0 auto 22px",
+                  overflow: "hidden",
                 }}
-              />
+              >
+                <img
+                  src="/csi-hit-logo.jpg"
+                  alt="CSI HIT Alphen logo"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    display: "block",
+                    objectFit: "contain",
+                    filter: "drop-shadow(0 20px 34px rgba(0,0,0,0.52))",
+                  }}
+                />
+              </div>
 
               <div
                 style={{
