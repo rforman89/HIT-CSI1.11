@@ -3708,7 +3708,15 @@ export default function App() {
             <h2>📡 Laatste ontwikkeling</h2>
 
             {latestNotification ? (
-              <>
+              <div
+                style={{
+                  background: "#09090b",
+                  border: "1px solid #27272a",
+                  borderRadius: 14,
+                  padding: 12,
+                  marginBottom: 10,
+                }}
+              >
                 <strong>{latestNotification.title}</strong>
                 {latestNotification.message && (
                   <div>{latestNotification.message}</div>
@@ -3716,10 +3724,23 @@ export default function App() {
                 <div style={styles.subtle}>
                   {formatDate(latestNotification.created_at)}
                 </div>
-              </>
-            ) : latestPurchase ? (
-              <>
-                <strong>Laatste aankoop</strong>
+              </div>
+            ) : (
+              <p style={styles.subtle}>Nog geen nieuwe meldingen.</p>
+            )}
+
+            {latestPurchase ? (
+              <div
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(30,64,175,0.18), #09090b)",
+                  border: "1px solid #3b82f6",
+                  borderRadius: 14,
+                  padding: 12,
+                  marginBottom: 12,
+                }}
+              >
+                <strong>📄 Laatste aanwijzing</strong>
                 <div>{latestPurchase.clue?.title}</div>
                 <div style={styles.subtle}>
                   {formatDate(
@@ -3727,10 +3748,8 @@ export default function App() {
                       latestPurchase.purchase.created_at
                   )}
                 </div>
-              </>
-            ) : (
-              <p style={styles.subtle}>Nog geen meldingen of aankopen.</p>
-            )}
+              </div>
+            ) : null}
 
             <button
               style={styles.buttonSecondary}
@@ -5086,11 +5105,23 @@ export default function App() {
                     )}
                   </div>
 
-                  <div style={styles.card}>
+                  <div
+                    style={{
+                      ...styles.card,
+                      borderColor: warnings.length > 0 ? "#ef4444" : "#166534",
+                      background:
+                        warnings.length > 0
+                          ? "linear-gradient(180deg, rgba(69,10,10,0.28), #18181b)"
+                          : "linear-gradient(180deg, rgba(20,83,45,0.14), #18181b)",
+                    }}
+                  >
                     <strong>Waarschuwingen</strong>
                     {warnings.length > 0 ? (
                       warnings.map((warning) => (
-                        <div key={warning} style={styles.error}>
+                        <div
+                          key={warning}
+                          style={{ ...styles.error, fontWeight: 800 }}
+                        >
                           ⚠️ {warning}
                         </div>
                       ))
@@ -5127,8 +5158,16 @@ export default function App() {
     const submittedCount = activeGroups.length - missingGroups.length;
 
     return (
-      <div style={styles.card}>
-        <h2>Finale / eindrapporten</h2>
+      <div
+        style={{
+          ...styles.card,
+          borderColor: finalReportsOpen ? "#22c55e" : "#ef4444",
+          background: finalReportsOpen
+            ? "linear-gradient(180deg, rgba(20,83,45,0.12), rgba(24,24,27,0.98))"
+            : "linear-gradient(180deg, rgba(69,10,10,0.16), rgba(24,24,27,0.98))",
+        }}
+      >
+        <h2>🏁 Finale / eindrapporten</h2>
 
         <span
           style={{
@@ -5281,38 +5320,76 @@ export default function App() {
           </div>
         </div>
 
-        {AdminLiveGameStatus()}
-
         {AdminFinalReportStatusCard()}
 
-        <div style={styles.grid}>
-          <div style={styles.card}>
-            <h2>Groepen</h2>
-            <div style={styles.statNumber}>{groups.length}</div>
-            <div style={styles.subtle}>Totaal aantal groepen</div>
-            <span style={styles.badge}>Actief: {activeGroups}</span>
-            <span style={styles.badge}>Inactief: {inactiveGroups}</span>
-          </div>
+        {AdminLiveGameStatus()}
 
-          <div style={styles.card}>
-            <h2>Aanwijzingen</h2>
-            <div style={styles.statNumber}>{clues.length}</div>
-            <div style={styles.subtle}>Totaal aantal aanwijzingen</div>
-            <span style={styles.badge}>Zichtbaar: {visibleClues}</span>
-            <span style={styles.badge}>Verborgen: {hiddenClues}</span>
-          </div>
+        <div style={styles.card}>
+          <h2>⚡ Snel schakelen</h2>
+          <p style={styles.subtle}>
+            De meest gebruikte organisatie-acties voor demo, voorbereiding en
+            spelbegeleiding.
+          </p>
 
-          <div style={styles.card}>
-            <h2>Meldingen</h2>
-            <div style={styles.statNumber}>{notifications.length}</div>
-            <div style={styles.subtle}>Verstuurd naar groepen</div>
-          </div>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveAdminTab("setup")}
+          >
+            ✅ Spel klaarzetten
+          </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveAdminTab("groups")}
+          >
+            👥 Groepen & aankopen
+          </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveAdminTab("clues")}
+          >
+            📄 Aanwijzingen beheren
+          </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveAdminTab("credits")}
+          >
+            💰 Pegels / melding
+          </button>
+          <button
+            style={styles.buttonSecondary}
+            onClick={() => setActiveAdminTab("interrogation")}
+          >
+            🕵️ Verhoorpaneel
+          </button>
 
-          <div style={styles.card}>
-            <h2>Finale</h2>
-            <div style={styles.statNumber}>{finalReports.length}</div>
-            <div style={styles.subtle}>Ingediende eindrapporten</div>
-          </div>
+          {gameMode === "test" ? (
+            <div
+              style={{
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 16,
+                border: "1px solid #52525b",
+                background: "#09090b",
+              }}
+            >
+              <strong>Demo-set</strong>
+              <div style={styles.subtle}>
+                Laad of verwijder de vaste demo-data zonder naar Klaarzetten te
+                gaan.
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <button style={styles.button} onClick={loadDemoData}>
+                  Demo-data laden
+                </button>
+                <button
+                  style={styles.buttonDanger}
+                  onClick={() => deleteDemoData()}
+                >
+                  Demo-data verwijderen
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       </>
     );
@@ -7802,9 +7879,9 @@ export default function App() {
                   Deelnemersinformatie
                 </h2>
                 <p style={{ color: "#d4d4d8", lineHeight: 1.7, margin: 0 }}>
-                  Hier komt binnenkort praktische informatie voor deelnemers:
-                  uitleg over de app, spelregels, pegels, aanwijzingen en wat je
-                  nodig hebt tijdens het onderzoek.
+                  Deelnemers gebruiken de app om agenda-items te bekijken,
+                  pegels te verdienen, aanwijzingen te kopen, verdachten te
+                  beoordelen en hun theorie stap voor stap vast te leggen.
                 </p>
               </div>
 
