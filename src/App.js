@@ -6419,6 +6419,105 @@ export default function App() {
       (item) => item.status === "excluded"
     ).length;
 
+    const unknownCount = Math.max(groups.length - statusesForMe.length, 0);
+
+    const sortedNotesForMe = [...notesForMe].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    const latestNote = sortedNotesForMe[0];
+
+    const statusRows = groups.map((group) => {
+      const statusRecord = statusesForMe.find(
+        (item) => item.group_id === group.id
+      );
+
+      return {
+        group,
+        status: statusRecord?.status || "unknown",
+        updatedAt: statusRecord?.updated_at || statusRecord?.created_at,
+      };
+    });
+
+    const statusSummary = [
+      {
+        label: "Verdacht",
+        value: suspectCount,
+        emoji: "🟥",
+        borderColor: "#ef4444",
+        background: "linear-gradient(180deg, rgba(127,29,29,0.34), #18181b)",
+      },
+      {
+        label: "Twijfel",
+        value: doubtCount,
+        emoji: "🟨",
+        borderColor: "#f59e0b",
+        background: "linear-gradient(180deg, rgba(146,64,14,0.28), #18181b)",
+      },
+      {
+        label: "Uitgesloten",
+        value: excludedCount,
+        emoji: "🟩",
+        borderColor: "#22c55e",
+        background: "linear-gradient(180deg, rgba(22,101,52,0.28), #18181b)",
+      },
+      {
+        label: "Notities",
+        value: notesForMe.length,
+        emoji: "📝",
+        borderColor: "#52525b",
+        background: "linear-gradient(180deg, rgba(63,63,70,0.34), #18181b)",
+      },
+    ];
+
+    const statusBarTotal = Math.max(statusesForMe.length, groups.length, 1);
+    const statusSegments = [
+      { label: "Verdacht", count: suspectCount, color: "#991b1b" },
+      { label: "Twijfel", count: doubtCount, color: "#92400e" },
+      { label: "Uitgesloten", count: excludedCount, color: "#166534" },
+      { label: "Onbekend", count: unknownCount, color: "#3f3f46" },
+    ].filter((segment) => segment.count > 0);
+
+    const photoBlock = linkedSuspect.photo_url ? (
+      <img
+        src={linkedSuspect.photo_url}
+        alt={linkedSuspect.name}
+        style={{
+          width: "100%",
+          maxWidth: 260,
+          aspectRatio: "1 / 1",
+          objectFit: "cover",
+          borderRadius: 24,
+          border: "1px solid #52525b",
+          boxShadow: "0 24px 70px rgba(0,0,0,0.46)",
+          cursor: "pointer",
+        }}
+        onClick={() =>
+          setImageModal({
+            src: linkedSuspect.photo_url,
+            alt: linkedSuspect.name,
+          })
+        }
+      />
+    ) : (
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 260,
+          aspectRatio: "1 / 1",
+          borderRadius: 24,
+          border: "1px solid #52525b",
+          background: "#09090b",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 72,
+        }}
+      >
+        🕵️
+      </div>
+    );
+
     return (
       <div style={styles.app} {...appFocusHandlers}>
         <div style={styles.shell}>
@@ -6427,114 +6526,246 @@ export default function App() {
             subtitle: `Ingelogd als ${profile.display_name || profile.email}`,
           })}
 
-          <div style={styles.card}>
-            <h2>Mijn verdachteprofiel</h2>
+          {LoadingBlock()}
 
-            {SuspectImage({
-              src: linkedSuspect.photo_url,
-              alt: linkedSuspect.name,
-            })}
+          <div
+            style={{
+              ...styles.card,
+              background:
+                "radial-gradient(circle at top left, rgba(127,29,29,0.34), rgba(24,24,27,0.97) 42%, #18181b 100%)",
+              borderRadius: 26,
+              padding: 22,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(180px, 260px) 1fr",
+                gap: 22,
+                alignItems: "center",
+              }}
+            >
+              <div style={{ width: "100%" }}>{photoBlock}</div>
 
-            <h3 style={{ marginTop: 0 }}>{linkedSuspect.name}</h3>
+              <div>
+                <span
+                  style={{
+                    ...styles.badge,
+                    borderColor: "#ef4444",
+                    color: "#fecaca",
+                    marginTop: 0,
+                  }}
+                >
+                  Verdachte in onderzoek
+                </span>
 
-            {linkedSuspect.description && (
-              <p style={styles.subtle}>{linkedSuspect.description}</p>
-            )}
+                <h1
+                  style={{
+                    margin: "10px 0 6px",
+                    fontSize: "clamp(34px, 5vw, 58px)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {linkedSuspect.name}
+                </h1>
 
-            <span style={styles.badge}>Verdacht: {suspectCount}</span>
-            <span style={styles.badge}>Twijfel: {doubtCount}</span>
-            <span style={styles.badge}>Uitgesloten: {excludedCount}</span>
-            <span style={styles.badge}>Notities: {notesForMe.length}</span>
-            <span style={styles.badge}>
-              Aanwijzingen gekocht: {boughtCluesForMe.length}
-            </span>
+                <p
+                  style={{
+                    ...styles.subtle,
+                    maxWidth: 760,
+                    fontSize: 16,
+                    lineHeight: 1.65,
+                  }}
+                >
+                  Persoonlijk verdachtendossier. Hier zie je wat de
+                  onderzoeksteams over jou noteren, welke status ze aan je geven
+                  en welke aanwijzingen rond jouw rol zijn gekocht.
+                </p>
+
+                {linkedSuspect.description && (
+                  <details style={{ marginTop: 12 }}>
+                    <summary
+                      style={{
+                        cursor: "pointer",
+                        fontWeight: 800,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "8px 12px",
+                        border: "1px solid #52525b",
+                        borderRadius: 999,
+                        background: "rgba(9,9,11,0.62)",
+                      }}
+                    >
+                      Bekijk mijn verdachteprofiel
+                    </summary>
+
+                    <div
+                      style={{
+                        marginTop: 12,
+                        padding: 14,
+                        border: "1px solid #27272a",
+                        borderRadius: 14,
+                        background: "rgba(9,9,11,0.72)",
+                        lineHeight: 1.65,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {linkedSuspect.description}
+                    </div>
+                  </details>
+                )}
+
+                <div style={{ marginTop: 14 }}>
+                  <span style={styles.badge}>🧑‍🤝‍🧑 {groups.length} groep(en)</span>
+                  <span style={styles.badge}>
+                    📝 {notesForMe.length} notitie(s)
+                  </span>
+                  <span style={styles.badge}>
+                    🔎 {boughtCluesForMe.length} aanwijzing(en) gekocht
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.grid}>
+            {statusSummary.map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  ...styles.card,
+                  background: item.background,
+                  borderColor: item.borderColor,
+                }}
+              >
+                <strong>
+                  {item.emoji} {item.label}
+                </strong>
+                <div style={{ ...styles.statNumber, fontSize: 36 }}>
+                  {item.value}
+                </div>
+                <div style={styles.subtle}>
+                  {item.label === "Notities"
+                    ? "Opmerkingen van onderzoeksteams"
+                    : "Statussen van actieve groepen"}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={styles.grid}>
+            <div style={styles.card}>
+              <h2>Wat denken de onderzoekers?</h2>
+              <p style={styles.subtle}>
+                Verdeling van de statussen die groepen jou hebben gegeven.
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  height: 18,
+                  borderRadius: 999,
+                  overflow: "hidden",
+                  border: "1px solid #3f3f46",
+                  background: "#09090b",
+                  margin: "14px 0",
+                }}
+              >
+                {statusSegments.map((segment) => (
+                  <div
+                    key={segment.label}
+                    title={`${segment.label}: ${segment.count}`}
+                    style={{
+                      width: `${Math.max(
+                        8,
+                        (segment.count / statusBarTotal) * 100
+                      )}%`,
+                      background: segment.color,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {statusSegments.map((segment) => (
+                <div
+                  key={segment.label}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: "9px 0",
+                    borderBottom: "1px solid #27272a",
+                  }}
+                >
+                  <span>{segment.label}</span>
+                  <strong>{segment.count} groep(en)</strong>
+                </div>
+              ))}
+            </div>
+
+            <div style={styles.card}>
+              <h2>📝 Laatste onderzoeksnotitie</h2>
+
+              {latestNote ? (
+                <div
+                  style={{
+                    background: "#09090b",
+                    border: "1px solid #27272a",
+                    borderRadius: 14,
+                    padding: 14,
+                    lineHeight: 1.65,
+                  }}
+                >
+                  <div style={{ whiteSpace: "pre-wrap" }}>
+                    {latestNote.note}
+                  </div>
+                  <div style={{ ...styles.subtle, marginTop: 10 }}>
+                    📁 {latestNote.groups?.name || "Onbekende groep"} ·{" "}
+                    {formatDate(latestNote.created_at)}
+                  </div>
+                </div>
+              ) : (
+                <p style={styles.subtle}>
+                  Er zijn nog geen notities over jou opgeslagen.
+                </p>
+              )}
+            </div>
           </div>
 
           <div style={styles.grid}>
             <div style={styles.card}>
               <h2>Status per groep</h2>
 
-              {groups.length === 0 ? (
+              {statusRows.length === 0 ? (
                 <p style={styles.subtle}>Nog geen groepen zichtbaar.</p>
               ) : (
-                groups.map((group) => {
-                  const statusRecord = statusesForMe.find(
-                    (item) => item.group_id === group.id
-                  );
-
-                  return (
-                    <div key={group.id} style={styles.card}>
+                statusRows.map(({ group, status, updatedAt }) => (
+                  <div
+                    key={group.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      padding: "12px 0",
+                      borderBottom: "1px solid #27272a",
+                    }}
+                  >
+                    <div>
                       <strong>{group.name}</strong>
-                      <div style={{ marginTop: 8 }}>
-                        {StatusBadge({
-                          status: statusRecord?.status || "unknown",
-                        })}
-                      </div>
+                      {updatedAt && (
+                        <div style={styles.subtle}>
+                          Bijgewerkt: {formatDate(updatedAt)}
+                        </div>
+                      )}
                     </div>
-                  );
-                })
-              )}
-            </div>
 
-            <div style={styles.card}>
-              <h2>Notities over mij</h2>
-
-              {notesForMe.length === 0 ? (
-                <p style={styles.subtle}>
-                  Er zijn nog geen notities over deze verdachte.
-                </p>
-              ) : (
-                Object.entries(
-                  groupNotesBy(notesForMe, (note) => note.group_id)
-                ).map(([groupId, notes]) => {
-                  const group =
-                    groups.find((g) => g.id === groupId) || notes[0]?.groups;
-
-                  const sortedNotes = [...notes].sort(
-                    (a, b) => new Date(a.created_at) - new Date(b.created_at)
-                  );
-
-                  return (
-                    <div key={groupId} style={styles.card}>
-                      <h3 style={{ marginTop: 0 }}>
-                        {group?.name || "Onbekende groep"}
-                      </h3>
-
-                      <div
-                        style={{
-                          background: "#09090b",
-                          border: "1px solid #27272a",
-                          borderRadius: 12,
-                          padding: 12,
-                          whiteSpace: "pre-wrap",
-                        }}
-                      >
-                        {sortedNotes.map((note, index) => (
-                          <div key={note.id} style={{ marginBottom: 12 }}>
-                            {index > 0 && (
-                              <div
-                                style={{
-                                  borderTop: "1px solid #27272a",
-                                  margin: "10px 0",
-                                }}
-                              />
-                            )}
-
-                            <div>{note.note}</div>
-
-                            <div style={styles.subtle}>
-                              Door:{" "}
-                              {note.profiles?.display_name ||
-                                note.profiles?.email ||
-                                "onbekend"}{" "}
-                              · {formatDate(note.created_at)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })
+                    <div>{StatusBadge({ status })}</div>
+                  </div>
+                ))
               )}
             </div>
 
@@ -6552,12 +6783,21 @@ export default function App() {
                     clues.find((item) => item.id === purchase.clue_id);
 
                   return (
-                    <div key={purchase.id} style={styles.card}>
-                      <strong>{clue?.title || "Onbekende aanwijzing"}</strong>
+                    <div
+                      key={purchase.id}
+                      style={{
+                        ...styles.card,
+                        background: "#09090b",
+                        borderColor: "#27272a",
+                      }}
+                    >
+                      <strong>
+                        🔎 {clue?.title || "Onbekende aanwijzing"}
+                      </strong>
 
                       <div>
                         <span style={styles.badge}>
-                          {purchase.groups?.name || "Onbekende groep"}
+                          📁 {purchase.groups?.name || "Onbekende groep"}
                         </span>
 
                         {clue?.price !== undefined && (
@@ -6575,6 +6815,90 @@ export default function App() {
                 })
               )}
             </div>
+          </div>
+
+          <div style={styles.card}>
+            <h2>Notities over mij</h2>
+            <p style={styles.subtle}>
+              Hier verschijnen de observaties, verdenkingen en losse theorieën
+              die de teams bij jouw dossier bewaren.
+            </p>
+
+            {notesForMe.length === 0 ? (
+              <div
+                style={{
+                  ...styles.card,
+                  background: "#09090b",
+                  borderColor: "#27272a",
+                }}
+              >
+                <strong>Nog geen dossiernotities</strong>
+                <p style={styles.subtle}>
+                  Zodra een groep iets over jou noteert, verschijnt het hier.
+                </p>
+              </div>
+            ) : (
+              Object.entries(
+                groupNotesBy(notesForMe, (note) => note.group_id)
+              ).map(([groupId, notes]) => {
+                const group =
+                  groups.find((g) => g.id === groupId) || notes[0]?.groups;
+
+                const sortedNotes = [...notes].sort(
+                  (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                );
+
+                return (
+                  <div key={groupId} style={styles.card}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 12,
+                        flexWrap: "wrap",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <div>
+                        <h3 style={{ margin: 0 }}>
+                          📁 {group?.name || "Onbekende groep"}
+                        </h3>
+                        <div style={styles.subtle}>
+                          {sortedNotes.length} notitie(s) in dit dossier
+                        </div>
+                      </div>
+                    </div>
+
+                    {sortedNotes.map((note) => (
+                      <div
+                        key={note.id}
+                        style={{
+                          background: "#09090b",
+                          border: "1px solid #27272a",
+                          borderRadius: 14,
+                          padding: 14,
+                          marginBottom: 10,
+                        }}
+                      >
+                        <div
+                          style={{ whiteSpace: "pre-wrap", lineHeight: 1.65 }}
+                        >
+                          {note.note}
+                        </div>
+
+                        <div style={{ ...styles.subtle, marginTop: 10 }}>
+                          Door:{" "}
+                          {note.profiles?.display_name ||
+                            note.profiles?.email ||
+                            "onbekend"}{" "}
+                          · {formatDate(note.created_at)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })
+            )}
           </div>
 
           {MessageBlock()}
