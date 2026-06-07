@@ -276,108 +276,6 @@ const styles = {
     color: "#93c5fd",
     fontWeight: 700,
   },
-
-  landingPage: {
-    minHeight: "100vh",
-    background:
-      "radial-gradient(circle at top left, rgba(153, 27, 27, 0.35), transparent 34%), radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.18), transparent 30%), #050509",
-    color: "#f8fafc",
-    padding: 24,
-    boxSizing: "border-box",
-  },
-
-  landingHero: {
-    maxWidth: 980,
-    margin: "0 auto",
-    padding: "72px 0 40px",
-  },
-
-  landingBadge: {
-    display: "inline-flex",
-    padding: "8px 14px",
-    border: "1px solid #22c55e",
-    borderRadius: 999,
-    color: "#bbf7d0",
-    fontWeight: 800,
-    letterSpacing: 1,
-    marginBottom: 18,
-    background: "rgba(34, 197, 94, 0.08)",
-  },
-
-  landingTitle: {
-    fontSize: "clamp(38px, 7vw, 82px)",
-    lineHeight: 0.95,
-    margin: "0 0 20px",
-    maxWidth: 900,
-  },
-
-  landingText: {
-    fontSize: 18,
-    lineHeight: 1.6,
-    maxWidth: 720,
-    color: "#cbd5e1",
-  },
-
-  landingActions: {
-    display: "flex",
-    gap: 12,
-    flexWrap: "wrap",
-    marginTop: 28,
-  },
-
-  landingButton: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "13px 18px",
-    borderRadius: 14,
-    background: "#991b1b",
-    color: "white",
-    textDecoration: "none",
-    fontWeight: 800,
-    border: "1px solid #ef4444",
-  },
-
-  landingButtonSecondary: {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "13px 18px",
-    borderRadius: 14,
-    background: "#18181b",
-    color: "white",
-    border: "1px solid #3f3f46",
-    textDecoration: "none",
-    fontWeight: 800,
-  },
-
-  landingGrid: {
-    maxWidth: 980,
-    margin: "0 auto",
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: 16,
-  },
-
-  landingCard: {
-    background: "#111114",
-    border: "1px solid #27272a",
-    borderRadius: 22,
-    padding: 22,
-    color: "#e5e7eb",
-  },
-
-  landingFooter: {
-    maxWidth: 980,
-    margin: "36px auto 0",
-    paddingTop: 20,
-    borderTop: "1px solid #27272a",
-    color: "#94a3b8",
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    flexWrap: "wrap",
-  },
 };
 
 function formatDate(value) {
@@ -6686,66 +6584,270 @@ export default function App() {
     );
   };
   const LandingPage = () => {
+    const landingFont = '"CoreDodam", Arial, sans-serif';
+    const instagramUrl =
+      "https://www.instagram.com/csi.hit.alphen?igsh=azU3OThvcjI4YXF3";
+
     return (
-      <div style={styles.landingPage}>
-        <div style={styles.landingHero}>
-          <div style={styles.landingBadge}>CSI HIT</div>
+      <>
+        <style>{`
+          @font-face {
+            font-family: "CoreDodam";
+            src: url("/fonts/CoreDodam.woff2") format("woff2");
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+          }
+        `}</style>
 
-          <h1 style={styles.landingTitle}>
-            Het weekend waarin ieder spoor telt
-          </h1>
-
-          <p style={styles.landingText}>
-            CSI HIT is de digitale regiekamer voor een interactief mysteriespel.
-            Groepen verzamelen aanwijzingen, volgen verdachten, maken notities
-            en dienen aan het einde hun eindrapport in.
-          </p>
-
-          <div style={styles.landingActions}>
-            <a href="https://app.csi-hit.nl" style={styles.landingButton}>
-              Naar de app
-            </a>
-
-            <a
-              href="https://app.csi-hit.nl"
-              style={styles.landingButtonSecondary}
+        <div
+          style={{
+            minHeight: "100vh",
+            background:
+              "radial-gradient(circle at top, #2a1b1b 0%, #0f0f10 44%, #050505 100%)",
+            color: "#f4f4f5",
+            padding: 18,
+            fontFamily: "Arial, sans-serif",
+          }}
+        >
+          <main
+            style={{
+              maxWidth: 1180,
+              margin: "0 auto",
+              padding: "34px 0 22px",
+            }}
+          >
+            <section
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(24,24,27,0.94), rgba(18,18,20,0.92))",
+                border: "1px solid #3f3f46",
+                borderRadius: 32,
+                padding: "38px 22px",
+                textAlign: "center",
+                boxShadow: "0 30px 100px rgba(0,0,0,0.48)",
+              }}
             >
-              Inloggen
-            </a>
-          </div>
+              <img
+                src="/CSI-HIT_4logo"
+                alt="CSI HIT Alphen logo"
+                style={{
+                  width: "min(500px, 90vw)",
+                  maxHeight: 310,
+                  objectFit: "contain",
+                  marginBottom: 22,
+                  filter: "drop-shadow(0 20px 34px rgba(0,0,0,0.52))",
+                }}
+              />
+
+              <div
+                style={{
+                  fontFamily: landingFont,
+                  letterSpacing: 1.8,
+                  color: "#fca5a5",
+                  fontSize: "clamp(16px, 3vw, 22px)",
+                  marginBottom: 20,
+                }}
+              >
+                Camping Meijenzorgh editie
+              </div>
+
+              <p
+                style={{
+                  fontFamily: landingFont,
+                  fontSize: "clamp(30px, 6vw, 58px)",
+                  lineHeight: 1.06,
+                  margin: "0 auto 26px",
+                  maxWidth: 900,
+                  letterSpacing: 1.5,
+                  color: "#ffffff",
+                  textShadow: "0 10px 30px rgba(0,0,0,0.55)",
+                }}
+              >
+                Los de zaak op voordat de tijd om is.
+              </p>
+
+              <p
+                style={{
+                  maxWidth: 820,
+                  margin: "0 auto 28px",
+                  color: "#e4e4e7",
+                  fontSize: 19,
+                  lineHeight: 1.72,
+                }}
+              >
+                Een weekend vol sporen, verklaringen, verdachte details en
+                slimme misleiding. Teams verzamelen aanwijzingen, verdienen
+                pegels en bouwen stap voor stap hun theorie op.
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <a
+                  href="https://app.csi-hit.nl"
+                  style={{
+                    display: "inline-block",
+                    padding: "14px 22px",
+                    borderRadius: 999,
+                    background: "#991b1b",
+                    border: "1px solid #ef4444",
+                    color: "#fff",
+                    textDecoration: "none",
+                    fontFamily: landingFont,
+                    fontSize: 23,
+                    letterSpacing: 1,
+                    boxShadow: "0 12px 28px rgba(153,27,27,0.28)",
+                  }}
+                >
+                  Naar de app
+                </a>
+
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: "inline-block",
+                    padding: "14px 22px",
+                    borderRadius: 999,
+                    background: "#27272a",
+                    border: "1px solid #52525b",
+                    color: "#fff",
+                    textDecoration: "none",
+                    fontFamily: landingFont,
+                    fontSize: 23,
+                    letterSpacing: 1,
+                  }}
+                >
+                  Instagram
+                </a>
+              </div>
+            </section>
+
+            <section
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: 16,
+                marginTop: 18,
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(24,24,27,0.96)",
+                  border: "1px solid #3f3f46",
+                  borderRadius: 24,
+                  padding: 22,
+                }}
+              >
+                <h2
+                  style={{
+                    fontFamily: landingFont,
+                    fontSize: 34,
+                    margin: "0 0 12px",
+                    letterSpacing: 1,
+                  }}
+                >
+                  Wat is CSI HIT?
+                </h2>
+                <p style={{ color: "#d4d4d8", lineHeight: 1.7, margin: 0 }}>
+                  CSI HIT is een real-life detectivegame waarin groepjes een
+                  weekend lang een moordzaak onderzoeken. Door te speuren,
+                  vragen te stellen en aanwijzingen slim te combineren, komen ze
+                  steeds dichter bij de waarheid.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  background: "rgba(24,24,27,0.96)",
+                  border: "1px solid #3f3f46",
+                  borderRadius: 24,
+                  padding: 22,
+                }}
+              >
+                <h2
+                  style={{
+                    fontFamily: landingFont,
+                    fontSize: 34,
+                    margin: "0 0 12px",
+                    letterSpacing: 1,
+                  }}
+                >
+                  Deelnemersinformatie
+                </h2>
+                <p style={{ color: "#d4d4d8", lineHeight: 1.7, margin: 0 }}>
+                  Hier komt binnenkort praktische informatie voor deelnemers:
+                  uitleg over de app, spelregels, pegels, aanwijzingen en wat je
+                  nodig hebt tijdens het onderzoek.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  background: "rgba(24,24,27,0.96)",
+                  border: "1px solid #3f3f46",
+                  borderRadius: 24,
+                  padding: 22,
+                }}
+              >
+                <h2
+                  style={{
+                    fontFamily: landingFont,
+                    fontSize: 34,
+                    margin: "0 0 12px",
+                    letterSpacing: 1,
+                  }}
+                >
+                  Volg CSI HIT
+                </h2>
+                <p style={{ color: "#d4d4d8", lineHeight: 1.7 }}>
+                  Bekijk updates, sfeerbeelden en kleine hints via Instagram.
+                </p>
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    color: "#fca5a5",
+                    fontWeight: 800,
+                    textDecoration: "none",
+                  }}
+                >
+                  @csi.hit.alphen
+                </a>
+              </div>
+            </section>
+
+            <footer
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                flexWrap: "wrap",
+                color: "#a1a1aa",
+                fontSize: 14,
+                marginTop: 20,
+                padding: "0 6px",
+              }}
+            >
+              <span>CSI HIT Alphen</span>
+              <a
+                href="https://app.csi-hit.nl"
+                style={{ color: "#a1a1aa", textDecoration: "none" }}
+              >
+                Organisatie login
+              </a>
+            </footer>
+          </main>
         </div>
-
-        <div style={styles.landingGrid}>
-          <div style={styles.landingCard}>
-            <h2>Voor deelnemers</h2>
-            <p>
-              Koop aanwijzingen, beoordeel verdachten, maak notities en bouw
-              samen aan jullie onderzoek.
-            </p>
-          </div>
-
-          <div style={styles.landingCard}>
-            <h2>Voor verdachten</h2>
-            <p>
-              Bekijk wat groepen over jou denken en volg live hoe het onderzoek
-              zich ontwikkelt.
-            </p>
-          </div>
-
-          <div style={styles.landingCard}>
-            <h2>Voor organisatie</h2>
-            <p>
-              Beheer groepen, pegels, aanwijzingen, meldingen, finale en het
-              verhoor vanuit één overzicht.
-            </p>
-          </div>
-        </div>
-
-        <div style={styles.landingFooter}>
-          <span>CSI HIT</span>
-          <span>Camping Meijenzorgh editie</span>
-        </div>
-      </div>
+      </>
     );
   };
   const LoginScreen = () => (
@@ -6781,6 +6883,7 @@ export default function App() {
       </div>
     </div>
   );
+
   if (isLandingDomain) {
     return LandingPage();
   }
