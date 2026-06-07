@@ -3239,7 +3239,30 @@ export default function App() {
     );
   };
   const StatusBadge = ({ status }) => {
-    return <span style={styles.badge}>{getStatusLabel(status)}</span>;
+    const badgeStyle = {
+      ...styles.badge,
+      marginTop: 0,
+    };
+
+    if (status === "suspect") {
+      badgeStyle.borderColor = "#ef4444";
+      badgeStyle.color = "#fecaca";
+      badgeStyle.background = "rgba(69,10,10,0.7)";
+    }
+
+    if (status === "doubt") {
+      badgeStyle.borderColor = "#f59e0b";
+      badgeStyle.color = "#fde68a";
+      badgeStyle.background = "rgba(120,53,15,0.55)";
+    }
+
+    if (status === "excluded") {
+      badgeStyle.borderColor = "#22c55e";
+      badgeStyle.color = "#bbf7d0";
+      badgeStyle.background = "rgba(20,83,45,0.55)";
+    }
+
+    return <span style={badgeStyle}>{getStatusLabel(status)}</span>;
   };
 
   const LoadingBlock = () => {
@@ -3633,9 +3656,9 @@ export default function App() {
                 "linear-gradient(180deg, rgba(127,29,29,0.22), #18181b)",
             }}
           >
-            <strong>🕵️ Verdacht gezet</strong>
+            <strong>🔎 Onderzochte verdachten</strong>
             <div style={styles.statNumber}>{suspectStatusCount}</div>
-            <div style={styles.subtle}>Verdachten door jullie gemarkeerd</div>
+            <div style={styles.subtle}>Verdachten door jullie beoordeeld</div>
           </div>
         </div>
 
@@ -6728,12 +6751,20 @@ export default function App() {
           rechts direct wat de teams denken, noteren en kopen.
         </p>
 
+        <div style={{ marginTop: 14, marginBottom: 6 }}>
+          <strong>🔍 Kies een verdachte</strong>
+          <div style={styles.subtle}>
+            Selecteer één verdachte voor focus, of toon alle verhoordossiers
+            onder elkaar.
+          </div>
+        </div>
+
         <select
           style={styles.select}
           value={selectedInterrogationSuspect}
           onChange={(e) => setSelectedInterrogationSuspect(e.target.value)}
         >
-          <option value="">Alle verdachten</option>
+          <option value="">Alle verdachten tonen</option>
           {suspects.map((suspect) => (
             <option key={suspect.id} value={suspect.id}>
               {suspect.name}
@@ -7892,15 +7923,6 @@ export default function App() {
             title: "CSI HIT Control Room",
             subtitle: `Ingelogd als ${profile.display_name || profile.email}`,
           })}
-
-          <div style={styles.card}>
-            <strong>Admin navigatie</strong>
-            <div style={styles.subtle}>
-              Gebruik de onderbalk om te schakelen tussen Dashboard,
-              Klaarzetten, Groepen, Beheer, Clues, Preview, Pegels, Finale en
-              Verhoor.
-            </div>
-          </div>
 
           {LoadingBlock()}
 
