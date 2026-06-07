@@ -6629,7 +6629,7 @@ export default function App() {
               }}
             >
               <img
-                src="/CSI-HIT_4logo.svg"
+                src="/csi-hit-logo.jpg"
                 alt="CSI HIT Alphen logo"
                 style={{
                   width: "min(500px, 90vw)",
