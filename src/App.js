@@ -767,7 +767,9 @@ export default function App() {
 
       const { data: groupClueData } = await supabase
         .from("group_clues")
-        .select("*, groups(name), clues(title, price, file_url, suspect_id)");
+        .select(
+          "*, groups(name), clues(title, price, file_url, pdf_url, suspect_id)"
+        );
 
       const { data: notesData } = await supabase
         .from("suspect_notes")
@@ -814,7 +816,9 @@ export default function App() {
 
       const { data: groupClueData } = await supabase
         .from("group_clues")
-        .select("*, groups(name), clues(title, price, file_url, suspect_id)");
+        .select(
+          "*, groups(name), clues(title, price, file_url, pdf_url, suspect_id)"
+        );
 
       const { data: notesData } = await supabase
         .from("suspect_notes")
@@ -2241,7 +2245,9 @@ export default function App() {
 
   const exportPurchasesCsv = () => {
     const headers = [
-      "purchased_at",
+      "moment",
+      "status",
+      "source",
       "group_name",
       "clue_title",
       "suspect_name",
@@ -2257,7 +2263,14 @@ export default function App() {
         suspects.find((item) => item.id === clue?.suspect_id) || clue?.suspects;
 
       return {
-        purchased_at: purchase.purchased_at || purchase.created_at || "",
+        moment:
+          purchase.released_at ||
+          purchase.requested_at ||
+          purchase.purchased_at ||
+          purchase.created_at ||
+          "",
+        status: purchase.status || "",
+        source: purchase.source || "",
         group_name:
           purchase.groups?.name ||
           groups.find((group) => group.id === purchase.group_id)?.name ||
@@ -2265,7 +2278,7 @@ export default function App() {
         clue_title: clue?.title || "",
         suspect_name: suspect?.name || "Algemeen",
         price: clue?.price ?? "",
-        file_url: clue?.file_url || "",
+        file_url: clue?.file_url || clue?.pdf_url || "",
       };
     });
 
@@ -4734,44 +4747,6 @@ export default function App() {
           )}
         </div>
         <div style={styles.card}>
-          <h3>Backup & export</h3>
-
-          <p style={styles.subtle}>
-            Download de huidige speldata. Handig vóór een reset, vóór livegang
-            of voor evaluatie na afloop.
-          </p>
-
-          <button style={styles.button} onClick={exportFullBackup}>
-            Volledige backup JSON
-          </button>
-
-          <button style={styles.buttonSecondary} onClick={exportNotesCsv}>
-            Notities CSV
-          </button>
-
-          <button style={styles.buttonSecondary} onClick={exportStatusesCsv}>
-            Statussen CSV
-          </button>
-
-          <button style={styles.buttonSecondary} onClick={exportPurchasesCsv}>
-            Aankopen CSV
-          </button>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={exportTransactionsCsv}
-          >
-            Pegels CSV
-          </button>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={exportFinalReportsCsv}
-          >
-            Eindrapporten CSV
-          </button>
-        </div>
-        <div style={styles.card}>
           <h3>Demo-data</h3>
 
           <p style={styles.subtle}>
@@ -4903,6 +4878,45 @@ export default function App() {
               </div>
             ))
           )}
+        </div>
+
+        <div style={styles.card}>
+          <h3>Backup & export</h3>
+
+          <p style={styles.subtle}>
+            Download de huidige speldata. Handig vóór een reset, vóór livegang
+            of voor evaluatie na afloop.
+          </p>
+
+          <button style={styles.button} onClick={exportFullBackup}>
+            Volledige backup JSON
+          </button>
+
+          <button style={styles.buttonSecondary} onClick={exportNotesCsv}>
+            Notities CSV
+          </button>
+
+          <button style={styles.buttonSecondary} onClick={exportStatusesCsv}>
+            Statussen CSV
+          </button>
+
+          <button style={styles.buttonSecondary} onClick={exportPurchasesCsv}>
+            Aankopen CSV
+          </button>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={exportTransactionsCsv}
+          >
+            Pegels CSV
+          </button>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={exportFinalReportsCsv}
+          >
+            Eindrapporten CSV
+          </button>
         </div>
       </div>
     );
@@ -6450,169 +6464,350 @@ export default function App() {
     </div>
   );
 
-  const AdminGroupsList = () => (
-    <div style={styles.card}>
-      <h2>Groepen & gekochte aanwijzingen</h2>
+  const AdminPurchasesOverview = () => {
+    const purchasesByClue = clues
+      .map((clue) => {
+        const purchases = groupClues
+          .filter((purchase) => purchase.clue_id === clue.id)
+          .map((purchase) => {
+            const group =
+              purchase.groups ||
+              groups.find((item) => item.id === purchase.group_id);
 
-      {groups.length === 0 ? (
-        <p style={styles.subtle}>Nog geen groepen.</p>
-      ) : (
-        groups.map((g) => {
-          const members = memberships.filter((m) => m.group_id === g.id);
-          const bought = groupClues.filter((c) => c.group_id === g.id);
+            return { purchase, group };
+          })
+          .filter((item) => item.group);
 
-          return (
-            <div key={g.id} style={styles.card}>
-              {editingGroupId === g.id ? (
-                <div>
-                  <h3 style={{ marginTop: 0 }}>Groep bewerken</h3>
+        return { clue, purchases };
+      })
+      .filter((item) => item.purchases.length > 0)
+      .sort((a, b) => a.clue.title.localeCompare(b.clue.title));
 
-                  <input
-                    style={styles.input}
-                    placeholder="Groepsnaam"
-                    value={editGroupName}
-                    onChange={(e) => setEditGroupName(e.target.value)}
-                  />
+    const purchasesByGroup = groups
+      .map((group) => {
+        const purchases = groupClues
+          .filter((purchase) => purchase.group_id === group.id)
+          .map((purchase) => {
+            const clue =
+              purchase.clues ||
+              clues.find((item) => item.id === purchase.clue_id);
+            const suspect =
+              clue?.suspects ||
+              suspects.find((item) => item.id === clue?.suspect_id);
 
-                  <button style={styles.button} onClick={saveEditGroup}>
-                    Opslaan
-                  </button>
+            return { purchase, clue, suspect };
+          })
+          .filter((item) => item.clue)
+          .sort((a, b) => a.clue.title.localeCompare(b.clue.title));
 
-                  <button
-                    style={styles.buttonSecondary}
-                    onClick={cancelEditGroup}
-                  >
-                    Annuleren
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <h3 style={{ marginTop: 0 }}>{g.name}</h3>
+        return { group, purchases };
+      })
+      .filter((item) => item.purchases.length > 0)
+      .sort((a, b) => a.group.name.localeCompare(b.group.name));
 
-                  <button
-                    style={styles.buttonSecondary}
-                    onClick={() => startEditGroup(g)}
-                  >
-                    Groepsnaam bewerken
-                  </button>
-                </>
-              )}
+    const getPurchaseMoment = (purchase) =>
+      purchase.released_at ||
+      purchase.requested_at ||
+      purchase.purchased_at ||
+      purchase.created_at ||
+      "";
 
-              <span style={styles.badge}>💰 {g.credits} pegels</span>
-              <span style={styles.badge}>👥 {members.length} leden</span>
-              <span style={styles.badge}>📄 {bought.length} gekocht</span>
-              {g.is_active ? (
-                <span style={styles.badge}>Actief</span>
-              ) : (
-                <span style={styles.badge}>Inactief</span>
-              )}
+    return (
+      <div style={styles.card}>
+        <h2>📄 Aankopen per aanwijzing en groep</h2>
+        <p style={styles.subtle}>
+          Snel spelregie-overzicht: welke aanwijzingen zijn door welke groep
+          gekocht of vrijgegeven.
+        </p>
 
-              <div style={{ marginTop: 10 }}>
-                <button
-                  style={styles.buttonSecondary}
-                  onClick={() => toggleGroupActive(g)}
-                >
-                  {g.is_active
-                    ? "Groep inactief zetten"
-                    : "Groep actief zetten"}
-                </button>
-              </div>
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <strong>Totaal gekocht/toegewezen</strong>
+            <div style={styles.statNumber}>{groupClues.length}</div>
+          </div>
+          <div style={styles.card}>
+            <strong>Aanwijzingen met kopers</strong>
+            <div style={styles.statNumber}>{purchasesByClue.length}</div>
+          </div>
+          <div style={styles.card}>
+            <strong>Groepen met aankopen</strong>
+            <div style={styles.statNumber}>{purchasesByGroup.length}</div>
+          </div>
+        </div>
 
-              <div style={{ marginTop: 12 }}>
-                <strong>Leden</strong>
+        {groupClues.length === 0 ? (
+          <p style={styles.subtle}>
+            Nog geen aanwijzingen gekocht of vrijgegeven.
+          </p>
+        ) : (
+          <div style={styles.grid}>
+            <div style={styles.card}>
+              <h3>Per aanwijzing</h3>
 
-                {members.length === 0 ? (
-                  <div style={styles.subtle}>Geen leden gekoppeld.</div>
-                ) : (
-                  members.map((m) => {
-                    const p = profiles.find((x) => x.id === m.user_id);
+              {purchasesByClue.map(({ clue, purchases }) => {
+                const suspectName =
+                  clue.suspects?.name ||
+                  suspects.find((item) => item.id === clue.suspect_id)?.name ||
+                  "Algemeen";
 
-                    return (
-                      <div key={m.id} style={styles.card}>
-                        <strong>
-                          {p?.display_name || p?.email || m.user_id}
-                        </strong>
-                        {p?.email && <div style={styles.subtle}>{p.email}</div>}
+                return (
+                  <div key={clue.id} style={styles.card}>
+                    <strong>{clue.title}</strong>
+                    <div>
+                      <span style={styles.badge}>🕵️ {suspectName}</span>
+                      <span style={styles.badge}>
+                        👥 {purchases.length} groep(en)
+                      </span>
+                      {clue.price !== undefined && (
+                        <span style={styles.badge}>💰 {clue.price}</span>
+                      )}
+                    </div>
 
-                        <button
-                          style={styles.buttonDanger}
-                          onClick={() => removeUserFromGroup(m)}
-                        >
-                          Verwijderen uit groep
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              <div style={{ marginTop: 14 }}>
-                <strong>Gekochte aanwijzingen</strong>
-
-                {bought.length === 0 ? (
-                  <div style={styles.subtle}>
-                    Nog geen aanwijzingen gekocht.
+                    <div style={{ marginTop: 10 }}>
+                      {purchases.map(({ purchase, group }) => (
+                        <span key={purchase.id} style={styles.badge}>
+                          {group.name}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                ) : (
-                  bought.map((purchase) => {
-                    const clue =
-                      purchase.clues ||
-                      clues.find((item) => item.id === purchase.clue_id);
+                );
+              })}
+            </div>
 
-                    const suspectName =
-                      clue?.suspects?.name ||
-                      suspects.find((s) => s.id === clue?.suspect_id)?.name ||
-                      "Algemeen";
+            <div style={styles.card}>
+              <h3>Per groep</h3>
 
-                    return (
-                      <div key={purchase.id} style={styles.card}>
-                        <strong>{clue?.title || "Onbekende aanwijzing"}</strong>
+              {purchasesByGroup.map(({ group, purchases }) => (
+                <div key={group.id} style={styles.card}>
+                  <strong>{group.name}</strong>
+                  <div>
+                    <span style={styles.badge}>
+                      📄 {purchases.length} aanwijzing(en)
+                    </span>
+                    <span style={styles.badge}>
+                      💰 {group.credits} pegels over
+                    </span>
+                  </div>
 
+                  <div style={{ marginTop: 10 }}>
+                    {purchases.map(({ purchase, clue, suspect }) => (
+                      <div
+                        key={purchase.id}
+                        style={{
+                          padding: "8px 0",
+                          borderBottom: "1px solid #27272a",
+                        }}
+                      >
+                        <strong>{clue.title}</strong>
                         <div>
-                          <span style={styles.badge}>🕵️ {suspectName}</span>
-                          {clue?.price !== undefined && (
-                            <span style={styles.badge}>💰 {clue.price}</span>
+                          <span style={styles.badge}>
+                            🕵️ {suspect?.name || "Algemeen"}
+                          </span>
+                          {purchase.status && (
+                            <span style={styles.badge}>{purchase.status}</span>
+                          )}
+                          {purchase.source && (
+                            <span style={styles.badge}>{purchase.source}</span>
                           )}
                         </div>
-
-                        {purchase.purchased_at && (
+                        {getPurchaseMoment(purchase) && (
                           <div style={styles.subtle}>
-                            Gekocht op: {formatDate(purchase.purchased_at)}
+                            {formatDate(getPurchaseMoment(purchase))}
                           </div>
                         )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
-                        {clue?.file_url && (
-                          <div style={{ marginTop: 8 }}>
-                            <a
-                              href={clue.file_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={styles.link}
-                            >
-                              Bestand openen
-                            </a>
-                          </div>
-                        )}
-                        <div style={{ marginTop: 10 }}>
+  const AdminGroupsList = () => (
+    <>
+      {AdminPurchasesOverview()}
+
+      <div style={styles.card}>
+        <h2>Groepen & gekochte aanwijzingen</h2>
+
+        {groups.length === 0 ? (
+          <p style={styles.subtle}>Nog geen groepen.</p>
+        ) : (
+          groups.map((g) => {
+            const members = memberships.filter((m) => m.group_id === g.id);
+            const bought = groupClues.filter((c) => c.group_id === g.id);
+
+            return (
+              <div key={g.id} style={styles.card}>
+                {editingGroupId === g.id ? (
+                  <div>
+                    <h3 style={{ marginTop: 0 }}>Groep bewerken</h3>
+
+                    <input
+                      style={styles.input}
+                      placeholder="Groepsnaam"
+                      value={editGroupName}
+                      onChange={(e) => setEditGroupName(e.target.value)}
+                    />
+
+                    <button style={styles.button} onClick={saveEditGroup}>
+                      Opslaan
+                    </button>
+
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={cancelEditGroup}
+                    >
+                      Annuleren
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h3 style={{ marginTop: 0 }}>{g.name}</h3>
+
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={() => startEditGroup(g)}
+                    >
+                      Groepsnaam bewerken
+                    </button>
+                  </>
+                )}
+
+                <span style={styles.badge}>💰 {g.credits} pegels</span>
+                <span style={styles.badge}>👥 {members.length} leden</span>
+                <span style={styles.badge}>📄 {bought.length} gekocht</span>
+                {g.is_active ? (
+                  <span style={styles.badge}>Actief</span>
+                ) : (
+                  <span style={styles.badge}>Inactief</span>
+                )}
+
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={() => toggleGroupActive(g)}
+                  >
+                    {g.is_active
+                      ? "Groep inactief zetten"
+                      : "Groep actief zetten"}
+                  </button>
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <strong>Leden</strong>
+
+                  {members.length === 0 ? (
+                    <div style={styles.subtle}>Geen leden gekoppeld.</div>
+                  ) : (
+                    members.map((m) => {
+                      const p = profiles.find((x) => x.id === m.user_id);
+
+                      return (
+                        <div key={m.id} style={styles.card}>
+                          <strong>
+                            {p?.display_name || p?.email || m.user_id}
+                          </strong>
+                          {p?.email && (
+                            <div style={styles.subtle}>{p.email}</div>
+                          )}
+
                           <button
                             style={styles.buttonDanger}
-                            onClick={() => removeGroupClue(purchase)}
+                            onClick={() => removeUserFromGroup(m)}
                           >
-                            {gameMode === "test"
-                              ? "Verwijderen bij groep"
-                              : "Verwijderen geblokkeerd live"}
+                            Verwijderen uit groep
                           </button>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
+                      );
+                    })
+                  )}
+                </div>
+
+                <div style={{ marginTop: 14 }}>
+                  <strong>Gekochte aanwijzingen</strong>
+
+                  {bought.length === 0 ? (
+                    <div style={styles.subtle}>
+                      Nog geen aanwijzingen gekocht.
+                    </div>
+                  ) : (
+                    bought.map((purchase) => {
+                      const clue =
+                        purchase.clues ||
+                        clues.find((item) => item.id === purchase.clue_id);
+
+                      const suspectName =
+                        clue?.suspects?.name ||
+                        suspects.find((s) => s.id === clue?.suspect_id)?.name ||
+                        "Algemeen";
+
+                      return (
+                        <div key={purchase.id} style={styles.card}>
+                          <strong>
+                            {clue?.title || "Onbekende aanwijzing"}
+                          </strong>
+
+                          <div>
+                            <span style={styles.badge}>🕵️ {suspectName}</span>
+                            {clue?.price !== undefined && (
+                              <span style={styles.badge}>💰 {clue.price}</span>
+                            )}
+                          </div>
+
+                          {(purchase.released_at ||
+                            purchase.requested_at ||
+                            purchase.purchased_at ||
+                            purchase.created_at) && (
+                            <div style={styles.subtle}>
+                              Moment:{" "}
+                              {formatDate(
+                                purchase.released_at ||
+                                  purchase.requested_at ||
+                                  purchase.purchased_at ||
+                                  purchase.created_at
+                              )}
+                            </div>
+                          )}
+
+                          {(clue?.file_url || clue?.pdf_url) && (
+                            <div style={{ marginTop: 8 }}>
+                              <a
+                                href={clue.file_url || clue.pdf_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={styles.link}
+                              >
+                                Bestand openen
+                              </a>
+                            </div>
+                          )}
+                          <div style={{ marginTop: 10 }}>
+                            <button
+                              style={styles.buttonDanger}
+                              onClick={() => removeGroupClue(purchase)}
+                            >
+                              {gameMode === "test"
+                                ? "Verwijderen bij groep"
+                                : "Verwijderen geblokkeerd live"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })
-      )}
-    </div>
+            );
+          })
+        )}
+      </div>
+    </>
   );
   const AdminFinalReports = () => {
     const activeGroups = groups.filter((group) => group.is_active);
@@ -7181,6 +7376,8 @@ export default function App() {
           borderRadius: 24,
           border: "1px solid #52525b",
           boxShadow: "0 24px 70px rgba(0,0,0,0.46)",
+          display: "block",
+          margin: "0 auto",
           cursor: "pointer",
         }}
         onClick={() =>
@@ -7232,14 +7429,23 @@ export default function App() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(180px, 260px) 1fr",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
                 gap: 22,
                 alignItems: "center",
               }}
             >
-              <div style={{ width: "100%" }}>{photoBlock}</div>
+              <div
+                style={{
+                  width: "100%",
+                  minWidth: 0,
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                {photoBlock}
+              </div>
 
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <span
                   style={{
                     ...styles.badge,
