@@ -3608,8 +3608,11 @@ export default function App() {
 
         <div style={styles.grid}>
           <div
+            onClick={() => setActiveParticipantTab("messages")}
+            title="Bekijk pegels en info"
             style={{
               ...styles.card,
+              cursor: "pointer",
               borderColor: "#f59e0b",
               background:
                 "linear-gradient(180deg, rgba(120,53,15,0.22), #18181b)",
@@ -3621,8 +3624,11 @@ export default function App() {
           </div>
 
           <div
+            onClick={() => setActiveParticipantTab("clues")}
+            title="Bekijk aanwijzingen"
             style={{
               ...styles.card,
+              cursor: "pointer",
               borderColor: "#3b82f6",
               background:
                 "linear-gradient(180deg, rgba(30,64,175,0.18), #18181b)",
@@ -3636,8 +3642,11 @@ export default function App() {
           </div>
 
           <div
+            onClick={() => setActiveParticipantTab("suspects")}
+            title="Bekijk verdachten en notities"
             style={{
               ...styles.card,
+              cursor: "pointer",
               borderColor: "#a855f7",
               background:
                 "linear-gradient(180deg, rgba(88,28,135,0.2), #18181b)",
@@ -3649,8 +3658,11 @@ export default function App() {
           </div>
 
           <div
+            onClick={() => setActiveParticipantTab("suspects")}
+            title="Bekijk onderzochte verdachten"
             style={{
               ...styles.card,
+              cursor: "pointer",
               borderColor: "#ef4444",
               background:
                 "linear-gradient(180deg, rgba(127,29,29,0.22), #18181b)",
@@ -3663,7 +3675,11 @@ export default function App() {
         </div>
 
         <div style={styles.grid}>
-          <div style={{ ...styles.card, minHeight: 190 }}>
+          <div
+            onClick={() => setActiveParticipantTab("agenda")}
+            title="Bekijk agenda"
+            style={{ ...styles.card, minHeight: 190, cursor: "pointer" }}
+          >
             <h2>🕒 Volgende activiteit</h2>
 
             {nextAgendaItem ? (
@@ -3695,16 +3711,13 @@ export default function App() {
                 Er staat nu geen volgende activiteit gepland.
               </p>
             )}
-
-            <button
-              style={styles.buttonSecondary}
-              onClick={() => setActiveParticipantTab("agenda")}
-            >
-              Naar agenda
-            </button>
           </div>
 
-          <div style={{ ...styles.card, minHeight: 190 }}>
+          <div
+            onClick={() => setActiveParticipantTab("messages")}
+            title="Bekijk info en meldingen"
+            style={{ ...styles.card, minHeight: 190, cursor: "pointer" }}
+          >
             <h2>📡 Laatste ontwikkeling</h2>
 
             {latestNotification ? (
@@ -3750,56 +3763,15 @@ export default function App() {
                 </div>
               </div>
             ) : null}
-
-            <button
-              style={styles.buttonSecondary}
-              onClick={() => setActiveParticipantTab("messages")}
-            >
-              Naar info
-            </button>
           </div>
         </div>
 
-        <div style={styles.card}>
-          <h2>🎯 Snel naar het onderzoek</h2>
-          <p style={styles.subtle}>
-            Kies je volgende stap: aanwijzingen bekijken, verdachten beoordelen
-            of berichten van de organisatie lezen.
-          </p>
-
-          <button
-            style={styles.button}
-            onClick={() => setActiveParticipantTab("clues")}
-          >
-            📄 Aanwijzingen
-          </button>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveParticipantTab("suspects")}
-          >
-            🕵️ Verdachten
-          </button>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveParticipantTab("messages")}
-          >
-            🔔 Info
-          </button>
-
-          {finalReportsOpen || progress.finalReport ? (
-            <button
-              style={styles.buttonSecondary}
-              onClick={() => setActiveParticipantTab("final")}
-            >
-              🏁 Finale
-            </button>
-          ) : null}
-        </div>
-
         {(finalReportsOpen || progress.finalReport) && (
-          <div style={styles.card}>
+          <div
+            onClick={() => setActiveParticipantTab("final")}
+            title="Bekijk finale"
+            style={{ ...styles.card, cursor: "pointer" }}
+          >
             <h2>🏁 Finale</h2>
 
             {progress.finalReport ? (
@@ -5280,37 +5252,61 @@ export default function App() {
           </h2>
           <p style={{ ...styles.subtle, fontSize: 16 }}>
             Live stand van groepen, aanwijzingen, pegels, notities, statussen en
-            finale.
+            finale. Klik op een kaart om direct naar het juiste scherm te gaan.
           </p>
 
           <div style={styles.grid}>
-            <div style={styles.card}>
+            <div
+              onClick={() => setActiveAdminTab("groups")}
+              title="Bekijk groepen en aankopen"
+              style={{ ...styles.card, cursor: "pointer" }}
+            >
               <strong>👥 Actieve groepen</strong>
               <div style={styles.statNumber}>{activeGroups}</div>
               <span style={styles.badge}>Inactief: {inactiveGroups}</span>
             </div>
-            <div style={styles.card}>
+            <div
+              onClick={() => setActiveAdminTab("manage")}
+              title="Bekijk verdachtenbeheer"
+              style={{ ...styles.card, cursor: "pointer" }}
+            >
               <strong>🕵️ Verdachten</strong>
               <div style={styles.statNumber}>{suspects.length}</div>
               <span style={styles.badge}>Actief: {activeSuspects}</span>
               <span style={styles.badge}>Inactief: {inactiveSuspects}</span>
             </div>
-            <div style={styles.card}>
+            <div
+              onClick={() => setActiveAdminTab("groups")}
+              title="Bekijk gekochte aanwijzingen"
+              style={{ ...styles.card, cursor: "pointer" }}
+            >
               <strong>📄 Aankopen</strong>
               <div style={styles.statNumber}>{groupClues.length}</div>
               <div style={styles.subtle}>Gekocht/toegewezen</div>
             </div>
-            <div style={styles.card}>
+            <div
+              onClick={() => setActiveAdminTab("interrogation")}
+              title="Bekijk notities in het verhoorpaneel"
+              style={{ ...styles.card, cursor: "pointer" }}
+            >
               <strong>📝 Notities</strong>
               <div style={styles.statNumber}>{suspectNotes.length}</div>
               <div style={styles.subtle}>Door groepjes ingevoerd</div>
             </div>
-            <div style={styles.card}>
+            <div
+              onClick={() => setActiveAdminTab("interrogation")}
+              title="Bekijk statussen in het verhoorpaneel"
+              style={{ ...styles.card, cursor: "pointer" }}
+            >
               <strong>🏷️ Statussen</strong>
               <div style={styles.statNumber}>{suspectStatuses.length}</div>
               <div style={styles.subtle}>Verdachte beoordelingen</div>
             </div>
-            <div style={styles.card}>
+            <div
+              onClick={() => setActiveAdminTab("credits")}
+              title="Bekijk pegels en meldingen"
+              style={{ ...styles.card, cursor: "pointer" }}
+            >
               <strong>💰 Pegels in spel</strong>
               <div style={styles.statNumber}>{creditsInPlay}</div>
               <div style={styles.subtle}>
@@ -5323,74 +5319,6 @@ export default function App() {
         {AdminFinalReportStatusCard()}
 
         {AdminLiveGameStatus()}
-
-        <div style={styles.card}>
-          <h2>⚡ Snel schakelen</h2>
-          <p style={styles.subtle}>
-            De meest gebruikte organisatie-acties voor demo, voorbereiding en
-            spelbegeleiding.
-          </p>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveAdminTab("setup")}
-          >
-            ✅ Spel klaarzetten
-          </button>
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveAdminTab("groups")}
-          >
-            👥 Groepen & aankopen
-          </button>
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveAdminTab("clues")}
-          >
-            📄 Aanwijzingen beheren
-          </button>
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveAdminTab("credits")}
-          >
-            💰 Pegels / melding
-          </button>
-          <button
-            style={styles.buttonSecondary}
-            onClick={() => setActiveAdminTab("interrogation")}
-          >
-            🕵️ Verhoorpaneel
-          </button>
-
-          {gameMode === "test" ? (
-            <div
-              style={{
-                marginTop: 14,
-                padding: 14,
-                borderRadius: 16,
-                border: "1px solid #52525b",
-                background: "#09090b",
-              }}
-            >
-              <strong>Demo-set</strong>
-              <div style={styles.subtle}>
-                Laad of verwijder de vaste demo-data zonder naar Klaarzetten te
-                gaan.
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <button style={styles.button} onClick={loadDemoData}>
-                  Demo-data laden
-                </button>
-                <button
-                  style={styles.buttonDanger}
-                  onClick={() => deleteDemoData()}
-                >
-                  Demo-data verwijderen
-                </button>
-              </div>
-            </div>
-          ) : null}
-        </div>
       </>
     );
   };
