@@ -2153,14 +2153,17 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
-  const downloadCsv = (filename, headers, rows) => {
-    const csv = [
+  const buildCsvContent = (headers, rows) => {
+    return [
       headers.map(safeCsvValue).join(";"),
       ...rows.map((row) =>
         headers.map((header) => safeCsvValue(row[header])).join(";")
       ),
     ].join("\n");
+  };
 
+  const downloadCsv = (filename, headers, rows) => {
+    const csv = buildCsvContent(headers, rows);
     downloadTextFile(filename, csv, "text/csv;charset=utf-8;");
   };
 
@@ -2329,6 +2332,242 @@ export default function App() {
 
     downloadCsv(`csi-hit-eindrapporten-${getExportStamp()}.csv`, headers, rows);
   };
+
+  const exportCompleteCsvBackup = () => {
+    const stamp = getExportStamp();
+
+    const groupRows = groups.map((group) => ({
+      name: group.name || "",
+      credits: group.credits ?? "",
+      is_active: group.is_active ? "ja" : "nee",
+      created_at: group.created_at || "",
+    }));
+
+    const suspectRows = suspects.map((suspect) => ({
+      name: suspect.name || "",
+      active: suspect.active ? "ja" : "nee",
+      description: suspect.description || "",
+      photo_url: suspect.photo_url || "",
+      created_at: suspect.created_at || "",
+    }));
+
+    const clueRows = clues.map((clue) => ({
+      title: clue.title || "",
+      suspect_name:
+        clue.suspects?.name ||
+        suspects.find((suspect) => suspect.id === clue.suspect_id)?.name ||
+        "Algemeen",
+      price: clue.price ?? "",
+      clue_type: clue.clue_type || "",
+      description: clue.description || "",
+      file_url: clue.file_url || clue.pdf_url || "",
+      is_visible: clue.is_visible ? "ja" : "nee",
+      created_at: clue.created_at || "",
+    }));
+
+    const purchaseRows = groupClues.map((purchase) => {
+      const clue =
+        purchase.clues || clues.find((item) => item.id === purchase.clue_id);
+
+      const suspect =
+        suspects.find((item) => item.id === clue?.suspect_id) || clue?.suspects;
+
+      return {
+        moment:
+          purchase.released_at ||
+          purchase.requested_at ||
+          purchase.purchased_at ||
+          purchase.created_at ||
+          "",
+        status: purchase.status || "",
+        source: purchase.source || "",
+        group_name:
+          purchase.groups?.name ||
+          groups.find((group) => group.id === purchase.group_id)?.name ||
+          "",
+        clue_title: clue?.title || "",
+        suspect_name: suspect?.name || "Algemeen",
+        price: clue?.price ?? "",
+        file_url: clue?.file_url || clue?.pdf_url || "",
+      };
+    });
+
+    const noteRows = suspectNotes.map((note) => ({
+      created_at: note.created_at || "",
+      group_name:
+        note.groups?.name ||
+        groups.find((group) => group.id === note.group_id)?.name ||
+        "",
+      suspect_name:
+        note.suspects?.name ||
+        suspects.find((suspect) => suspect.id === note.suspect_id)?.name ||
+        "",
+      author:
+        note.profiles?.display_name ||
+        note.profiles?.email ||
+        note.user_id ||
+        "",
+      note: note.note || "",
+    }));
+
+    const statusRows = suspectStatuses.map((status) => ({
+      updated_at: status.updated_at || status.created_at || "",
+      group_name:
+        status.groups?.name ||
+        groups.find((group) => group.id === status.group_id)?.name ||
+        "",
+      suspect_name:
+        status.suspects?.name ||
+        suspects.find((suspect) => suspect.id === status.suspect_id)?.name ||
+        "",
+      status: getStatusLabel(status.status),
+    }));
+
+    const transactionRows = transactions.map((transaction) => ({
+      created_at: transaction.created_at || "",
+      group_name:
+        transaction.groups?.name ||
+        groups.find((group) => group.id === transaction.group_id)?.name ||
+        "",
+      amount: transaction.amount ?? "",
+      reason: transaction.reason || "",
+    }));
+
+    const notificationRows = notifications.map((notification) => ({
+      created_at: notification.created_at || "",
+      group_name:
+        notification.groups?.name ||
+        groups.find((group) => group.id === notification.group_id)?.name ||
+        "",
+      title: notification.title || "",
+      message: notification.message || "",
+      is_read: notification.is_read ? "ja" : "nee",
+    }));
+
+    const agendaRows = agendaItems.map((item) => ({
+      starts_at: item.starts_at || "",
+      title: item.title || "",
+      location: item.location || "",
+      description: item.description || "",
+      credits_reward: item.credits_reward ?? "",
+    }));
+
+    const finalReportRows = finalReports.map((report) => ({
+      submitted_at: report.submitted_at || "",
+      updated_at: report.updated_at || "",
+      group_name:
+        report.groups?.name ||
+        groups.find((group) => group.id === report.group_id)?.name ||
+        "",
+      suspect_name:
+        report.suspects?.name ||
+        suspects.find((suspect) => suspect.id === report.suspect_id)?.name ||
+        "",
+      motive: report.motive || "",
+      evidence: report.evidence || "",
+      submitted_by: report.submitted_by || "",
+    }));
+
+    const exports = [
+      {
+        filename: `01_groepen-${stamp}.csv`,
+        headers: ["name", "credits", "is_active", "created_at"],
+        rows: groupRows,
+      },
+      {
+        filename: `02_verdachten-${stamp}.csv`,
+        headers: ["name", "active", "description", "photo_url", "created_at"],
+        rows: suspectRows,
+      },
+      {
+        filename: `03_aanwijzingen-${stamp}.csv`,
+        headers: [
+          "title",
+          "suspect_name",
+          "price",
+          "clue_type",
+          "description",
+          "file_url",
+          "is_visible",
+          "created_at",
+        ],
+        rows: clueRows,
+      },
+      {
+        filename: `04_aankopen-${stamp}.csv`,
+        headers: [
+          "moment",
+          "status",
+          "source",
+          "group_name",
+          "clue_title",
+          "suspect_name",
+          "price",
+          "file_url",
+        ],
+        rows: purchaseRows,
+      },
+      {
+        filename: `05_notities-${stamp}.csv`,
+        headers: ["created_at", "group_name", "suspect_name", "author", "note"],
+        rows: noteRows,
+      },
+      {
+        filename: `06_statussen-${stamp}.csv`,
+        headers: ["updated_at", "group_name", "suspect_name", "status"],
+        rows: statusRows,
+      },
+      {
+        filename: `07_pegels-${stamp}.csv`,
+        headers: ["created_at", "group_name", "amount", "reason"],
+        rows: transactionRows,
+      },
+      {
+        filename: `08_meldingen-${stamp}.csv`,
+        headers: ["created_at", "group_name", "title", "message", "is_read"],
+        rows: notificationRows,
+      },
+      {
+        filename: `09_agenda-${stamp}.csv`,
+        headers: [
+          "starts_at",
+          "title",
+          "location",
+          "description",
+          "credits_reward",
+        ],
+        rows: agendaRows,
+      },
+      {
+        filename: `10_eindrapporten-${stamp}.csv`,
+        headers: [
+          "submitted_at",
+          "updated_at",
+          "group_name",
+          "suspect_name",
+          "motive",
+          "evidence",
+          "submitted_by",
+        ],
+        rows: finalReportRows,
+      },
+    ];
+
+    exports.forEach((exportFile, index) => {
+      window.setTimeout(() => {
+        downloadCsv(
+          `csi-hit-${exportFile.filename}`,
+          exportFile.headers,
+          exportFile.rows
+        );
+      }, index * 250);
+    });
+
+    setMessage(
+      `Volledige CSV-backup gestart: ${exports.length} bestanden worden gedownload.`
+    );
+  };
+
   const resetTestData = async () => {
     setError("");
     setMessage("");
@@ -4884,39 +5123,23 @@ export default function App() {
           <h3>Backup & export</h3>
 
           <p style={styles.subtle}>
-            Download de huidige speldata. Handig vóór een reset, vóór livegang
-            of voor evaluatie na afloop.
+            Maak in één keer een volledige CSV-backup van de huidige speldata.
+            Je browser downloadt meerdere bestanden achter elkaar. Bewaar deze
+            samen in één map, bijvoorbeeld per speldag of vóór een reset.
           </p>
 
-          <button style={styles.button} onClick={exportFullBackup}>
-            Volledige backup JSON
+          <button style={styles.button} onClick={exportCompleteCsvBackup}>
+            Volledige CSV-backup downloaden
           </button>
 
-          <button style={styles.buttonSecondary} onClick={exportNotesCsv}>
-            Notities CSV
+          <button style={styles.buttonSecondary} onClick={exportFullBackup}>
+            Technische JSON-backup downloaden
           </button>
 
-          <button style={styles.buttonSecondary} onClick={exportStatusesCsv}>
-            Statussen CSV
-          </button>
-
-          <button style={styles.buttonSecondary} onClick={exportPurchasesCsv}>
-            Aankopen CSV
-          </button>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={exportTransactionsCsv}
-          >
-            Pegels CSV
-          </button>
-
-          <button
-            style={styles.buttonSecondary}
-            onClick={exportFinalReportsCsv}
-          >
-            Eindrapporten CSV
-          </button>
+          <p style={styles.subtle}>
+            De losse CSV-knoppen zijn vervangen door één volledige backupknop,
+            zodat je geen onderdeel vergeet tijdens het spel.
+          </p>
         </div>
       </div>
     );
