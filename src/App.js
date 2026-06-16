@@ -337,12 +337,16 @@ export default function App() {
   const [notifications, setNotifications] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [clues, setClues] = useState([]);
+  const [clueCategories, setClueCategories] = useState([]);
   const [groupClues, setGroupClues] = useState([]);
   const [suspectNotes, setSuspectNotes] = useState([]);
   const [suspectStatuses, setSuspectStatuses] = useState([]);
 
   const [activeParticipantTab, setActiveParticipantTab] = useState("dashboard");
   const [activeAdminTab, setActiveAdminTab] = useState("dashboard");
+  const [selectedParticipantSuspect, setSelectedParticipantSuspect] =
+    useState("");
+  const [selectedSuspectDossier, setSelectedSuspectDossier] = useState("");
   const [selectedInterrogationSuspect, setSelectedInterrogationSuspect] =
     useState("");
 
@@ -381,6 +385,7 @@ export default function App() {
   const [newClueDescription, setNewClueDescription] = useState("");
   const [newCluePrice, setNewCluePrice] = useState("5");
   const [newClueSuspect, setNewClueSuspect] = useState("");
+  const [newClueCategory, setNewClueCategory] = useState("");
   const [newClueIsFree, setNewClueIsFree] = useState(false);
   const [newClueIsGlobal, setNewClueIsGlobal] = useState(false);
   const [editingClueId, setEditingClueId] = useState("");
@@ -388,9 +393,14 @@ export default function App() {
   const [editClueDescription, setEditClueDescription] = useState("");
   const [editCluePrice, setEditCluePrice] = useState("0");
   const [editClueSuspect, setEditClueSuspect] = useState("");
+  const [editClueCategory, setEditClueCategory] = useState("");
   const [editClueIsFree, setEditClueIsFree] = useState(false);
   const [editClueIsGlobal, setEditClueIsGlobal] = useState(false);
   const [editClueIsVisible, setEditClueIsVisible] = useState(true);
+
+  const [newClueCategoryName, setNewClueCategoryName] = useState("");
+  const [editingCategoryId, setEditingCategoryId] = useState("");
+  const [editClueCategoryName, setEditClueCategoryName] = useState("");
 
   const [editingAgendaId, setEditingAgendaId] = useState("");
   const [editAgenda, setEditAgenda] = useState({
@@ -425,6 +435,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [imageModal, setImageModal] = useState(null);
+  const [expandedNoteIds, setExpandedNoteIds] = useState({});
   const [gameMode, setGameMode] = useState("test");
 
   const isLandingDomain =
@@ -673,6 +684,30 @@ export default function App() {
     profile?.role,
   ]);
 
+  useEffect(() => {
+    if (!profile || profile.role !== "suspect") return;
+    if (!profile.suspect_id) return;
+
+    setSelectedSuspectDossier((current) => current || profile.suspect_id);
+  }, [profile?.id, profile?.role, profile?.suspect_id]);
+
+  useEffect(() => {
+    if (!profile || profile.role !== "participant") return;
+
+    const firstActiveSuspect = suspects.find((suspect) => suspect.is_active);
+
+    if (!selectedParticipantSuspect && firstActiveSuspect) {
+      setSelectedParticipantSuspect(firstActiveSuspect.id);
+    }
+
+    if (
+      selectedParticipantSuspect &&
+      !suspects.some((suspect) => suspect.id === selectedParticipantSuspect)
+    ) {
+      setSelectedParticipantSuspect(firstActiveSuspect?.id || "");
+    }
+  }, [profile?.role, selectedParticipantSuspect, suspects]);
+
   const clearAppData = () => {
     setGroups([]);
     setProfiles([]);
@@ -682,6 +717,7 @@ export default function App() {
     setNotifications([]);
     setTransactions([]);
     setClues([]);
+    setClueCategories([]);
     setGroupClues([]);
     setSuspectNotes([]);
     setSuspectStatuses([]);
@@ -741,6 +777,11 @@ export default function App() {
       .select("*, suspects(name)")
       .order("sort_order");
 
+    const { data: clueCategoryData } = await supabase
+      .from("clue_categories")
+      .select("*")
+      .order("sort_order");
+
     const { data: gameModeData } = await supabase
       .from("app_settings")
       .select("value")
@@ -756,6 +797,7 @@ export default function App() {
     setAgendaItems(agendaData || []);
     setSuspects(suspectData || []);
     setClues(cluesData || []);
+    setClueCategories(clueCategoryData || []);
     setGameMode(gameModeData?.value || "test");
     setFinalReportsOpen(finalReportsOpenData?.value === "true");
 
@@ -1341,7 +1383,7 @@ export default function App() {
       ? "suspect"
       : "general";
 
-    const { error } = await supabase.from("clues").insert({
+    const newCluePayload = {
       title: newClueTitle.trim(),
       description: newClueDescription.trim(),
       file_url: fileUrl,
@@ -1352,7 +1394,13 @@ export default function App() {
       is_global: newClueIsGlobal,
       is_visible: true,
       sort_order: clues.length + 1,
-    });
+    };
+
+    if (clueCategories.length > 0) {
+      newCluePayload.category_id = newClueCategory || null;
+    }
+
+    const { error } = await supabase.from("clues").insert(newCluePayload);
 
     if (error) {
       setError(error.message);
@@ -1363,6 +1411,7 @@ export default function App() {
     setNewClueDescription("");
     setNewCluePrice("5");
     setNewClueSuspect("");
+    setNewClueCategory("");
     setNewClueIsFree(false);
     setNewClueIsGlobal(false);
 
@@ -1583,6 +1632,7 @@ export default function App() {
     setEditClueDescription(clue.description || "");
     setEditCluePrice(String(clue.price ?? 0));
     setEditClueSuspect(clue.suspect_id || "");
+    setEditClueCategory(clue.category_id || "");
     setEditClueIsFree(Boolean(clue.is_free));
     setEditClueIsGlobal(Boolean(clue.is_global));
     setEditClueIsVisible(Boolean(clue.is_visible));
@@ -1594,6 +1644,7 @@ export default function App() {
     setEditClueDescription("");
     setEditCluePrice("0");
     setEditClueSuspect("");
+    setEditClueCategory("");
     setEditClueIsFree(false);
     setEditClueIsGlobal(false);
     setEditClueIsVisible(true);
@@ -1638,19 +1689,25 @@ export default function App() {
       ? "suspect"
       : "general";
 
+    const editCluePayload = {
+      title: editClueTitle.trim(),
+      description: editClueDescription.trim(),
+      suspect_id: editClueSuspect || null,
+      price: editClueIsFree ? 0 : Number(editCluePrice) || 0,
+      clue_type: clueType,
+      is_free: editClueIsFree,
+      is_global: editClueIsGlobal,
+      is_visible: editClueIsVisible,
+      file_url: fileUrl,
+    };
+
+    if (clueCategories.length > 0) {
+      editCluePayload.category_id = editClueCategory || null;
+    }
+
     const { error } = await supabase
       .from("clues")
-      .update({
-        title: editClueTitle.trim(),
-        description: editClueDescription.trim(),
-        suspect_id: editClueSuspect || null,
-        price: editClueIsFree ? 0 : Number(editCluePrice) || 0,
-        clue_type: clueType,
-        is_free: editClueIsFree,
-        is_global: editClueIsGlobal,
-        is_visible: editClueIsVisible,
-        file_url: fileUrl,
-      })
+      .update(editCluePayload)
       .eq("id", editingClueId);
 
     if (error) {
@@ -1903,6 +1960,131 @@ export default function App() {
         (report) => report.group_id === myGroup.id
       ),
     };
+  };
+
+  const getClueCategoryName = (clue) => {
+    const category = clueCategories.find(
+      (item) => item.id === clue.category_id
+    );
+
+    if (category?.name) return category.name;
+    if (clue.is_free) return "Gratis startinformatie";
+    if (clue.is_global) return "Algemene aanwijzingen";
+    if (clue.clue_type === "suspect") return "Verdachte aanwijzingen";
+    if (clue.clue_type === "general") return "Algemene aanwijzingen";
+    return "Overig";
+  };
+
+  const groupCluesByCategory = (items) => {
+    const grouped = items.reduce((result, clue) => {
+      const categoryName = getClueCategoryName(clue);
+      const category = clueCategories.find(
+        (item) => item.id === clue.category_id
+      );
+      const sortOrder = category?.sort_order ?? 9999;
+      const key = category?.id || categoryName;
+
+      if (!result[key]) {
+        result[key] = {
+          key,
+          name: categoryName,
+          sortOrder,
+          clues: [],
+        };
+      }
+
+      result[key].clues.push(clue);
+      return result;
+    }, {});
+
+    return Object.values(grouped).sort((a, b) => {
+      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+      return a.name.localeCompare(b.name);
+    });
+  };
+
+  const createClueCategory = async () => {
+    setError("");
+    setMessage("");
+
+    if (!newClueCategoryName.trim()) {
+      setError("Vul een categorienaam in.");
+      return;
+    }
+
+    const { error } = await supabase.from("clue_categories").insert({
+      name: newClueCategoryName.trim(),
+      sort_order: clueCategories.length + 1,
+      is_active: true,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setNewClueCategoryName("");
+    setMessage("Aanwijzingcategorie toegevoegd.");
+    await loadAppData(profile);
+  };
+
+  const startEditClueCategory = (category) => {
+    setEditingCategoryId(category.id);
+    setEditClueCategoryName(category.name || "");
+  };
+
+  const cancelEditClueCategory = () => {
+    setEditingCategoryId("");
+    setEditClueCategoryName("");
+  };
+
+  const saveEditClueCategory = async () => {
+    setError("");
+    setMessage("");
+
+    if (!editingCategoryId) {
+      setError("Geen categorie geselecteerd om te bewerken.");
+      return;
+    }
+
+    if (!editClueCategoryName.trim()) {
+      setError("Vul een categorienaam in.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("clue_categories")
+      .update({ name: editClueCategoryName.trim() })
+      .eq("id", editingCategoryId);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    cancelEditClueCategory();
+    setMessage("Aanwijzingcategorie bijgewerkt.");
+    await loadAppData(profile);
+  };
+
+  const toggleClueCategoryActive = async (category) => {
+    setError("");
+    setMessage("");
+
+    const { error } = await supabase
+      .from("clue_categories")
+      .update({ is_active: !category.is_active })
+      .eq("id", category.id);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    setMessage(
+      category.is_active ? "Categorie verborgen." : "Categorie actief gemaakt."
+    );
+    await loadAppData(profile);
   };
 
   const shouldShowParticipantFinalTab = () => {
@@ -2182,6 +2364,7 @@ export default function App() {
       suspects,
       agenda_items: agendaItems,
       clues,
+      clue_categories: clueCategories,
       group_clues: groupClues,
       suspect_notes: suspectNotes,
       suspect_statuses: suspectStatuses,
@@ -2359,6 +2542,7 @@ export default function App() {
         "Algemeen",
       price: clue.price ?? "",
       clue_type: clue.clue_type || "",
+      category: getClueCategoryName(clue),
       description: clue.description || "",
       file_url: clue.file_url || clue.pdf_url || "",
       is_visible: clue.is_visible ? "ja" : "nee",
@@ -2486,6 +2670,7 @@ export default function App() {
           "suspect_name",
           "price",
           "clue_type",
+          "category",
           "description",
           "file_url",
           "is_visible",
@@ -4245,6 +4430,7 @@ export default function App() {
               {clue.is_global && (
                 <span style={styles.badge}>Voor iedereen</span>
               )}
+              <span style={styles.badge}>📂 {getClueCategoryName(clue)}</span>
 
               {isUnlocked ? (
                 <span style={styles.badge}>Ontgrendeld</span>
@@ -4290,6 +4476,25 @@ export default function App() {
       );
     };
 
+    const groupedUnlockedClues = groupCluesByCategory(unlockedClues);
+    const groupedBuyableClues = groupCluesByCategory(buyableClues);
+
+    const renderClueGroups = (groupsToRender, mode) => {
+      if (groupsToRender.length === 0) return null;
+
+      return groupsToRender.map((group) => (
+        <details key={`${mode}-${group.key}`} open style={styles.card}>
+          <summary style={{ cursor: "pointer", fontWeight: 800, fontSize: 18 }}>
+            {group.name} ({group.clues.length})
+          </summary>
+
+          <div style={{ marginTop: 12 }}>
+            {group.clues.map((clue) => renderCompactClueCard(clue, mode))}
+          </div>
+        </details>
+      ));
+    };
+
     return (
       <>
         {ParticipantGroupBar()}
@@ -4327,7 +4532,7 @@ export default function App() {
               algemene aanwijzingen verschijnen hier ook.
             </p>
           ) : (
-            unlockedClues.map((clue) => renderCompactClueCard(clue, "unlocked"))
+            renderClueGroups(groupedUnlockedClues, "unlocked")
           )}
         </div>
 
@@ -4340,7 +4545,7 @@ export default function App() {
               staat hierboven bij Ontgrendeld.
             </p>
           ) : (
-            buyableClues.map((clue) => renderCompactClueCard(clue, "buyable"))
+            renderClueGroups(groupedBuyableClues, "buyable")
           )}
         </div>
       </>
@@ -4348,6 +4553,13 @@ export default function App() {
   };
   const ParticipantSuspects = () => {
     const activeSuspects = suspects.filter((s) => s.is_active);
+    const selectedSuspect =
+      activeSuspects.find(
+        (suspect) => suspect.id === selectedParticipantSuspect
+      ) ||
+      activeSuspects[0] ||
+      null;
+    const visibleSuspectDossiers = selectedSuspect ? [selectedSuspect] : [];
 
     const getNotesForSuspect = (suspectId) => {
       return suspectNotes
@@ -4427,8 +4639,26 @@ export default function App() {
           <h2>Verdachten</h2>
 
           <p style={styles.subtle}>
-            Beheer per verdachte jullie status en notities.
+            Kies een verdachte en werk direct in één dossier met status, profiel
+            en notities.
           </p>
+
+          {activeSuspects.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <strong>Dossier kiezen</strong>
+              <select
+                style={{ ...styles.select, marginTop: 8 }}
+                value={selectedSuspect?.id || ""}
+                onChange={(e) => setSelectedParticipantSuspect(e.target.value)}
+              >
+                {activeSuspects.map((suspect) => (
+                  <option key={suspect.id} value={suspect.id}>
+                    {suspect.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div
             style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}
@@ -4447,7 +4677,7 @@ export default function App() {
             <p style={styles.subtle}>Nog geen actieve verdachten.</p>
           </div>
         ) : (
-          activeSuspects.map((suspect) => {
+          visibleSuspectDossiers.map((suspect) => {
             const statusRecord = getStatusForSuspect(suspect.id);
             const notesForSuspect = getNotesForSuspect(suspect.id);
             const isAddingNote = selectedNoteSuspect === suspect.id;
@@ -6096,6 +6326,76 @@ export default function App() {
   const AdminClues = () => (
     <>
       <div style={styles.card}>
+        <h2>Aanwijzingcategorieën</h2>
+        <p style={styles.subtle}>
+          Maak hier verhaalafhankelijke categorieën zoals Alibichecks,
+          Getuigenverklaringen of Financieel onderzoek. Deelnemers zien
+          aanwijzingen automatisch gegroepeerd per categorie.
+        </p>
+
+        <input
+          style={styles.input}
+          placeholder="Nieuwe categorie, bijvoorbeeld Alibichecks"
+          value={newClueCategoryName}
+          onChange={(e) => setNewClueCategoryName(e.target.value)}
+        />
+        <button style={styles.button} onClick={createClueCategory}>
+          Categorie toevoegen
+        </button>
+
+        {clueCategories.length === 0 ? (
+          <p style={styles.subtle}>
+            Nog geen categorieën. Zonder categorie gebruikt de app tijdelijk
+            algemene groepen zoals Gratis, Algemeen en Verdachte aanwijzingen.
+          </p>
+        ) : (
+          clueCategories.map((category) => (
+            <div key={category.id} style={styles.card}>
+              {editingCategoryId === category.id ? (
+                <>
+                  <input
+                    style={styles.input}
+                    value={editClueCategoryName}
+                    onChange={(e) => setEditClueCategoryName(e.target.value)}
+                  />
+                  <button style={styles.button} onClick={saveEditClueCategory}>
+                    Opslaan
+                  </button>
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={cancelEditClueCategory}
+                  >
+                    Annuleren
+                  </button>
+                </>
+              ) : (
+                <>
+                  <strong>📂 {category.name}</strong>
+                  <span style={styles.badge}>
+                    {category.is_active ? "Actief" : "Verborgen"}
+                  </span>
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={() => startEditClueCategory(category)}
+                    >
+                      Bewerken
+                    </button>
+                    <button
+                      style={styles.buttonSecondary}
+                      onClick={() => toggleClueCategoryActive(category)}
+                    >
+                      {category.is_active ? "Verbergen" : "Actief maken"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      <div style={styles.card}>
         <h2>Aanwijzing toevoegen</h2>
         <input
           style={styles.input}
@@ -6120,6 +6420,20 @@ export default function App() {
               {s.name}
             </option>
           ))}
+        </select>
+        <select
+          style={styles.select}
+          value={newClueCategory}
+          onChange={(e) => setNewClueCategory(e.target.value)}
+        >
+          <option value="">Geen categorie / automatisch</option>
+          {clueCategories
+            .filter((category) => category.is_active)
+            .map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
         </select>
         <input
           style={styles.input}
@@ -6297,180 +6611,224 @@ export default function App() {
         {clues.length === 0 ? (
           <p style={styles.subtle}>Nog geen aanwijzingen.</p>
         ) : (
-          clues.map((clue) => (
-            <div key={clue.id} style={styles.card}>
-              {editingClueId === clue.id ? (
-                <>
-                  <h3>Aanwijzing bewerken</h3>
+          groupCluesByCategory(clues).map((category) => (
+            <details key={category.key} open style={styles.card}>
+              <summary
+                style={{ cursor: "pointer", fontWeight: 800, fontSize: 18 }}
+              >
+                📂 {category.name} ({category.clues.length})
+              </summary>
 
-                  <input
-                    style={styles.input}
-                    placeholder="Titel"
-                    value={editClueTitle}
-                    onChange={(e) => setEditClueTitle(e.target.value)}
-                  />
+              <div style={{ marginTop: 12 }}>
+                {category.clues.map((clue) => (
+                  <div key={clue.id} style={styles.card}>
+                    {editingClueId === clue.id ? (
+                      <>
+                        <h3>Aanwijzing bewerken</h3>
 
-                  <textarea
-                    style={styles.textarea}
-                    placeholder="Omschrijving"
-                    value={editClueDescription}
-                    onChange={(e) => setEditClueDescription(e.target.value)}
-                  />
+                        <input
+                          style={styles.input}
+                          placeholder="Titel"
+                          value={editClueTitle}
+                          onChange={(e) => setEditClueTitle(e.target.value)}
+                        />
 
-                  <select
-                    style={styles.select}
-                    value={editClueSuspect}
-                    onChange={(e) => setEditClueSuspect(e.target.value)}
-                  >
-                    <option value="">Geen verdachte / algemeen</option>
-                    {suspects.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+                        <textarea
+                          style={styles.textarea}
+                          placeholder="Omschrijving"
+                          value={editClueDescription}
+                          onChange={(e) =>
+                            setEditClueDescription(e.target.value)
+                          }
+                        />
 
-                  <input
-                    style={styles.input}
-                    type="number"
-                    placeholder="Prijs"
-                    value={editCluePrice}
-                    onChange={(e) => setEditCluePrice(e.target.value)}
-                  />
-
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={editClueIsFree}
-                      onChange={(e) => setEditClueIsFree(e.target.checked)}
-                    />{" "}
-                    Gratis
-                  </label>
-
-                  <br />
-
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={editClueIsGlobal}
-                      onChange={(e) => setEditClueIsGlobal(e.target.checked)}
-                    />{" "}
-                    Voor iedereen direct zichtbaar
-                  </label>
-
-                  <br />
-
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={editClueIsVisible}
-                      onChange={(e) => setEditClueIsVisible(e.target.checked)}
-                    />{" "}
-                    Zichtbaar
-                  </label>
-
-                  <br />
-                  <br />
-
-                  <div style={styles.card}>
-                    <strong>Bestand vervangen</strong>
-
-                    <p style={styles.subtle}>
-                      Kies alleen een nieuw bestand als je het bestaande bestand
-                      wilt vervangen. Laat dit leeg om het huidige bestand te
-                      behouden.
-                    </p>
-
-                    {clue.file_url ? (
-                      <div style={{ marginBottom: 10 }}>
-                        <a
-                          href={clue.file_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={styles.link}
+                        <select
+                          style={styles.select}
+                          value={editClueSuspect}
+                          onChange={(e) => setEditClueSuspect(e.target.value)}
                         >
-                          Huidig bestand openen
-                        </a>
-                      </div>
+                          <option value="">Geen verdachte / algemeen</option>
+                          {suspects.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          style={styles.select}
+                          value={editClueCategory}
+                          onChange={(e) => setEditClueCategory(e.target.value)}
+                        >
+                          <option value="">Geen categorie / automatisch</option>
+                          {clueCategories
+                            .filter((category) => category.is_active)
+                            .map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}
+                              </option>
+                            ))}
+                        </select>
+
+                        <input
+                          style={styles.input}
+                          type="number"
+                          placeholder="Prijs"
+                          value={editCluePrice}
+                          onChange={(e) => setEditCluePrice(e.target.value)}
+                        />
+
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={editClueIsFree}
+                            onChange={(e) =>
+                              setEditClueIsFree(e.target.checked)
+                            }
+                          />{" "}
+                          Gratis
+                        </label>
+
+                        <br />
+
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={editClueIsGlobal}
+                            onChange={(e) =>
+                              setEditClueIsGlobal(e.target.checked)
+                            }
+                          />{" "}
+                          Voor iedereen direct zichtbaar
+                        </label>
+
+                        <br />
+
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={editClueIsVisible}
+                            onChange={(e) =>
+                              setEditClueIsVisible(e.target.checked)
+                            }
+                          />{" "}
+                          Zichtbaar
+                        </label>
+
+                        <br />
+                        <br />
+
+                        <div style={styles.card}>
+                          <strong>Bestand vervangen</strong>
+
+                          <p style={styles.subtle}>
+                            Kies alleen een nieuw bestand als je het bestaande
+                            bestand wilt vervangen. Laat dit leeg om het huidige
+                            bestand te behouden.
+                          </p>
+
+                          {clue.file_url ? (
+                            <div style={{ marginBottom: 10 }}>
+                              <a
+                                href={clue.file_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={styles.link}
+                              >
+                                Huidig bestand openen
+                              </a>
+                            </div>
+                          ) : (
+                            <div style={styles.subtle}>
+                              Er is nog geen bestand gekoppeld.
+                            </div>
+                          )}
+
+                          <input
+                            style={styles.input}
+                            type="file"
+                            ref={editClueFileRef}
+                          />
+                        </div>
+
+                        <button style={styles.button} onClick={saveEditClue}>
+                          Opslaan
+                        </button>
+
+                        <button
+                          style={styles.buttonSecondary}
+                          onClick={cancelEditClue}
+                        >
+                          Annuleren
+                        </button>
+                      </>
                     ) : (
-                      <div style={styles.subtle}>
-                        Er is nog geen bestand gekoppeld.
-                      </div>
+                      <>
+                        <h3 style={{ marginTop: 0 }}>{clue.title}</h3>
+
+                        {clue.suspects?.name && (
+                          <span style={styles.badge}>
+                            🕵️ {clue.suspects.name}
+                          </span>
+                        )}
+
+                        <span style={styles.badge}>
+                          📂 {getClueCategoryName(clue)}
+                        </span>
+                        <span style={styles.badge}>💰 {clue.price}</span>
+                        {clue.is_free && (
+                          <span style={styles.badge}>Gratis</span>
+                        )}
+                        {clue.is_global && (
+                          <span style={styles.badge}>Global</span>
+                        )}
+                        {clue.is_visible ? (
+                          <span style={styles.badge}>Zichtbaar</span>
+                        ) : (
+                          <span style={styles.badge}>Verborgen</span>
+                        )}
+
+                        <p>{clue.description}</p>
+
+                        {clue.file_url && (
+                          <div style={{ marginBottom: 10 }}>
+                            <a
+                              href={clue.file_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={styles.link}
+                            >
+                              Bestand openen
+                            </a>
+                          </div>
+                        )}
+
+                        <button
+                          style={styles.buttonSecondary}
+                          onClick={() => startEditClue(clue)}
+                        >
+                          Bewerken
+                        </button>
+
+                        <button
+                          style={styles.buttonSecondary}
+                          onClick={() => toggleClueVisible(clue)}
+                        >
+                          {clue.is_visible ? "Verbergen" : "Zichtbaar maken"}
+                        </button>
+
+                        <button
+                          style={styles.buttonDanger}
+                          onClick={() => deleteClue(clue)}
+                        >
+                          Verwijderen
+                        </button>
+                      </>
                     )}
-
-                    <input
-                      style={styles.input}
-                      type="file"
-                      ref={editClueFileRef}
-                    />
                   </div>
-
-                  <button style={styles.button} onClick={saveEditClue}>
-                    Opslaan
-                  </button>
-
-                  <button
-                    style={styles.buttonSecondary}
-                    onClick={cancelEditClue}
-                  >
-                    Annuleren
-                  </button>
-                </>
-              ) : (
-                <>
-                  <h3 style={{ marginTop: 0 }}>{clue.title}</h3>
-
-                  {clue.suspects?.name && (
-                    <span style={styles.badge}>🕵️ {clue.suspects.name}</span>
-                  )}
-
-                  <span style={styles.badge}>💰 {clue.price}</span>
-                  {clue.is_free && <span style={styles.badge}>Gratis</span>}
-                  {clue.is_global && <span style={styles.badge}>Global</span>}
-                  {clue.is_visible ? (
-                    <span style={styles.badge}>Zichtbaar</span>
-                  ) : (
-                    <span style={styles.badge}>Verborgen</span>
-                  )}
-
-                  <p>{clue.description}</p>
-
-                  {clue.file_url && (
-                    <div style={{ marginBottom: 10 }}>
-                      <a
-                        href={clue.file_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={styles.link}
-                      >
-                        Bestand openen
-                      </a>
-                    </div>
-                  )}
-
-                  <button
-                    style={styles.buttonSecondary}
-                    onClick={() => startEditClue(clue)}
-                  >
-                    Bewerken
-                  </button>
-
-                  <button
-                    style={styles.buttonSecondary}
-                    onClick={() => toggleClueVisible(clue)}
-                  >
-                    {clue.is_visible ? "Verbergen" : "Zichtbaar maken"}
-                  </button>
-
-                  <button
-                    style={styles.buttonDanger}
-                    onClick={() => deleteClue(clue)}
-                  >
-                    Verwijderen
-                  </button>
-                </>
-              )}
-            </div>
+                ))}
+              </div>
+            </details>
           ))
         )}
       </div>
@@ -7501,19 +7859,28 @@ export default function App() {
       );
     }
 
+    const activeSuspectOptions = suspects.filter(
+      (suspect) => suspect.is_active
+    );
+    const viewedSuspect =
+      activeSuspectOptions.find(
+        (suspect) => suspect.id === selectedSuspectDossier
+      ) || linkedSuspect;
+    const viewingOwnDossier = viewedSuspect.id === linkedSuspect.id;
+
     const notesForMe = suspectNotes.filter(
-      (note) => note.suspect_id === linkedSuspect.id
+      (note) => note.suspect_id === viewedSuspect.id
     );
 
     const statusesForMe = suspectStatuses.filter(
-      (status) => status.suspect_id === linkedSuspect.id
+      (status) => status.suspect_id === viewedSuspect.id
     );
 
     const boughtCluesForMe = groupClues.filter((purchase) => {
       const clue =
         purchase.clues || clues.find((item) => item.id === purchase.clue_id);
 
-      return clue?.suspect_id === linkedSuspect.id;
+      return clue?.suspect_id === viewedSuspect.id;
     });
 
     const suspectCount = statusesForMe.filter(
@@ -7534,7 +7901,7 @@ export default function App() {
       (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
 
-    const latestNote = sortedNotesForMe[0];
+    const recentNotesForMe = sortedNotesForMe.slice(0, 3);
 
     const statusRows = groups.map((group) => {
       const statusRecord = statusesForMe.find(
@@ -7587,10 +7954,70 @@ export default function App() {
       { label: "Onbekend", count: unknownCount, color: "#3f3f46" },
     ].filter((segment) => segment.count > 0);
 
-    const photoBlock = linkedSuspect.photo_url ? (
+    const toggleExpandedNote = (noteId) => {
+      setExpandedNoteIds((current) => ({
+        ...current,
+        [noteId]: !current[noteId],
+      }));
+    };
+
+    const renderSuspectNotePreview = (note, { compact = false } = {}) => {
+      const isExpanded = Boolean(expandedNoteIds[note.id]);
+
+      return (
+        <div
+          key={note.id}
+          style={{
+            background: "#09090b",
+            border: "1px solid #27272a",
+            borderRadius: 14,
+            padding: compact ? 12 : 14,
+            marginBottom: 10,
+            lineHeight: 1.65,
+          }}
+        >
+          <div
+            style={
+              isExpanded
+                ? { whiteSpace: "pre-wrap" }
+                : {
+                    whiteSpace: "pre-wrap",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }
+            }
+          >
+            {note.note}
+          </div>
+
+          <button
+            style={{
+              ...styles.buttonSecondary,
+              padding: "7px 10px",
+              fontSize: 13,
+              marginTop: 10,
+              marginBottom: 0,
+            }}
+            onClick={() => toggleExpandedNote(note.id)}
+          >
+            {isExpanded ? "▲ Minder weergeven" : "▼ Lees volledige notitie"}
+          </button>
+
+          <div style={{ ...styles.subtle, marginTop: 10 }}>
+            📁 {note.groups?.name || "Onbekende groep"} · Door:{" "}
+            {note.profiles?.display_name || note.profiles?.email || "onbekend"}{" "}
+            · {formatDate(note.created_at)}
+          </div>
+        </div>
+      );
+    };
+
+    const photoBlock = viewedSuspect.photo_url ? (
       <img
-        src={linkedSuspect.photo_url}
-        alt={linkedSuspect.name}
+        src={viewedSuspect.photo_url}
+        alt={viewedSuspect.name}
         style={{
           width: "100%",
           maxWidth: 260,
@@ -7605,8 +8032,8 @@ export default function App() {
         }}
         onClick={() =>
           setImageModal({
-            src: linkedSuspect.photo_url,
-            alt: linkedSuspect.name,
+            src: viewedSuspect.photo_url,
+            alt: viewedSuspect.name,
           })
         }
       />
@@ -7687,7 +8114,7 @@ export default function App() {
                     lineHeight: 1,
                   }}
                 >
-                  {linkedSuspect.name}
+                  {viewedSuspect.name}
                 </h1>
 
                 <p
@@ -7698,12 +8125,33 @@ export default function App() {
                     lineHeight: 1.65,
                   }}
                 >
-                  Persoonlijk verdachtendossier. Hier zie je wat de
-                  onderzoeksteams over jou noteren, welke status ze aan je geven
-                  en welke aanwijzingen rond jouw rol zijn gekocht.
+                  {viewingOwnDossier
+                    ? "Je start automatisch in je eigen dossier. Hier zie je wat de onderzoeksteams over jou noteren, welke status ze aan je geven en welke aanwijzingen rond jouw rol zijn gekocht."
+                    : "Je bekijkt nu het dossier van een andere verdachte. Handig om snel te zien hoe de teams het totale speelveld inschatten."}
                 </p>
 
-                {linkedSuspect.description && (
+                {activeSuspectOptions.length > 1 && (
+                  <div style={{ marginTop: 12, maxWidth: 520 }}>
+                    <strong>Dossier bekijken</strong>
+                    <select
+                      style={{ ...styles.select, marginTop: 8 }}
+                      value={viewedSuspect.id}
+                      onChange={(e) =>
+                        setSelectedSuspectDossier(e.target.value)
+                      }
+                    >
+                      {activeSuspectOptions.map((suspect) => (
+                        <option key={suspect.id} value={suspect.id}>
+                          {suspect.id === linkedSuspect.id
+                            ? `${suspect.name} (mijn dossier)`
+                            : suspect.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {viewedSuspect.description && (
                   <details style={{ marginTop: 12 }}>
                     <summary
                       style={{
@@ -7718,7 +8166,7 @@ export default function App() {
                         background: "rgba(9,9,11,0.62)",
                       }}
                     >
-                      Bekijk mijn verdachteprofiel
+                      Bekijk verdachteprofiel
                     </summary>
 
                     <div
@@ -7732,7 +8180,7 @@ export default function App() {
                         whiteSpace: "pre-wrap",
                       }}
                     >
-                      {linkedSuspect.description}
+                      {viewedSuspect.description}
                     </div>
                   </details>
                 )}
@@ -7826,29 +8274,19 @@ export default function App() {
             </div>
 
             <div style={styles.card}>
-              <h2>📝 Laatste onderzoeksnotitie</h2>
+              <h2>📝 Recente onderzoeksnotities</h2>
+              <p style={styles.subtle}>
+                De drie nieuwste notities als preview. Klik open voor de
+                volledige tekst.
+              </p>
 
-              {latestNote ? (
-                <div
-                  style={{
-                    background: "#09090b",
-                    border: "1px solid #27272a",
-                    borderRadius: 14,
-                    padding: 14,
-                    lineHeight: 1.65,
-                  }}
-                >
-                  <div style={{ whiteSpace: "pre-wrap" }}>
-                    {latestNote.note}
-                  </div>
-                  <div style={{ ...styles.subtle, marginTop: 10 }}>
-                    📁 {latestNote.groups?.name || "Onbekende groep"} ·{" "}
-                    {formatDate(latestNote.created_at)}
-                  </div>
-                </div>
+              {recentNotesForMe.length > 0 ? (
+                recentNotesForMe.map((note) =>
+                  renderSuspectNotePreview(note, { compact: true })
+                )
               ) : (
                 <p style={styles.subtle}>
-                  Er zijn nog geen notities over jou opgeslagen.
+                  Er zijn nog geen notities in dit dossier opgeslagen.
                 </p>
               )}
             </div>
@@ -7890,7 +8328,7 @@ export default function App() {
             </div>
 
             <div style={styles.card}>
-              <h2>Gekochte aanwijzingen over mij</h2>
+              <h2>Gekochte aanwijzingen over dit dossier</h2>
 
               {boughtCluesForMe.length === 0 ? (
                 <p style={styles.subtle}>
@@ -7938,10 +8376,10 @@ export default function App() {
           </div>
 
           <div style={styles.card}>
-            <h2>Notities over mij</h2>
+            <h2>Notities in dit dossier</h2>
             <p style={styles.subtle}>
               Hier verschijnen de observaties, verdenkingen en losse theorieën
-              die de teams bij jouw dossier bewaren.
+              die de teams bij dit dossier bewaren.
             </p>
 
             {notesForMe.length === 0 ? (
@@ -7954,7 +8392,8 @@ export default function App() {
               >
                 <strong>Nog geen dossiernotities</strong>
                 <p style={styles.subtle}>
-                  Zodra een groep iets over jou noteert, verschijnt het hier.
+                  Zodra een groep iets in dit dossier noteert, verschijnt het
+                  hier.
                 </p>
               </div>
             ) : (
@@ -7989,32 +8428,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    {sortedNotes.map((note) => (
-                      <div
-                        key={note.id}
-                        style={{
-                          background: "#09090b",
-                          border: "1px solid #27272a",
-                          borderRadius: 14,
-                          padding: 14,
-                          marginBottom: 10,
-                        }}
-                      >
-                        <div
-                          style={{ whiteSpace: "pre-wrap", lineHeight: 1.65 }}
-                        >
-                          {note.note}
-                        </div>
-
-                        <div style={{ ...styles.subtle, marginTop: 10 }}>
-                          Door:{" "}
-                          {note.profiles?.display_name ||
-                            note.profiles?.email ||
-                            "onbekend"}{" "}
-                          · {formatDate(note.created_at)}
-                        </div>
-                      </div>
-                    ))}
+                    {sortedNotes.map((note) => renderSuspectNotePreview(note))}
                   </div>
                 );
               })
