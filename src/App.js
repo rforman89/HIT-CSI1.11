@@ -443,6 +443,8 @@ export default function App() {
     window.location.hostname === "csi-hit.nl";
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isBackupRunning, setIsBackupRunning] = useState(false);
+  const [latestBackupInfo, setLatestBackupInfo] = useState(null);
   const [finalReportsOpen, setFinalReportsOpen] = useState(false);
   const [finalReports, setFinalReports] = useState([]);
 
@@ -722,6 +724,7 @@ export default function App() {
     setSuspectNotes([]);
     setSuspectStatuses([]);
     setFinalReports([]);
+    setLatestBackupInfo(null);
     setFinalReportsOpen(false);
   };
 
@@ -794,12 +797,26 @@ export default function App() {
       .eq("key", "final_reports_open")
       .maybeSingle();
 
+    const { data: latestBackupData } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "latest_auto_backup")
+      .maybeSingle();
+
     setAgendaItems(agendaData || []);
     setSuspects(suspectData || []);
     setClues(cluesData || []);
     setClueCategories(clueCategoryData || []);
     setGameMode(gameModeData?.value || "test");
     setFinalReportsOpen(finalReportsOpenData?.value === "true");
+
+    try {
+      setLatestBackupInfo(
+        latestBackupData?.value ? JSON.parse(latestBackupData.value) : null
+      );
+    } catch (_error) {
+      setLatestBackupInfo(null);
+    }
 
     if (currentProfile.role === "suspect") {
       const { data: groupsData } = await supabase
@@ -2314,6 +2331,55 @@ export default function App() {
 
     await loadAppData(profile);
   };
+  const createLiveBackup = async () => {
+    setError("");
+    setMessage("");
+
+    if (profile?.role !== "admin") {
+      setError("Alleen admin mag een backup starten.");
+      return;
+    }
+
+    if (gameMode !== "live") {
+      setError("LIVE-backup is uitgeschakeld in testmodus.");
+      return;
+    }
+
+    const confirmation = window.prompt(
+      "Je maakt nu een handmatige LIVE-backup in Supabase Storage. Typ exact: BACKUP"
+    );
+
+    if (confirmation !== "BACKUP") {
+      setError("Backup geannuleerd.");
+      return;
+    }
+
+    setIsBackupRunning(true);
+
+    const { data, error } = await supabase.functions.invoke(
+      "csi-hit-nightly-backup",
+      {
+        body: { source: "manual", requested_by: profile.id },
+      }
+    );
+
+    setIsBackupRunning(false);
+
+    if (error) {
+      setError(error.message || "Backup maken mislukt.");
+      return;
+    }
+
+    if (data?.skipped) {
+      setMessage(data.message || "Backup overgeslagen.");
+      await loadAppData(profile);
+      return;
+    }
+
+    setMessage("LIVE-backup opgeslagen in Supabase Storage.");
+    await loadAppData(profile);
+  };
+
   const safeCsvValue = (value) => {
     if (value === null || value === undefined) return "";
 
@@ -5353,23 +5419,89 @@ export default function App() {
           <h3>Backup & export</h3>
 
           <p style={styles.subtle}>
-            Maak in één keer een volledige CSV-backup van de huidige speldata.
-            Je browser downloadt meerdere bestanden achter elkaar. Bewaar deze
-            samen in één map, bijvoorbeeld per speldag of vóór een reset.
+            Nachtbackups draaien alleen wanneer het spel in LIVE-modus staat. In
+            testmodus wordt automatische backup bewust overgeslagen, zodat
+            testdata geen backup-archief vult.
           </p>
 
-          <button style={styles.button} onClick={exportCompleteCsvBackup}>
+          <div
+            style={{
+              ...styles.card,
+              borderColor: latestBackupInfo ? "#166534" : "#52525b",
+              background: latestBackupInfo
+                ? "linear-gradient(180deg, rgba(20,83,45,0.14), #18181b)"
+                : "#18181b",
+            }}
+          >
+            <strong>Laatste Supabase backup</strong>
+
+            {latestBackupInfo ? (
+              <>
+                <div style={styles.ok}>
+                  ✅ {formatDate(latestBackupInfo.created_at)}
+                </div>
+                <div style={styles.subtle}>
+                  Pad: {latestBackupInfo.path || "onbekend"}
+                </div>
+                {latestBackupInfo.source && (
+                  <span style={styles.badge}>
+                    Bron: {latestBackupInfo.source}
+                  </span>
+                )}
+                {latestBackupInfo.record_counts && (
+                  <div style={{ marginTop: 8 }}>
+                    {Object.entries(latestBackupInfo.record_counts).map(
+                      ([name, count]) => (
+                        <span key={name} style={styles.badge}>
+                          {name}: {count}
+                        </span>
+                      )
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <p style={styles.subtle}>
+                Nog geen automatische LIVE-backup gevonden.
+              </p>
+            )}
+          </div>
+
+          {gameMode === "live" ? (
+            <button
+              style={{
+                ...styles.button,
+                opacity: isBackupRunning ? 0.65 : 1,
+                cursor: isBackupRunning ? "not-allowed" : "pointer",
+              }}
+              onClick={createLiveBackup}
+              disabled={isBackupRunning}
+            >
+              {isBackupRunning
+                ? "Backup wordt gemaakt..."
+                : "Handmatige LIVE-backup maken"}
+            </button>
+          ) : (
+            <p style={styles.error}>
+              Supabase nachtbackup staat uit zolang het spel in testmodus staat.
+            </p>
+          )}
+
+          <p style={styles.subtle}>
+            Lokale export blijft beschikbaar als snelle handmatige noodkopie. Je
+            browser downloadt dan meerdere CSV-bestanden achter elkaar.
+          </p>
+
+          <button
+            style={styles.buttonSecondary}
+            onClick={exportCompleteCsvBackup}
+          >
             Volledige CSV-backup downloaden
           </button>
 
           <button style={styles.buttonSecondary} onClick={exportFullBackup}>
             Technische JSON-backup downloaden
           </button>
-
-          <p style={styles.subtle}>
-            De losse CSV-knoppen zijn vervangen door één volledige backupknop,
-            zodat je geen onderdeel vergeet tijdens het spel.
-          </p>
         </div>
       </div>
     );
