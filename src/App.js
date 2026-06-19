@@ -15,6 +15,9 @@ import SharedStatusBadge from "./components/shared/StatusBadge";
 import SharedLoadingBlock from "./components/shared/LoadingBlock";
 import SharedMessageBlock from "./components/shared/MessageBlock";
 
+// Finale/eindrapporten staan bewust uit: het eindverhaal wordt als gratis aanwijzing gedeeld.
+const ENABLE_FINAL_REPORTS = false;
+
 export default function App() {
   const reloadTimer = useRef(null);
   const isTypingRef = useRef(false);
@@ -375,7 +378,8 @@ export default function App() {
       (report) => report.group_id === myGroup.id
     );
 
-    const finaleIsRelevant = finalReportsOpen || Boolean(existingReport);
+    const finaleIsRelevant =
+      ENABLE_FINAL_REPORTS && (finalReportsOpen || Boolean(existingReport));
 
     if (activeParticipantTab === "final" && !finaleIsRelevant) {
       setActiveParticipantTab("dashboard");
@@ -387,6 +391,12 @@ export default function App() {
     myGroup?.id,
     profile?.role,
   ]);
+
+  useEffect(() => {
+    if (!ENABLE_FINAL_REPORTS && activeAdminTab === "final") {
+      setActiveAdminTab("dashboard");
+    }
+  }, [activeAdminTab]);
 
   useEffect(() => {
     if (!profile || profile.role !== "suspect") return;
@@ -510,7 +520,9 @@ export default function App() {
     setClues(cluesData || []);
     setClueCategories(clueCategoryData || []);
     setGameMode(gameModeData?.value || "test");
-    setFinalReportsOpen(finalReportsOpenData?.value === "true");
+    setFinalReportsOpen(
+      ENABLE_FINAL_REPORTS && finalReportsOpenData?.value === "true"
+    );
 
     try {
       setLatestBackupInfo(
@@ -590,18 +602,19 @@ export default function App() {
         .from("suspect_statuses")
         .select("*, groups(name), suspects(name)");
 
-      const { data: finalReportsData, error: finalReportsError } =
-        await supabase
+      let finalReportsData = [];
+
+      if (ENABLE_FINAL_REPORTS) {
+        const { data, error: finalReportsError } = await supabase
           .from("final_reports")
           .select("*")
           .order("updated_at", { ascending: false });
 
-      if (finalReportsError) {
-        setError(`Eindrapporten laden mislukt: ${finalReportsError.message}`);
-      }
+        if (finalReportsError) {
+          setError(`Eindrapporten laden mislukt: ${finalReportsError.message}`);
+        }
 
-      if (finalReportsError) {
-        setError(finalReportsError.message);
+        finalReportsData = data || [];
       }
 
       setGroups(groupsData || []);
@@ -672,10 +685,16 @@ export default function App() {
       .select("*, groups(name), suspects(name)")
       .eq("group_id", myGroupId);
 
-    const { data: finalReportsData } = await supabase
-      .from("final_reports")
-      .select("*, suspects(name)")
-      .eq("group_id", myGroupId);
+    let finalReportsData = [];
+
+    if (ENABLE_FINAL_REPORTS) {
+      const { data } = await supabase
+        .from("final_reports")
+        .select("*, suspects(name)")
+        .eq("group_id", myGroupId);
+
+      finalReportsData = data || [];
+    }
 
     setNotifications(notificationsData || []);
     setTransactions(transactionData || []);
@@ -1675,9 +1694,9 @@ export default function App() {
       buyableCount,
       noteCount: suspectNotes.length,
       statusCount: suspectStatuses.length,
-      finalReport: finalReports.find(
-        (report) => report.group_id === myGroup.id
-      ),
+      finalReport: ENABLE_FINAL_REPORTS
+        ? finalReports.find((report) => report.group_id === myGroup.id)
+        : null,
     };
   };
 
@@ -1807,6 +1826,7 @@ export default function App() {
   };
 
   const shouldShowParticipantFinalTab = () => {
+    if (!ENABLE_FINAL_REPORTS) return false;
     if (!myGroup) return false;
 
     const existingReport = finalReports.find(
@@ -3918,7 +3938,7 @@ export default function App() {
           </div>
         </div>
 
-        {(finalReportsOpen || progress.finalReport) && (
+        {ENABLE_FINAL_REPORTS && (finalReportsOpen || progress.finalReport) && (
           <div
             onClick={() => setActiveParticipantTab("final")}
             title="Bekijk finale"
@@ -5164,7 +5184,7 @@ export default function App() {
 
         <p style={styles.subtle}>
           Snel overzicht voor de organisatie: pegels, activiteit, aanwijzingen,
-          notities, statussen, waarschuwingen en finale per groep.
+          notities, statussen en waarschuwingen per groep.
         </p>
 
         {groups.length === 0 ? (
@@ -5210,7 +5230,12 @@ export default function App() {
               statuses.length === 0
             )
               warnings.push("Nog weinig activiteit");
-            if (finalReportsOpen && !finalReport && group.is_active)
+            if (
+              ENABLE_FINAL_REPORTS &&
+              finalReportsOpen &&
+              !finalReport &&
+              group.is_active
+            )
               warnings.push("Eindrapport ontbreekt");
 
             if (lastActivity) {
@@ -5248,11 +5273,13 @@ export default function App() {
                     <span style={styles.badge}>
                       {group.is_active ? "Actief" : "Inactief"}
                     </span>
-                    <span style={styles.badge}>
-                      {finalReport
-                        ? "🏁 Eindrapport ingediend"
-                        : "🏁 Geen eindrapport"}
-                    </span>
+                    {ENABLE_FINAL_REPORTS && (
+                      <span style={styles.badge}>
+                        {finalReport
+                          ? "🏁 Eindrapport ingediend"
+                          : "🏁 Geen eindrapport"}
+                      </span>
+                    )}
                     {lastActivity && (
                       <span style={styles.badge}>
                         Laatste actie: {formatDate(lastActivity)}
@@ -5273,12 +5300,14 @@ export default function App() {
                     >
                       Pegels / melding
                     </button>
-                    <button
-                      style={styles.buttonSecondary}
-                      onClick={() => setActiveAdminTab("final")}
-                    >
-                      Finale
-                    </button>
+                    {ENABLE_FINAL_REPORTS && (
+                      <button
+                        style={styles.buttonSecondary}
+                        onClick={() => setActiveAdminTab("final")}
+                      >
+                        Finale
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -5365,6 +5394,8 @@ export default function App() {
   };
 
   const AdminFinalReportStatusCard = () => {
+    if (!ENABLE_FINAL_REPORTS) return null;
+
     const activeGroups = groups.filter((group) => group.is_active);
 
     const submittedGroupIds = finalReports
@@ -5499,8 +5530,8 @@ export default function App() {
             Spel in één oogopslag
           </h2>
           <p style={{ ...styles.subtle, fontSize: 16 }}>
-            Live stand van groepen, aanwijzingen, pegels, notities, statussen en
-            finale. Klik op een kaart om direct naar het juiste scherm te gaan.
+            Live stand van groepen, aanwijzingen, pegels, notities en statussen.
+            Klik op een kaart om direct naar het juiste scherm te gaan.
           </p>
 
           <div style={styles.grid}>
@@ -5564,7 +5595,7 @@ export default function App() {
           </div>
         </div>
 
-        {AdminFinalReportStatusCard()}
+        {ENABLE_FINAL_REPORTS && AdminFinalReportStatusCard()}
 
         {AdminLiveGameStatus()}
       </>
@@ -7759,7 +7790,9 @@ export default function App() {
 
             {activeAdminTab === "credits" && AdminCreditsAndNotifications()}
 
-            {activeAdminTab === "final" && AdminFinalReports()}
+            {ENABLE_FINAL_REPORTS &&
+              activeAdminTab === "final" &&
+              AdminFinalReports()}
 
             {activeAdminTab === "interrogation" && AdminInterrogationPanel()}
           </ErrorBoundary>
@@ -7830,14 +7863,16 @@ export default function App() {
             Pegels
           </button>
 
-          <button
-            style={styles.navButton(activeAdminTab === "final")}
-            onClick={() => setActiveAdminTab("final")}
-          >
-            🏁
-            <br />
-            Finale
-          </button>
+          {ENABLE_FINAL_REPORTS && (
+            <button
+              style={styles.navButton(activeAdminTab === "final")}
+              onClick={() => setActiveAdminTab("final")}
+            >
+              🏁
+              <br />
+              Finale
+            </button>
+          )}
 
           <button
             style={styles.navButton(activeAdminTab === "interrogation")}
@@ -7891,12 +7926,14 @@ export default function App() {
                 </>
               )}
 
-              {activeParticipantTab === "final" && ParticipantFinalReport()}
+              {ENABLE_FINAL_REPORTS &&
+                activeParticipantTab === "final" &&
+                ParticipantFinalReport()}
             </>
           )}
         </ErrorBoundary>
         {MessageBlock()}
-        {FinalReportEditorModal()}
+        {ENABLE_FINAL_REPORTS && FinalReportEditorModal()}
         {ImageModal()}
       </div>
 
