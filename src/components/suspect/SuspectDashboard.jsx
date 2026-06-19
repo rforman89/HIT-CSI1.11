@@ -359,16 +359,16 @@ export default function SuspectDashboard({ ctx }) {
   const activeSuspectOptions = suspects.filter((suspect) => suspect.is_active);
   const viewedSuspect =
     activeSuspectOptions.find(
-      (suspect) => suspect.id === selectedSuspectDossier
+      (suspect) => suspect.id === selectedSuspectDossier,
     ) || linkedSuspect;
   const viewingOwnDossier = viewedSuspect.id === linkedSuspect.id;
 
   const notesForMe = suspectNotes.filter(
-    (note) => note.suspect_id === viewedSuspect.id
+    (note) => note.suspect_id === viewedSuspect.id,
   );
 
   const statusesForMe = suspectStatuses.filter(
-    (status) => status.suspect_id === viewedSuspect.id
+    (status) => status.suspect_id === viewedSuspect.id,
   );
 
   const boughtCluesForMe = groupClues.filter((purchase) => {
@@ -379,28 +379,28 @@ export default function SuspectDashboard({ ctx }) {
   });
 
   const suspectCount = statusesForMe.filter(
-    (item) => item.status === "suspect"
+    (item) => item.status === "suspect",
   ).length;
 
   const doubtCount = statusesForMe.filter(
-    (item) => item.status === "doubt"
+    (item) => item.status === "doubt",
   ).length;
 
   const excludedCount = statusesForMe.filter(
-    (item) => item.status === "excluded"
+    (item) => item.status === "excluded",
   ).length;
 
   const unknownCount = Math.max(groups.length - statusesForMe.length, 0);
 
   const sortedNotesForMe = [...notesForMe].sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    (a, b) => new Date(b.created_at) - new Date(a.created_at),
   );
 
   const recentNotesForMe = sortedNotesForMe.slice(0, 3);
 
   const statusRows = groups.map((group) => {
     const statusRecord = statusesForMe.find(
-      (item) => item.group_id === group.id
+      (item) => item.group_id === group.id,
     );
 
     return {
@@ -599,7 +599,9 @@ export default function SuspectDashboard({ ctx }) {
                   marginTop: 0,
                 }}
               >
-                Verdachte in onderzoek
+                {viewingOwnDossier
+                  ? "Mijn verdachte-dossier"
+                  : "Dossier bekijken"}
               </span>
 
               <h1
@@ -641,6 +643,17 @@ export default function SuspectDashboard({ ctx }) {
                       </option>
                     ))}
                   </select>
+
+                  {!viewingOwnDossier && (
+                    <button
+                      style={{ ...styles.buttonSecondary, marginTop: 8 }}
+                      onClick={() =>
+                        setSelectedSuspectDossier(linkedSuspect.id)
+                      }
+                    >
+                      Terug naar mijn dossier
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -741,7 +754,7 @@ export default function SuspectDashboard({ ctx }) {
                   style={{
                     width: `${Math.max(
                       8,
-                      (segment.count / statusBarTotal) * 100
+                      (segment.count / statusBarTotal) * 100,
                     )}%`,
                     background: segment.color,
                   }}
@@ -775,7 +788,7 @@ export default function SuspectDashboard({ ctx }) {
 
             {recentNotesForMe.length > 0 ? (
               recentNotesForMe.map((note) =>
-                renderSuspectNotePreview(note, { compact: true })
+                renderSuspectNotePreview(note, { compact: true }),
               )
             ) : (
               <p style={styles.subtle}>
@@ -889,13 +902,13 @@ export default function SuspectDashboard({ ctx }) {
             </div>
           ) : (
             Object.entries(
-              groupNotesBy(notesForMe, (note) => note.group_id)
+              groupNotesBy(notesForMe, (note) => note.group_id),
             ).map(([groupId, notes]) => {
               const group =
                 groups.find((g) => g.id === groupId) || notes[0]?.groups;
 
               const sortedNotes = [...notes].sort(
-                (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                (a, b) => new Date(b.created_at) - new Date(a.created_at),
               );
 
               return (
