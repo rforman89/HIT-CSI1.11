@@ -3665,33 +3665,65 @@ export default function App() {
       </button>
     </div>
   );
-  const ParticipantGroupBar = () => (
-    <div style={styles.card}>
+  const ParticipantGroupBar = () => {
+    const progress = getParticipantProgress();
+
+    return (
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 10,
-          flexWrap: "wrap",
+          ...styles.card,
+          position: "relative",
+          overflow: "hidden",
+          background:
+            "linear-gradient(135deg, rgba(39,39,42,0.98), rgba(9,9,11,0.98))",
+          borderColor: "#3f3f46",
         }}
       >
-        <div>
-          <div style={styles.subtle}>Mijn groep</div>
-          <strong>{myGroup?.name || "Nog geen groep"}</strong>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 10,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ minWidth: 170 }}>
+            <div style={styles.subtle}>Mijn groep</div>
+            <strong>{myGroup?.name || "Nog geen groep"}</strong>
+          </div>
+
+          <div>
+            <div style={styles.subtle}>Pegels</div>
+            <strong>💰 {myGroup?.credits || 0}</strong>
+          </div>
+
+          <div>
+            <div style={styles.subtle}>Ontgrendeld</div>
+            <strong>📄 {progress.unlockedCount}</strong>
+          </div>
+
+          <div>
+            <div style={styles.subtle}>Notities</div>
+            <strong>📝 {progress.noteCount}</strong>
+          </div>
         </div>
 
-        <div>
-          <div style={styles.subtle}>Pegels</div>
-          <strong>💰 {myGroup?.credits || 0}</strong>
-        </div>
-
-        <div>
-          <div style={styles.subtle}>Aanwijzingen</div>
-          <strong>📄 {purchasedClueIds.length}</strong>
+        <div
+          style={{
+            ...styles.subtle,
+            marginTop: 10,
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+          }}
+        >
+          <span style={styles.badge}>Te koop: {progress.buyableCount}</span>
+          <span style={styles.badge}>Statussen: {progress.statusCount}</span>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
   const ParticipantDashboard = () => {
     const progress = getParticipantProgress();
     const activeSuspects = suspects.filter((suspect) => suspect.is_active);
@@ -3712,6 +3744,49 @@ export default function App() {
     const suspectStatusCount = suspectStatuses.filter(
       (status) => status.status === "suspect"
     ).length;
+
+    const focusItems = [];
+
+    if (progress.buyableCount > 0) {
+      focusItems.push({
+        label: "Koop gericht aanwijzingen",
+        text: `${progress.buyableCount} aanwijzing(en) staan nog klaar om te onderzoeken.`,
+        tab: "clues",
+        button: "Naar aanwijzingen",
+      });
+    }
+
+    if (
+      progress.statusCount < activeSuspects.length &&
+      activeSuspects.length > 0
+    ) {
+      focusItems.push({
+        label: "Werk verdachte-statussen bij",
+        text: "Zet per verdachte alvast op verdacht, twijfel, uitgesloten of onbekend.",
+        tab: "suspects",
+        button: "Naar verdachten",
+      });
+    }
+
+    if (progress.noteCount === 0 && activeSuspects.length > 0) {
+      focusItems.push({
+        label: "Leg jullie eerste theorie vast",
+        text: "Schrijf korte notities bij verdachten, zodat jullie later niets kwijt zijn.",
+        tab: "suspects",
+        button: "Notitie maken",
+      });
+    }
+
+    if (latestNotification) {
+      focusItems.push({
+        label: "Check de laatste info",
+        text: latestNotification.title,
+        tab: "messages",
+        button: "Info openen",
+      });
+    }
+
+    const visibleFocusItems = focusItems.slice(0, 3);
 
     return (
       <>
@@ -3776,6 +3851,45 @@ export default function App() {
               <span style={styles.badge}>📝 {progress.noteCount} notities</span>
             </div>
           </div>
+        </div>
+
+        <div style={styles.card}>
+          <h2 style={{ marginTop: 0 }}>Vandaag onderzoeken</h2>
+          <p style={styles.subtle}>
+            Snel naar de plekken waar jullie waarschijnlijk het vaakst iets
+            moeten doen. Handig op mobiel tijdens het spel.
+          </p>
+
+          {visibleFocusItems.length > 0 ? (
+            <div style={styles.grid}>
+              {visibleFocusItems.map((item) => (
+                <div key={item.label} style={styles.card}>
+                  <strong>{item.label}</strong>
+                  <p style={styles.subtle}>{item.text}</p>
+                  <button
+                    style={styles.buttonSecondary}
+                    onClick={() => setActiveParticipantTab(item.tab)}
+                  >
+                    {item.button}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                ...styles.card,
+                background: "#09090b",
+                borderColor: "#166534",
+              }}
+            >
+              <strong>Onderzoek loopt netjes</strong>
+              <p style={styles.subtle}>
+                Jullie hebben aanwijzingen, notities en statussen al goed op
+                gang. Gebruik de knoppen hieronder om snel verder te gaan.
+              </p>
+            </div>
+          )}
         </div>
 
         <div style={styles.grid}>
@@ -3879,9 +3993,19 @@ export default function App() {
                 )}
               </>
             ) : (
-              <p style={styles.subtle}>
-                Er staat nu geen volgende activiteit gepland.
-              </p>
+              <div
+                style={{
+                  ...styles.card,
+                  background: "#09090b",
+                  borderColor: "#27272a",
+                }}
+              >
+                <strong>Geen volgende activiteit gepland</strong>
+                <p style={styles.subtle}>
+                  Gebruik de tijd om aanwijzingen te bekijken, statussen bij te
+                  werken of jullie theorie aan te scherpen.
+                </p>
+              </div>
             )}
           </div>
 
@@ -3911,7 +4035,19 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              <p style={styles.subtle}>Nog geen nieuwe meldingen.</p>
+              <div
+                style={{
+                  ...styles.card,
+                  background: "#09090b",
+                  borderColor: "#27272a",
+                }}
+              >
+                <strong>Nog geen nieuwe info</strong>
+                <p style={styles.subtle}>
+                  Berichten van de organisatie verschijnen hier zodra er iets
+                  gedeeld wordt.
+                </p>
+              </div>
             )}
 
             {latestPurchase ? (
@@ -4262,10 +4398,20 @@ export default function App() {
           <h2>Ontgrendeld</h2>
 
           {unlockedClues.length === 0 ? (
-            <p style={styles.subtle}>
-              Jullie hebben nog geen aanwijzingen ontgrendeld. Gratis of
-              algemene aanwijzingen verschijnen hier ook.
-            </p>
+            <div
+              style={{
+                ...styles.card,
+                background: "#09090b",
+                borderColor: "#27272a",
+              }}
+            >
+              <strong>Nog niets ontgrendeld</strong>
+              <p style={styles.subtle}>
+                Zodra jullie een aanwijzing kopen of gratis informatie krijgen,
+                verschijnt die hier. Begin bij Te koop of wacht op informatie
+                van de organisatie.
+              </p>
+            </div>
           ) : (
             renderClueGroups(groupedUnlockedClues, "unlocked")
           )}
@@ -4275,10 +4421,20 @@ export default function App() {
           <h2>Te koop</h2>
 
           {buyableClues.length === 0 ? (
-            <p style={styles.subtle}>
-              Er staan geen aanwijzingen meer te koop. Alles wat beschikbaar is,
-              staat hierboven bij Ontgrendeld.
-            </p>
+            <div
+              style={{
+                ...styles.card,
+                background: "#09090b",
+                borderColor: "#166534",
+              }}
+            >
+              <strong>Geen losse aanwijzingen meer te koop</strong>
+              <p style={styles.subtle}>
+                Alles wat nu beschikbaar is, staat bij Ontgrendeld. Nieuwe
+                aanwijzingen kunnen later door de organisatie worden toegevoegd
+                of vrijgegeven.
+              </p>
+            </div>
           ) : (
             renderClueGroups(groupedBuyableClues, "buyable")
           )}
@@ -4392,6 +4548,30 @@ export default function App() {
                   </option>
                 ))}
               </select>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginTop: 10,
+                }}
+              >
+                {activeSuspects.map((suspect) => (
+                  <button
+                    key={suspect.id}
+                    type="button"
+                    style={
+                      selectedSuspect?.id === suspect.id
+                        ? { ...styles.button, padding: "8px 11px" }
+                        : { ...styles.buttonSecondary, padding: "8px 11px" }
+                    }
+                    onClick={() => setSelectedParticipantSuspect(suspect.id)}
+                  >
+                    {suspect.name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -4408,8 +4588,18 @@ export default function App() {
         </div>
 
         {activeSuspects.length === 0 ? (
-          <div style={styles.card}>
-            <p style={styles.subtle}>Nog geen actieve verdachten.</p>
+          <div
+            style={{
+              ...styles.card,
+              background: "#09090b",
+              borderColor: "#27272a",
+            }}
+          >
+            <strong>Nog geen actieve verdachten</strong>
+            <p style={styles.subtle}>
+              De organisatie moet eerst verdachten actief zetten. Daarna kunnen
+              jullie hier statussen en notities bijhouden.
+            </p>
           </div>
         ) : (
           visibleSuspectDossiers.map((suspect) => {
@@ -4574,9 +4764,20 @@ export default function App() {
                   <strong>Notities</strong>
 
                   {notesForSuspect.length === 0 ? (
-                    <p style={styles.subtle}>
-                      Nog geen notities over deze verdachte.
-                    </p>
+                    <div
+                      style={{
+                        ...styles.card,
+                        background: "#09090b",
+                        borderColor: "#27272a",
+                      }}
+                    >
+                      <strong>Nog geen notities over deze verdachte</strong>
+                      <p style={styles.subtle}>
+                        Leg hier korte observaties, alibi-twijfels of losse
+                        theorieën vast. Dan blijft jullie spoor later terug te
+                        vinden.
+                      </p>
+                    </div>
                   ) : (
                     <div
                       style={{
