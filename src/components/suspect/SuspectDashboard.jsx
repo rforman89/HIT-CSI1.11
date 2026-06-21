@@ -359,16 +359,16 @@ export default function SuspectDashboard({ ctx }) {
   const activeSuspectOptions = suspects.filter((suspect) => suspect.is_active);
   const viewedSuspect =
     activeSuspectOptions.find(
-      (suspect) => suspect.id === selectedSuspectDossier,
+      (suspect) => suspect.id === selectedSuspectDossier
     ) || linkedSuspect;
   const viewingOwnDossier = viewedSuspect.id === linkedSuspect.id;
 
   const notesForMe = suspectNotes.filter(
-    (note) => note.suspect_id === viewedSuspect.id,
+    (note) => note.suspect_id === viewedSuspect.id
   );
 
   const statusesForMe = suspectStatuses.filter(
-    (status) => status.suspect_id === viewedSuspect.id,
+    (status) => status.suspect_id === viewedSuspect.id
   );
 
   const boughtCluesForMe = groupClues.filter((purchase) => {
@@ -379,28 +379,43 @@ export default function SuspectDashboard({ ctx }) {
   });
 
   const suspectCount = statusesForMe.filter(
-    (item) => item.status === "suspect",
+    (item) => item.status === "suspect"
   ).length;
 
   const doubtCount = statusesForMe.filter(
-    (item) => item.status === "doubt",
+    (item) => item.status === "doubt"
   ).length;
 
   const excludedCount = statusesForMe.filter(
-    (item) => item.status === "excluded",
+    (item) => item.status === "excluded"
   ).length;
 
   const unknownCount = Math.max(groups.length - statusesForMe.length, 0);
 
   const sortedNotesForMe = [...notesForMe].sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at),
+    (a, b) => new Date(b.created_at) - new Date(a.created_at)
   );
 
   const recentNotesForMe = sortedNotesForMe.slice(0, 3);
+  const latestNote = sortedNotesForMe[0];
+  const groupsWithNotesCount = new Set(
+    notesForMe.map((note) => note.group_id).filter(Boolean)
+  ).size;
+  const groupsWithStatusCount = new Set(
+    statusesForMe.map((status) => status.group_id).filter(Boolean)
+  ).size;
+  const strongestSignal =
+    suspectCount > 0
+      ? `${suspectCount} groep(en) vinden dit dossier verdacht`
+      : doubtCount > 0
+      ? `${doubtCount} groep(en) twijfelen nog`
+      : excludedCount > 0
+      ? `${excludedCount} groep(en) sluiten dit dossier uit`
+      : "Nog geen duidelijke richting vanuit de groepen";
 
   const statusRows = groups.map((group) => {
     const statusRecord = statusesForMe.find(
-      (item) => item.group_id === group.id,
+      (item) => item.group_id === group.id
     );
 
     return {
@@ -704,6 +719,72 @@ export default function SuspectDashboard({ ctx }) {
           </div>
         </div>
 
+        <div style={styles.card}>
+          <h2 style={{ marginTop: 0 }}>Dossier in het kort</h2>
+          <p style={styles.subtle}>
+            Snelle samenvatting voor tijdens het spel, zonder dat je door alle
+            notities hoeft te graven.
+          </p>
+
+          <div style={styles.grid}>
+            <div style={styles.card}>
+              <strong>Belangrijkste signaal</strong>
+              <div style={{ marginTop: 8 }}>{strongestSignal}</div>
+            </div>
+
+            <div style={styles.card}>
+              <strong>Groepen met notities</strong>
+              <div style={{ ...styles.statNumber, fontSize: 34 }}>
+                {groupsWithNotesCount}
+              </div>
+              <div style={styles.subtle}>Van {groups.length} groep(en)</div>
+            </div>
+
+            <div style={styles.card}>
+              <strong>Groepen met status</strong>
+              <div style={{ ...styles.statNumber, fontSize: 34 }}>
+                {groupsWithStatusCount}
+              </div>
+              <div style={styles.subtle}>Status ingevuld in dit dossier</div>
+            </div>
+          </div>
+
+          {latestNote ? (
+            <div style={{ ...styles.card, background: "#09090b" }}>
+              <strong>Nieuwste notitie</strong>
+              <p
+                style={{
+                  whiteSpace: "pre-wrap",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {latestNote.note}
+              </p>
+              <div style={styles.subtle}>
+                📁 {latestNote.groups?.name || "Onbekende groep"} ·{" "}
+                {formatDate(latestNote.created_at)}
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                ...styles.card,
+                background: "#09090b",
+                borderColor: "#27272a",
+              }}
+            >
+              <strong>Nog geen notities in dit dossier</strong>
+              <p style={styles.subtle}>
+                Zodra teams iets over dit dossier opslaan, verschijnt hier de
+                nieuwste notitie als snelle preview.
+              </p>
+            </div>
+          )}
+        </div>
+
         <div style={styles.grid}>
           {statusSummary.map((item) => (
             <div
@@ -754,7 +835,7 @@ export default function SuspectDashboard({ ctx }) {
                   style={{
                     width: `${Math.max(
                       8,
-                      (segment.count / statusBarTotal) * 100,
+                      (segment.count / statusBarTotal) * 100
                     )}%`,
                     background: segment.color,
                   }}
@@ -762,21 +843,37 @@ export default function SuspectDashboard({ ctx }) {
               ))}
             </div>
 
-            {statusSegments.map((segment) => (
+            {statusesForMe.length === 0 ? (
               <div
-                key={segment.label}
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  padding: "9px 0",
-                  borderBottom: "1px solid #27272a",
+                  ...styles.card,
+                  background: "#09090b",
+                  borderColor: "#27272a",
                 }}
               >
-                <span>{segment.label}</span>
-                <strong>{segment.count} groep(en)</strong>
+                <strong>Nog geen status ingevuld</strong>
+                <p style={styles.subtle}>
+                  Teams hebben dit dossier nog niet beoordeeld. Zodra ze een
+                  status kiezen, zie je hier de verdeling.
+                </p>
               </div>
-            ))}
+            ) : (
+              statusSegments.map((segment) => (
+                <div
+                  key={segment.label}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: "9px 0",
+                    borderBottom: "1px solid #27272a",
+                  }}
+                >
+                  <span>{segment.label}</span>
+                  <strong>{segment.count} groep(en)</strong>
+                </div>
+              ))
+            )}
           </div>
 
           <div style={styles.card}>
@@ -788,12 +885,22 @@ export default function SuspectDashboard({ ctx }) {
 
             {recentNotesForMe.length > 0 ? (
               recentNotesForMe.map((note) =>
-                renderSuspectNotePreview(note, { compact: true }),
+                renderSuspectNotePreview(note, { compact: true })
               )
             ) : (
-              <p style={styles.subtle}>
-                Er zijn nog geen notities in dit dossier opgeslagen.
-              </p>
+              <div
+                style={{
+                  ...styles.card,
+                  background: "#09090b",
+                  borderColor: "#27272a",
+                }}
+              >
+                <strong>Nog geen recente notities</strong>
+                <p style={styles.subtle}>
+                  De nieuwste drie notities komen hier automatisch als preview
+                  te staan zodra groepen iets opslaan.
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -837,9 +944,19 @@ export default function SuspectDashboard({ ctx }) {
             <h2>Gekochte aanwijzingen over dit dossier</h2>
 
             {boughtCluesForMe.length === 0 ? (
-              <p style={styles.subtle}>
-                Nog geen groep heeft aanwijzingen rond deze verdachte gekocht.
-              </p>
+              <div
+                style={{
+                  ...styles.card,
+                  background: "#09090b",
+                  borderColor: "#27272a",
+                }}
+              >
+                <strong>Nog geen gekochte aanwijzingen</strong>
+                <p style={styles.subtle}>
+                  Als teams aanwijzingen rond dit dossier kopen of krijgen,
+                  verschijnen ze hier gegroepeerd in het overzicht.
+                </p>
+              </div>
             ) : (
               boughtCluesForMe.map((purchase) => {
                 const clue =
@@ -902,13 +1019,13 @@ export default function SuspectDashboard({ ctx }) {
             </div>
           ) : (
             Object.entries(
-              groupNotesBy(notesForMe, (note) => note.group_id),
+              groupNotesBy(notesForMe, (note) => note.group_id)
             ).map(([groupId, notes]) => {
               const group =
                 groups.find((g) => g.id === groupId) || notes[0]?.groups;
 
               const sortedNotes = [...notes].sort(
-                (a, b) => new Date(b.created_at) - new Date(a.created_at),
+                (a, b) => new Date(b.created_at) - new Date(a.created_at)
               );
 
               return (
