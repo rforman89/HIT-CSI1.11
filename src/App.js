@@ -2316,7 +2316,7 @@ export default function App() {
 
     const suspectRows = suspects.map((suspect) => ({
       name: suspect.name || "",
-      active: suspect.active ? "ja" : "nee",
+      active: suspect.is_active ? "ja" : "nee",
       description: suspect.description || "",
       photo_url: suspect.photo_url || "",
       created_at: suspect.created_at || "",
@@ -4329,7 +4329,7 @@ export default function App() {
                   style={styles.button}
                   onClick={() => purchaseClue(clue.id)}
                 >
-                  Kopen
+                  Koop voor {clue.price} pegels
                 </button>
               )}
             </div>
@@ -4383,7 +4383,7 @@ export default function App() {
             <div style={styles.card}>
               <strong>Te koop</strong>
               <div style={styles.statNumber}>{buyableClues.length}</div>
-              <div style={styles.subtle}>Nog te kopen met pegels</div>
+              <div style={styles.subtle}>Nog te onderzoeken met pegels</div>
             </div>
 
             <div style={styles.card}>
@@ -5377,212 +5377,308 @@ export default function App() {
     );
   };
   const AdminLiveGameStatus = () => {
+    const buildGroupStatusRow = (group) => {
+      const bought = groupClues.filter((item) => item.group_id === group.id);
+      const notes = suspectNotes.filter((item) => item.group_id === group.id);
+      const statuses = suspectStatuses.filter(
+        (item) => item.group_id === group.id
+      );
+      const groupNotifications = notifications.filter(
+        (item) => item.group_id === group.id
+      );
+      const finalReport = getGroupFinalReport(group.id);
+      const lastNotification = groupNotifications[0];
+      const lastActivity = getGroupLastActivity(group.id);
+
+      const suspectCount = statuses.filter(
+        (item) => item.status === "suspect"
+      ).length;
+      const doubtCount = statuses.filter(
+        (item) => item.status === "doubt"
+      ).length;
+      const excludedCount = statuses.filter(
+        (item) => item.status === "excluded"
+      ).length;
+
+      const warnings = [];
+
+      if (!group.is_active) warnings.push("Groep staat inactief");
+      if ((group.credits || 0) <= 3) warnings.push("Weinig pegels over");
+      if (bought.length === 0) warnings.push("Nog geen aanwijzingen");
+      if (bought.length >= 3 && notes.length === 0)
+        warnings.push("Veel gekocht, maar nog geen notities");
+      if (bought.length === 0 && notes.length === 0 && statuses.length === 0)
+        warnings.push("Nog weinig activiteit");
+      if (
+        ENABLE_FINAL_REPORTS &&
+        finalReportsOpen &&
+        !finalReport &&
+        group.is_active
+      )
+        warnings.push("Eindrapport ontbreekt");
+
+      let minutesSinceActivity = null;
+
+      if (lastActivity) {
+        minutesSinceActivity =
+          (new Date() - new Date(lastActivity)) / 1000 / 60;
+
+        if (minutesSinceActivity > 60)
+          warnings.push("Al meer dan 60 minuten geen activiteit");
+      }
+
+      const attentionScore =
+        warnings.length * 10 +
+        ((group.credits || 0) <= 3 ? 5 : 0) +
+        (bought.length === 0 ? 4 : 0) +
+        (minutesSinceActivity > 60 ? 3 : 0);
+
+      return {
+        group,
+        bought,
+        notes,
+        statuses,
+        groupNotifications,
+        finalReport,
+        lastNotification,
+        lastActivity,
+        suspectCount,
+        doubtCount,
+        excludedCount,
+        warnings,
+        attentionScore,
+      };
+    };
+
+    const groupRows = groups.map(buildGroupStatusRow).sort((a, b) => {
+      if (b.attentionScore !== a.attentionScore) {
+        return b.attentionScore - a.attentionScore;
+      }
+
+      return a.group.name.localeCompare(b.group.name);
+    });
+
     const activeGroups = groups.filter((group) => group.is_active);
+    const attentionRows = groupRows.filter((row) => row.warnings.length > 0);
+    const quietRows = groupRows.filter((row) =>
+      row.warnings.includes("Al meer dan 60 minuten geen activiteit")
+    );
+    const lowCreditRows = groupRows.filter(
+      (row) => (row.group.credits || 0) <= 3
+    );
+    const noNotesAfterBuyingRows = groupRows.filter(
+      (row) => row.bought.length >= 3 && row.notes.length === 0
+    );
 
     return (
       <div style={styles.card}>
         <h2>🖥️ Live spelstatus per groep</h2>
 
         <p style={styles.subtle}>
-          Snel overzicht voor de organisatie: pegels, activiteit, aanwijzingen,
-          notities, statussen en waarschuwingen per groep.
+          Regie-overzicht voor tijdens het spel. Groepen die aandacht nodig
+          hebben staan bovenaan, zodat je sneller ziet waar de organisatie moet
+          bijsturen.
         </p>
+
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <strong>Actieve groepen</strong>
+            <div style={styles.statNumber}>{activeGroups.length}</div>
+            <div style={styles.subtle}>Meespelend of zichtbaar</div>
+          </div>
+
+          <div
+            style={{
+              ...styles.card,
+              borderColor: attentionRows.length > 0 ? "#ef4444" : "#166534",
+            }}
+          >
+            <strong>Aandacht nodig</strong>
+            <div style={styles.statNumber}>{attentionRows.length}</div>
+            <div style={styles.subtle}>Groepen met waarschuwingen</div>
+          </div>
+
+          <div style={styles.card}>
+            <strong>Weinig pegels</strong>
+            <div style={styles.statNumber}>{lowCreditRows.length}</div>
+            <div style={styles.subtle}>Groepen met 3 of minder pegels</div>
+          </div>
+
+          <div style={styles.card}>
+            <strong>Stilgevallen</strong>
+            <div style={styles.statNumber}>{quietRows.length}</div>
+            <div style={styles.subtle}>Meer dan 60 minuten geen actie</div>
+          </div>
+        </div>
+
+        {noNotesAfterBuyingRows.length > 0 && (
+          <div
+            style={{
+              ...styles.card,
+              borderColor: "#f59e0b",
+              background:
+                "linear-gradient(180deg, rgba(120,53,15,0.18), #18181b)",
+            }}
+          >
+            <strong>Regie-tip</strong>
+            <p style={styles.subtle}>
+              {noNotesAfterBuyingRows.length} groep(en) hebben meerdere
+              aanwijzingen, maar nog geen notities. Dit is een goed moment om
+              hen subtiel te sturen richting theorie-vorming.
+            </p>
+          </div>
+        )}
 
         {groups.length === 0 ? (
           <p style={styles.subtle}>Nog geen groepen.</p>
         ) : (
-          groups.map((group) => {
-            const bought = groupClues.filter(
-              (item) => item.group_id === group.id
-            );
-            const notes = suspectNotes.filter(
-              (item) => item.group_id === group.id
-            );
-            const statuses = suspectStatuses.filter(
-              (item) => item.group_id === group.id
-            );
-            const groupNotifications = notifications.filter(
-              (item) => item.group_id === group.id
-            );
-            const finalReport = getGroupFinalReport(group.id);
-            const lastNotification = groupNotifications[0];
-            const lastActivity = getGroupLastActivity(group.id);
-
-            const suspectCount = statuses.filter(
-              (item) => item.status === "suspect"
-            ).length;
-            const doubtCount = statuses.filter(
-              (item) => item.status === "doubt"
-            ).length;
-            const excludedCount = statuses.filter(
-              (item) => item.status === "excluded"
-            ).length;
-
-            const warnings = [];
-
-            if (!group.is_active) warnings.push("Groep staat inactief");
-            if ((group.credits || 0) <= 3) warnings.push("Weinig pegels over");
-            if (bought.length === 0) warnings.push("Nog geen aanwijzingen");
-            if (bought.length >= 3 && notes.length === 0)
-              warnings.push("Veel gekocht, maar nog geen notities");
-            if (
-              bought.length === 0 &&
-              notes.length === 0 &&
-              statuses.length === 0
-            )
-              warnings.push("Nog weinig activiteit");
-            if (
-              ENABLE_FINAL_REPORTS &&
-              finalReportsOpen &&
-              !finalReport &&
-              group.is_active
-            )
-              warnings.push("Eindrapport ontbreekt");
-
-            if (lastActivity) {
-              const minutesSinceActivity =
-                (new Date() - new Date(lastActivity)) / 1000 / 60;
-              if (minutesSinceActivity > 60)
-                warnings.push("Al meer dan 60 minuten geen activiteit");
-            }
-
-            return (
-              <div
-                key={group.id}
-                style={{
-                  ...styles.card,
-                  borderColor: warnings.length > 0 ? "#52525b" : "#166534",
-                  background:
-                    warnings.length > 0
-                      ? "linear-gradient(180deg, rgba(24,24,27,0.98), rgba(9,9,11,0.95))"
-                      : "linear-gradient(180deg, rgba(20,83,45,0.12), rgba(24,24,27,0.98))",
-                }}
-              >
+          groupRows.map(
+            ({
+              group,
+              bought,
+              notes,
+              statuses,
+              lastNotification,
+              lastActivity,
+              suspectCount,
+              doubtCount,
+              excludedCount,
+              warnings,
+            }) => {
+              return (
                 <div
+                  key={group.id}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    flexWrap: "wrap",
-                    alignItems: "flex-start",
+                    ...styles.card,
+                    borderColor: warnings.length > 0 ? "#52525b" : "#166534",
+                    background:
+                      warnings.length > 0
+                        ? "linear-gradient(180deg, rgba(24,24,27,0.98), rgba(9,9,11,0.95))"
+                        : "linear-gradient(180deg, rgba(20,83,45,0.12), rgba(24,24,27,0.98))",
                   }}
                 >
-                  <div>
-                    <h3 style={{ marginTop: 0, marginBottom: 6 }}>
-                      {group.name}
-                    </h3>
-                    <span style={styles.badge}>
-                      {group.is_active ? "Actief" : "Inactief"}
-                    </span>
-                    {ENABLE_FINAL_REPORTS && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      flexWrap: "wrap",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div>
+                      <h3 style={{ marginTop: 0, marginBottom: 6 }}>
+                        {group.name}
+                      </h3>
                       <span style={styles.badge}>
-                        {finalReport
-                          ? "🏁 Eindrapport ingediend"
-                          : "🏁 Geen eindrapport"}
+                        {group.is_active ? "Actief" : "Inactief"}
                       </span>
-                    )}
-                    {lastActivity && (
-                      <span style={styles.badge}>
-                        Laatste actie: {formatDate(lastActivity)}
-                      </span>
-                    )}
-                  </div>
+                      {warnings.length > 0 ? (
+                        <span style={styles.badge}>
+                          ⚠️ {warnings.length} aandachtspunt(en)
+                        </span>
+                      ) : (
+                        <span style={styles.badge}>✅ Loopt rustig</span>
+                      )}
+                      {lastActivity && (
+                        <span style={styles.badge}>
+                          Laatste actie: {formatDate(lastActivity)}
+                        </span>
+                      )}
+                    </div>
 
-                  <div>
-                    <button
-                      style={styles.buttonSecondary}
-                      onClick={() => setActiveAdminTab("groups")}
-                    >
-                      Groepen
-                    </button>
-                    <button
-                      style={styles.buttonSecondary}
-                      onClick={() => setActiveAdminTab("credits")}
-                    >
-                      Pegels / melding
-                    </button>
-                    {ENABLE_FINAL_REPORTS && (
+                    <div>
                       <button
                         style={styles.buttonSecondary}
-                        onClick={() => setActiveAdminTab("final")}
+                        onClick={() => setActiveAdminTab("groups")}
                       >
-                        Finale
+                        Groepen
                       </button>
-                    )}
+                      <button
+                        style={styles.buttonSecondary}
+                        onClick={() => setActiveAdminTab("credits")}
+                      >
+                        Pegels / melding
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <div style={styles.grid}>
-                  <div style={styles.card}>
-                    <strong>💰 Pegels</strong>
-                    <div style={styles.statNumber}>{group.credits || 0}</div>
+                  <div style={styles.grid}>
+                    <div style={styles.card}>
+                      <strong>💰 Pegels</strong>
+                      <div style={styles.statNumber}>{group.credits || 0}</div>
+                    </div>
+                    <div style={styles.card}>
+                      <strong>📄 Aanwijzingen</strong>
+                      <div style={styles.statNumber}>{bought.length}</div>
+                    </div>
+                    <div style={styles.card}>
+                      <strong>📝 Notities</strong>
+                      <div style={styles.statNumber}>{notes.length}</div>
+                    </div>
+                    <div style={styles.card}>
+                      <strong>🕵️ Statussen</strong>
+                      <div style={styles.statNumber}>{statuses.length}</div>
+                      <div style={styles.subtle}>
+                        Verdacht: {suspectCount} · Twijfel: {doubtCount} ·
+                        Uitgesloten: {excludedCount}
+                      </div>
+                    </div>
                   </div>
-                  <div style={styles.card}>
-                    <strong>📄 Aanwijzingen</strong>
-                    <div style={styles.statNumber}>{bought.length}</div>
-                  </div>
-                  <div style={styles.card}>
-                    <strong>📝 Notities</strong>
-                    <div style={styles.statNumber}>{notes.length}</div>
-                  </div>
-                  <div style={styles.card}>
-                    <strong>🕵️ Statussen</strong>
-                    <div style={styles.statNumber}>{statuses.length}</div>
-                    <div style={styles.subtle}>
-                      Verdacht: {suspectCount} · Twijfel: {doubtCount} ·
-                      Uitgesloten: {excludedCount}
+
+                  <div style={styles.grid}>
+                    <div style={styles.card}>
+                      <strong>Laatste melding</strong>
+                      {lastNotification ? (
+                        <>
+                          <div>{lastNotification.title}</div>
+                          {lastNotification.message && (
+                            <div style={styles.subtle}>
+                              {lastNotification.message}
+                            </div>
+                          )}
+                          <div style={styles.subtle}>
+                            {formatDate(lastNotification.created_at)}
+                          </div>
+                        </>
+                      ) : (
+                        <div style={styles.subtle}>Nog geen meldingen.</div>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        ...styles.card,
+                        borderColor:
+                          warnings.length > 0 ? "#ef4444" : "#166534",
+                        background:
+                          warnings.length > 0
+                            ? "linear-gradient(180deg, rgba(69,10,10,0.28), #18181b)"
+                            : "linear-gradient(180deg, rgba(20,83,45,0.14), #18181b)",
+                      }}
+                    >
+                      <strong>Regie-signaal</strong>
+                      {warnings.length > 0 ? (
+                        warnings.map((warning) => (
+                          <div
+                            key={warning}
+                            style={{ ...styles.error, fontWeight: 800 }}
+                          >
+                            ⚠️ {warning}
+                          </div>
+                        ))
+                      ) : (
+                        <p style={styles.ok}>
+                          Geen directe actie nodig. Deze groep draait netjes
+                          mee.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
-
-                <div style={styles.grid}>
-                  <div style={styles.card}>
-                    <strong>Laatste melding</strong>
-                    {lastNotification ? (
-                      <>
-                        <div>{lastNotification.title}</div>
-                        {lastNotification.message && (
-                          <div style={styles.subtle}>
-                            {lastNotification.message}
-                          </div>
-                        )}
-                        <div style={styles.subtle}>
-                          {formatDate(lastNotification.created_at)}
-                        </div>
-                      </>
-                    ) : (
-                      <div style={styles.subtle}>Nog geen meldingen.</div>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      ...styles.card,
-                      borderColor: warnings.length > 0 ? "#ef4444" : "#166534",
-                      background:
-                        warnings.length > 0
-                          ? "linear-gradient(180deg, rgba(69,10,10,0.28), #18181b)"
-                          : "linear-gradient(180deg, rgba(20,83,45,0.14), #18181b)",
-                    }}
-                  >
-                    <strong>Waarschuwingen</strong>
-                    {warnings.length > 0 ? (
-                      warnings.map((warning) => (
-                        <div
-                          key={warning}
-                          style={{ ...styles.error, fontWeight: 800 }}
-                        >
-                          ⚠️ {warning}
-                        </div>
-                      ))
-                    ) : (
-                      <p style={styles.ok}>Geen directe waarschuwingen.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })
+              );
+            }
+          )
         )}
 
         {activeGroups.length === 0 && groups.length > 0 && (
