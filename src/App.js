@@ -4390,6 +4390,18 @@ export default function App() {
           warnings.push("Al meer dan 60 minuten geen activiteit");
       }
 
+      const recommendedAction = !group.is_active
+        ? "Controleer of deze groep bewust inactief staat."
+        : (group.credits || 0) <= 3
+        ? "Overweeg pegels te geven of stuur een opdrachtmoment aan."
+        : bought.length >= 3 && notes.length === 0
+        ? "Vraag subtiel of ze hun theorie al vastleggen in notities."
+        : bought.length === 0
+        ? "Deze groep kan een zetje richting aanwijzingen gebruiken."
+        : minutesSinceActivity > 60
+        ? "Loop even langs of stuur een korte melding."
+        : "Geen directe regieactie nodig.";
+
       const attentionScore =
         warnings.length * 10 +
         ((group.credits || 0) <= 3 ? 5 : 0) +
@@ -4409,6 +4421,7 @@ export default function App() {
         doubtCount,
         excludedCount,
         warnings,
+        recommendedAction,
         attentionScore,
       };
     };
@@ -4507,6 +4520,7 @@ export default function App() {
               doubtCount,
               excludedCount,
               warnings,
+              recommendedAction,
             }) => {
               return (
                 <div
@@ -4636,6 +4650,17 @@ export default function App() {
                           mee.
                         </p>
                       )}
+
+                      <div
+                        style={{
+                          marginTop: 10,
+                          paddingTop: 10,
+                          borderTop: "1px solid #27272a",
+                        }}
+                      >
+                        <strong>Aanbevolen regieactie</strong>
+                        <div style={styles.subtle}>{recommendedAction}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -4765,6 +4790,31 @@ export default function App() {
         )
     );
 
+    const lowCreditGroups = groups.filter((group) => (group.credits || 0) <= 3);
+    const noNoteAfterBuyingGroups = groups.filter((group) => {
+      const bought = groupClues.filter((item) => item.group_id === group.id);
+      const notes = suspectNotes.filter((item) => item.group_id === group.id);
+      return group.is_active && bought.length >= 3 && notes.length === 0;
+    });
+    const groupsWithoutStatuses = groups.filter((group) => {
+      const statuses = suspectStatuses.filter(
+        (item) => item.group_id === group.id
+      );
+      return group.is_active && statuses.length === 0;
+    });
+
+    const adminActionHints = [
+      lowCreditGroups.length > 0
+        ? `${lowCreditGroups.length} groep(en) hebben weinig pegels.`
+        : null,
+      noNoteAfterBuyingGroups.length > 0
+        ? `${noNoteAfterBuyingGroups.length} groep(en) kopen aanwijzingen maar noteren nog niets.`
+        : null,
+      groupsWithoutStatuses.length > 0
+        ? `${groupsWithoutStatuses.length} actieve groep(en) hebben nog geen verdachte-statussen gezet.`
+        : null,
+    ].filter(Boolean);
+
     return (
       <>
         <div
@@ -4793,6 +4843,29 @@ export default function App() {
             Live stand van groepen, aanwijzingen, pegels, notities en statussen.
             Klik op een kaart om direct naar het juiste scherm te gaan.
           </p>
+
+          <div
+            style={{
+              ...styles.card,
+              background: "rgba(9,9,11,0.56)",
+              borderColor: adminActionHints.length > 0 ? "#f59e0b" : "#166534",
+            }}
+          >
+            <strong>Nu handig om te checken</strong>
+            {adminActionHints.length === 0 ? (
+              <p style={styles.ok}>
+                Geen opvallende regiesignalen in het dashboard.
+              </p>
+            ) : (
+              <div style={{ marginTop: 8 }}>
+                {adminActionHints.map((hint) => (
+                  <div key={hint} style={styles.subtle}>
+                    ⚠️ {hint}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div style={styles.grid}>
             <div
