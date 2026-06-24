@@ -25,6 +25,12 @@ export default function ParticipantCluesPanel({ ctx }) {
     return !clue.is_free && !clue.is_global && !purchased;
   });
 
+  const affordableClues = buyableClues.filter(
+    (clue) => Number(myGroup?.credits || 0) >= Number(clue.price || 0)
+  );
+  const lockedByBudgetCount = buyableClues.length - affordableClues.length;
+  const totalVisibleClues = unlockedClues.length + buyableClues.length;
+
   const getClueSuspectName = (clue) => {
     return (
       clue.suspects?.name ||
@@ -36,9 +42,20 @@ export default function ParticipantCluesPanel({ ctx }) {
   const renderCompactClueCard = (clue, mode) => {
     const suspectName = getClueSuspectName(clue);
     const isUnlocked = mode === "unlocked";
+    const canAfford = Number(myGroup?.credits || 0) >= Number(clue.price || 0);
 
     return (
-      <div key={clue.id} style={styles.card}>
+      <div
+        key={clue.id}
+        style={{
+          ...styles.card,
+          borderColor: isUnlocked
+            ? "#166534"
+            : canAfford
+            ? "#3b82f6"
+            : "#52525b",
+        }}
+      >
         <div
           style={{
             display: "flex",
@@ -62,13 +79,17 @@ export default function ParticipantCluesPanel({ ctx }) {
             <span style={styles.badge}>📂 {getClueCategoryName(clue)}</span>
 
             {isUnlocked ? (
-              <span style={styles.badge}>Ontgrendeld</span>
+              <span style={styles.badge}>✅ Ontgrendeld</span>
             ) : (
               <span style={styles.badge}>💰 {clue.price} pegels</span>
             )}
+
+            {!isUnlocked && !canAfford && (
+              <span style={styles.badge}>Nog te duur</span>
+            )}
           </div>
 
-          <div>
+          <div style={{ minWidth: 150 }}>
             {isUnlocked ? (
               clue.file_url ? (
                 <a
@@ -84,10 +105,18 @@ export default function ParticipantCluesPanel({ ctx }) {
               )
             ) : (
               <button
-                style={styles.button}
+                style={canAfford ? styles.button : styles.buttonSecondary}
                 onClick={() => purchaseClue(clue.id)}
+                disabled={!canAfford}
+                title={
+                  canAfford
+                    ? "Koop deze aanwijzing"
+                    : "Jullie hebben nog niet genoeg pegels voor deze aanwijzing"
+                }
               >
-                Koop voor {clue.price} pegels
+                {canAfford
+                  ? `Koop voor ${clue.price} pegels`
+                  : "Te weinig pegels"}
               </button>
             )}
           </div>
@@ -130,6 +159,10 @@ export default function ParticipantCluesPanel({ ctx }) {
 
       <div style={styles.card}>
         <h2>Aanwijzingen</h2>
+        <p style={styles.subtle}>
+          Open eerst wat jullie al hebben, koop daarna gericht. Pegels zijn
+          schaars, dus elke aanwijzing moet iets toevoegen aan jullie theorie.
+        </p>
 
         <div style={styles.grid}>
           <div style={styles.card}>
@@ -145,11 +178,31 @@ export default function ParticipantCluesPanel({ ctx }) {
           </div>
 
           <div style={styles.card}>
+            <strong>Nu betaalbaar</strong>
+            <div style={styles.statNumber}>{affordableClues.length}</div>
+            <div style={styles.subtle}>
+              {lockedByBudgetCount > 0
+                ? `${lockedByBudgetCount} aanwijzing(en) vragen meer pegels.`
+                : "Alles wat te koop staat is betaalbaar."}
+            </div>
+          </div>
+
+          <div style={styles.card}>
             <strong>Pegels</strong>
             <div style={styles.statNumber}>💰 {myGroup?.credits || 0}</div>
             <div style={styles.subtle}>Huidig saldo</div>
           </div>
         </div>
+
+        {totalVisibleClues === 0 && (
+          <div style={{ ...styles.card, background: "#09090b" }}>
+            <strong>Nog geen zichtbare aanwijzingen</strong>
+            <p style={styles.subtle}>
+              De organisatie kan aanwijzingen later zichtbaar maken of gratis
+              vrijgeven.
+            </p>
+          </div>
+        )}
       </div>
 
       <div style={styles.card}>
