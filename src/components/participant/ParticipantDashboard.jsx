@@ -38,6 +38,20 @@ export default function ParticipantDashboardPanel({ ctx }) {
     (status) => status.status === "suspect"
   ).length;
 
+  const totalClueCount = progress.unlockedCount + progress.buyableCount;
+  const clueProgressPercentage =
+    totalClueCount === 0
+      ? 0
+      : Math.round((progress.unlockedCount / totalClueCount) * 100);
+  const statusProgressPercentage =
+    activeSuspects.length === 0
+      ? 0
+      : Math.round((progress.statusCount / activeSuspects.length) * 100);
+  const missingStatusCount = Math.max(
+    activeSuspects.length - progress.statusCount,
+    0
+  );
+
   const focusItems = [];
 
   if (progress.buyableCount > 0) {
@@ -139,6 +153,73 @@ export default function ParticipantDashboardPanel({ ctx }) {
               🕵️ {activeSuspects.length} verdachten
             </span>
             <span style={styles.badge}>📝 {progress.noteCount} notities</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={styles.grid}>
+        <div
+          style={{
+            ...styles.card,
+            borderColor: clueProgressPercentage >= 70 ? "#166534" : "#3b82f6",
+            background:
+              clueProgressPercentage >= 70
+                ? "linear-gradient(180deg, rgba(20,83,45,0.14), #18181b)"
+                : "linear-gradient(180deg, rgba(30,64,175,0.16), #18181b)",
+          }}
+          onClick={() => setActiveParticipantTab("clues")}
+        >
+          <strong>📄 Aanwijzingenroute</strong>
+          <div style={{ ...styles.statNumber, fontSize: 34 }}>
+            {clueProgressPercentage}%
+          </div>
+          <div style={styles.subtle}>
+            {progress.unlockedCount} van {totalClueCount || 0} zichtbaar of
+            ontgrendeld
+          </div>
+        </div>
+
+        <div
+          style={{
+            ...styles.card,
+            borderColor: missingStatusCount === 0 ? "#166534" : "#a855f7",
+            background:
+              missingStatusCount === 0
+                ? "linear-gradient(180deg, rgba(20,83,45,0.14), #18181b)"
+                : "linear-gradient(180deg, rgba(88,28,135,0.17), #18181b)",
+          }}
+          onClick={() => setActiveParticipantTab("suspects")}
+        >
+          <strong>🕵️ Verdachtenroute</strong>
+          <div style={{ ...styles.statNumber, fontSize: 34 }}>
+            {statusProgressPercentage}%
+          </div>
+          <div style={styles.subtle}>
+            {missingStatusCount === 0
+              ? "Alle actieve verdachten hebben een status."
+              : `${missingStatusCount} verdachte(n) nog zonder status.`}
+          </div>
+        </div>
+
+        <div
+          style={{
+            ...styles.card,
+            borderColor: progress.noteCount > 0 ? "#166534" : "#f59e0b",
+            background:
+              progress.noteCount > 0
+                ? "linear-gradient(180deg, rgba(20,83,45,0.14), #18181b)"
+                : "linear-gradient(180deg, rgba(120,53,15,0.16), #18181b)",
+          }}
+          onClick={() => setActiveParticipantTab("suspects")}
+        >
+          <strong>📝 Theorie-spoor</strong>
+          <div style={{ ...styles.statNumber, fontSize: 34 }}>
+            {progress.noteCount}
+          </div>
+          <div style={styles.subtle}>
+            {progress.noteCount === 0
+              ? "Nog geen notities. Leg jullie eerste theorie vast."
+              : "Notities helpen straks bij het eindverhaal."}
           </div>
         </div>
       </div>
