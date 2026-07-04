@@ -88,7 +88,9 @@ export default function AdminParticipantPreview({ ctx }) {
         <h3>Agenda zoals deelnemer die ziet</h3>
 
         {visibleAgenda.length === 0 ? (
-          <p style={styles.subtle}>Geen zichtbare agenda-items.</p>
+          <p style={styles.subtle}>
+            Geen zichtbare agenda-items. Deelnemers zien dan nog geen planning.
+          </p>
         ) : (
           visibleAgenda.map((item) => (
             <div key={item.id} style={styles.card}>
@@ -114,7 +116,10 @@ export default function AdminParticipantPreview({ ctx }) {
         <h3>Aanwijzingen zoals deelnemer die ziet</h3>
 
         {visibleClues.length === 0 ? (
-          <p style={styles.subtle}>Geen zichtbare aanwijzingen.</p>
+          <p style={styles.subtle}>
+            Geen zichtbare aanwijzingen. Deelnemers hebben dan nog niets om te
+            openen of kopen.
+          </p>
         ) : (
           visibleClues.map((clue) => (
             <div key={clue.id} style={styles.card}>
@@ -138,7 +143,7 @@ export default function AdminParticipantPreview({ ctx }) {
               {clue.file_url ? (
                 <div style={styles.subtle}>Bestand gekoppeld</div>
               ) : (
-                <div style={styles.error}>Geen bestand gekoppeld</div>
+                <div style={styles.error}>Geen bestand of link gekoppeld</div>
               )}
             </div>
           ))
@@ -149,7 +154,10 @@ export default function AdminParticipantPreview({ ctx }) {
         <h3>Verdachten zoals deelnemer die ziet</h3>
 
         {activeSuspects.length === 0 ? (
-          <p style={styles.subtle}>Geen actieve verdachten.</p>
+          <p style={styles.subtle}>
+            Geen actieve verdachten. Deelnemers kunnen dan nog geen dossiers
+            bekijken.
+          </p>
         ) : (
           activeSuspects.map((suspect) => (
             <div key={suspect.id} style={styles.card}>
