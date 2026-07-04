@@ -29,7 +29,7 @@ export default function Header({ ctx, title, subtitle }) {
             onClick={refreshWithLoading}
             disabled={isLoading}
           >
-            {isLoading ? "Laden..." : "Ververs"}
+            {isLoading ? "Verversen..." : "Verversen"}
           </button>
           <button style={styles.buttonSecondary} onClick={handleLogout}>
             Uitloggen
