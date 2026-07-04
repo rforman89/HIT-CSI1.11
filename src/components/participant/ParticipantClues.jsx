@@ -85,7 +85,7 @@ export default function ParticipantCluesPanel({ ctx }) {
             )}
 
             {!isUnlocked && !canAfford && (
-              <span style={styles.badge}>Nog te duur</span>
+              <span style={styles.badge}>Te weinig pegels</span>
             )}
           </div>
 
@@ -98,10 +98,10 @@ export default function ParticipantCluesPanel({ ctx }) {
                   rel="noreferrer"
                   style={styles.link}
                 >
-                  Bestand openen
+                  Aanwijzing openen
                 </a>
               ) : (
-                <span style={styles.subtle}>Geen bestand</span>
+                <span style={styles.subtle}>Geen bestand gekoppeld</span>
               )
             ) : (
               <button
@@ -125,7 +125,7 @@ export default function ParticipantCluesPanel({ ctx }) {
         {clue.description && (
           <details style={{ marginTop: 10 }}>
             <summary style={{ cursor: "pointer", fontWeight: 700 }}>
-              Omschrijving
+              Beschrijving
             </summary>
             <p style={{ marginBottom: 0 }}>{clue.description}</p>
           </details>
@@ -160,8 +160,9 @@ export default function ParticipantCluesPanel({ ctx }) {
       <div style={styles.card}>
         <h2>Aanwijzingen</h2>
         <p style={styles.subtle}>
-          Open eerst wat jullie al hebben, koop daarna gericht. Pegels zijn
-          schaars, dus elke aanwijzing moet iets toevoegen aan jullie theorie.
+          Bekijk eerst wat jullie al hebben. Koop daarna gericht, want pegels
+          zijn schaars en elke aanwijzing moet iets toevoegen aan jullie
+          theorie.
         </p>
 
         <div style={styles.grid}>
@@ -174,7 +175,7 @@ export default function ParticipantCluesPanel({ ctx }) {
           <div style={styles.card}>
             <strong>Te koop</strong>
             <div style={styles.statNumber}>{buyableClues.length}</div>
-            <div style={styles.subtle}>Nog te onderzoeken met pegels</div>
+            <div style={styles.subtle}>Nog te onderzoeken</div>
           </div>
 
           <div style={styles.card}>
