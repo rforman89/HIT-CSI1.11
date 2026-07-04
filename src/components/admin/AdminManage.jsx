@@ -364,10 +364,10 @@ export default function AdminManagePanel({ ctx }) {
         <button style={styles.button} onClick={addUserToGroup}>
           Toevoegen
         </button>
-        <h2>Suspect-account koppelen</h2>
+        <h2>Verdachte-account koppelen</h2>
 
         <p style={styles.subtle}>
-          Koppel een gebruiker met rol suspect aan een verdachte. Deze gebruiker
+          Koppel een verdachte-account aan de juiste verdachte. Dit account
           krijgt daarna een eigen verdachte-dashboard.
         </p>
 
@@ -376,7 +376,7 @@ export default function AdminManagePanel({ ctx }) {
           value={selectedSuspectUser}
           onChange={(e) => setSelectedSuspectUser(e.target.value)}
         >
-          <option value="">Selecteer suspect-gebruiker</option>
+          <option value="">Selecteer verdachte-account</option>
           {profiles
             .filter((p) => p.role === "suspect")
             .map((p) => (
@@ -400,14 +400,14 @@ export default function AdminManagePanel({ ctx }) {
         </select>
 
         <button style={styles.button} onClick={linkUserToSuspect}>
-          Suspect koppelen
+          Verdachte-account koppelen
         </button>
 
         <div style={{ marginTop: 12 }}>
-          <strong>Gekoppelde suspect-accounts</strong>
+          <strong>Gekoppelde verdachte-accounts</strong>
 
           {profiles.filter((p) => p.role === "suspect").length === 0 ? (
-            <div style={styles.subtle}>Nog geen suspect-gebruikers.</div>
+            <div style={styles.subtle}>Nog geen verdachte-accounts.</div>
           ) : (
             profiles
               .filter((p) => p.role === "suspect")
