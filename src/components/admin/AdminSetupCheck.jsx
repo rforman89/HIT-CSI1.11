@@ -189,13 +189,37 @@ export default function AdminSetupCheck({ ctx }) {
         <h3>Waarschuwingen</h3>
 
         {setupWarnings.length === 0 ? (
-          <p style={styles.ok}>Alles lijkt klaar voor de start.</p>
+          <div
+            style={{
+              ...styles.card,
+              borderColor: "#166534",
+              background:
+                "linear-gradient(180deg, rgba(20,83,45,0.18), #18181b)",
+            }}
+          >
+            <strong>✅ Basis klaar</strong>
+            <p style={styles.subtle}>
+              De belangrijkste onderdelen staan klaar. Doe vlak voor livegang
+              nog wel de speldata-check.
+            </p>
+          </div>
         ) : (
-          setupWarnings.map((warning) => (
-            <div key={warning} style={styles.error}>
-              ⚠️ {warning}
-            </div>
-          ))
+          <div style={styles.grid}>
+            {setupWarnings.map((warning) => (
+              <div
+                key={warning}
+                style={{
+                  ...styles.card,
+                  borderColor: "#7f1d1d",
+                  background:
+                    "linear-gradient(180deg, rgba(69,10,10,0.28), #18181b)",
+                }}
+              >
+                <strong>⚠️ Aandachtspunt</strong>
+                <p style={{ marginBottom: 0 }}>{warning}</p>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -209,7 +233,9 @@ export default function AdminSetupCheck({ ctx }) {
             <div key={p.id} style={styles.card}>
               <strong>{p.display_name || p.email}</strong>
               <div style={styles.subtle}>{p.email}</div>
-              <div style={styles.error}>Nog niet gekoppeld aan een groep.</div>
+              <div style={styles.error}>
+                Koppel deze deelnemer vóór de start aan een groep.
+              </div>
             </div>
           ))
         )}
@@ -227,7 +253,9 @@ export default function AdminSetupCheck({ ctx }) {
               <div style={styles.subtle}>
                 {clue.suspects?.name || "Algemeen"}
               </div>
-              <div style={styles.error}>Geen bestand gekoppeld.</div>
+              <div style={styles.error}>
+                Geen bestand of link gekoppeld. Controleer vóór livegang.
+              </div>
             </div>
           ))
         )}
@@ -280,7 +308,8 @@ export default function AdminSetupCheck({ ctx }) {
             </>
           ) : (
             <p style={styles.subtle}>
-              Nog geen automatische LIVE-backup gevonden.
+              Nog geen automatische LIVE-backup gevonden. Maak vóór het echte
+              spel minimaal één handmatige backup in LIVE-modus.
             </p>
           )}
         </div>
