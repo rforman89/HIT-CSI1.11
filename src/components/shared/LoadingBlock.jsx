@@ -6,9 +6,9 @@ export default function LoadingBlock({ isLoading }) {
 
   return (
     <div style={styles.card}>
-      <strong>Gegevens laden...</strong>
+      <strong>Gegevens verversen...</strong>
       <div style={styles.subtle}>
-        De meldkamer haalt de laatste speldata op.
+        De meldkamer haalt de laatste spelstand op.
       </div>
     </div>
   );
