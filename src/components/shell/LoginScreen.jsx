@@ -18,6 +18,10 @@ export default function LoginScreen({ ctx }) {
     <div style={styles.app}>
       <div style={{ ...styles.card, maxWidth: 520, margin: "40px auto" }}>
         <h1>CSI HIT Login</h1>
+        <p style={styles.subtle}>
+          Log in met het account dat je van de organisatie hebt gekregen.
+          Registreren is alleen nodig als de organisatie daarom vraagt.
+        </p>
         <input
           style={styles.input}
           placeholder="Naam, alleen nodig bij registreren"
