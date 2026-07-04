@@ -1,6 +1,73 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function LandingPage() {
+  useEffect(() => {
+    const upsertMeta = (selector, attrs) => {
+      let element = document.head.querySelector(selector);
+
+      if (!element) {
+        element = document.createElement("meta");
+        Object.entries(attrs).forEach(([key, value]) => {
+          if (key !== "content") element.setAttribute(key, value);
+        });
+        document.head.appendChild(element);
+      }
+
+      Object.entries(attrs).forEach(([key, value]) => {
+        element.setAttribute(key, value);
+      });
+    };
+
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+
+    document.documentElement.setAttribute("lang", "nl");
+    document.title = "CSI HIT | Interactief detectiveweekend";
+    canonical.setAttribute("href", "https://www.csi-hit.nl/");
+
+    upsertMeta('meta[name="description"]', {
+      name: "description",
+      content:
+        "CSI HIT is een interactief detectiveweekend voor Scouting: onderzoek verdachten, koop aanwijzingen en los samen de zaak op.",
+    });
+
+    upsertMeta('meta[name="robots"]', {
+      name: "robots",
+      content: "index,follow",
+    });
+
+    upsertMeta('meta[property="og:title"]', {
+      property: "og:title",
+      content: "CSI HIT",
+    });
+
+    upsertMeta('meta[property="og:description"]', {
+      property: "og:description",
+      content:
+        "Een interactief detectiveweekend vol aanwijzingen, verdachten, pegels en onderzoek.",
+    });
+
+    upsertMeta('meta[property="og:type"]', {
+      property: "og:type",
+      content: "website",
+    });
+
+    upsertMeta('meta[property="og:url"]', {
+      property: "og:url",
+      content: "https://www.csi-hit.nl/",
+    });
+
+    upsertMeta('meta[property="og:image"]', {
+      property: "og:image",
+      content: "https://www.csi-hit.nl/csi-hit-logo.jpg",
+    });
+  }, []);
+
   const landingFont = '"CoreDodam", Arial, sans-serif';
   const instagramUrl =
     "https://www.instagram.com/csi.hit.alphen?igsh=azU3OThvcjI4YXF3";
