@@ -68,11 +68,34 @@ export function AgendaBlock({ ctx }) {
           )}
         </div>
       ) : (
-        <p style={styles.subtle}>Er staat geen volgende activiteit gepland.</p>
+        <div
+          style={{
+            ...styles.card,
+            background: "#09090b",
+            borderColor: "#27272a",
+          }}
+        >
+          <strong>Geen volgende activiteit gepland</strong>
+          <p style={styles.subtle}>
+            Zodra de organisatie een zichtbaar agenda-item toevoegt, verschijnt
+            de eerstvolgende activiteit hier.
+          </p>
+        </div>
       )}
 
       {visibleAgendaItems.length === 0 ? (
-        <p style={styles.subtle}>Nog geen agenda-items zichtbaar.</p>
+        <div
+          style={{
+            ...styles.card,
+            background: "#09090b",
+            borderColor: "#27272a",
+          }}
+        >
+          <strong>Nog geen agenda-items zichtbaar</strong>
+          <p style={styles.subtle}>
+            De planning is nog niet zichtbaar gemaakt voor deze rol.
+          </p>
+        </div>
       ) : (
         visibleAgendaItems.map((item) => (
           <div key={item.id} style={{ marginBottom: 16 }}>
@@ -158,7 +181,19 @@ export function TransactionsBlock({ ctx }) {
       <h2>Pegels geschiedenis</h2>
 
       {transactions.length === 0 ? (
-        <p style={styles.subtle}>Nog geen transacties.</p>
+        <div
+          style={{
+            ...styles.card,
+            background: "#09090b",
+            borderColor: "#27272a",
+          }}
+        >
+          <strong>Nog geen pegelgeschiedenis</strong>
+          <p style={styles.subtle}>
+            Verdiende, uitgegeven of handmatig aangepaste pegels verschijnen
+            hier zodra er beweging is.
+          </p>
+        </div>
       ) : (
         transactions.map((t) => (
           <div key={t.id} style={{ marginBottom: 12 }}>
@@ -191,17 +226,19 @@ export function NoGroupScreen({ ctx }) {
 
       <div style={styles.card}>
         <strong>Account</strong>
-        <div style={styles.subtle}>{profile?.display_name || profile?.email}</div>
+        <div style={styles.subtle}>
+          {profile?.display_name || profile?.email}
+        </div>
         <div style={styles.subtle}>{profile?.email}</div>
       </div>
 
       <p style={styles.subtle}>
         Vraag de organisatie om je account aan een groep te koppelen. Daarna kun
-        je op verversen drukken.
+        je opnieuw controleren of de koppeling klaarstaat.
       </p>
 
       <button style={styles.button} onClick={() => loadAppData(profile)}>
-        Ververs
+        Opnieuw controleren
       </button>
 
       <button style={styles.buttonSecondary} onClick={handleLogout}>
@@ -248,6 +285,11 @@ export function ParticipantGroupBar({ ctx }) {
         <div>
           <div style={styles.subtle}>Ontgrendeld</div>
           <strong>📄 {progress.unlockedCount}</strong>
+        </div>
+
+        <div>
+          <div style={styles.subtle}>Te koop</div>
+          <strong>🧩 {progress.buyableCount}</strong>
         </div>
 
         <div>
