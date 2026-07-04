@@ -920,7 +920,7 @@ export default function App() {
     setMessage("");
 
     if (!selectedSuspectUser || !selectedProfileSuspect) {
-      setError("Selecteer een suspect-gebruiker en een verdachte.");
+      setError("Selecteer een verdachte-account en een verdachte.");
       return;
     }
 
