@@ -1,6 +1,39 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 export default function LoginScreen({ ctx }) {
+  useEffect(() => {
+    const upsertMeta = (selector, attrs) => {
+      let element = document.head.querySelector(selector);
+
+      if (!element) {
+        element = document.createElement("meta");
+        Object.entries(attrs).forEach(([key, value]) => {
+          if (key !== "content") element.setAttribute(key, value);
+        });
+        document.head.appendChild(element);
+      }
+
+      Object.entries(attrs).forEach(([key, value]) => {
+        element.setAttribute(key, value);
+      });
+    };
+
+    const isAppDomain = window.location.hostname === "app.csi-hit.nl";
+
+    document.title = "CSI HIT Login";
+
+    upsertMeta('meta[name="description"]', {
+      name: "description",
+      content:
+        "Loginomgeving voor deelnemers, verdachten en organisatie van CSI HIT.",
+    });
+
+    upsertMeta('meta[name="robots"]', {
+      name: "robots",
+      content: isAppDomain ? "noindex,nofollow" : "noindex,follow",
+    });
+  }, []);
+
   const {
     styles,
     displayName,
