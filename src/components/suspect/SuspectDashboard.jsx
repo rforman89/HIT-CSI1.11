@@ -331,18 +331,18 @@ export default function SuspectDashboard({ ctx }) {
           {LoadingBlock()}
 
           <div style={styles.card}>
-            <h2>Je suspect-account is nog niet gekoppeld</h2>
+            <h2>Je verdachte-account is nog niet gekoppeld</h2>
             <p>
-              Je account heeft de rol <strong>suspect</strong>, maar is nog niet
-              gekoppeld aan een verdachte.
+              Je account heeft de rol <strong>verdachte</strong>, maar is nog
+              niet gekoppeld aan een dossier.
             </p>
             <p style={styles.subtle}>
               Vraag de organisatie om jouw account te koppelen aan de juiste
-              verdachte via Beheer → Suspect-account koppelen.
+              verdachte via Beheer → Verdachte-account koppelen.
             </p>
 
             <button style={styles.button} onClick={() => loadAppData(profile)}>
-              Ververs
+              Opnieuw controleren
             </button>
 
             <button style={styles.buttonSecondary} onClick={handleLogout}>
@@ -412,6 +412,24 @@ export default function SuspectDashboard({ ctx }) {
       : excludedCount > 0
       ? `${excludedCount} groep(en) sluiten dit dossier uit`
       : "Nog geen duidelijke richting vanuit de groepen";
+
+  const dossierMood =
+    suspectCount > doubtCount && suspectCount > excludedCount
+      ? {
+          label: "Hete stoel",
+          text: "Dit dossier trekt duidelijke verdenking.",
+        }
+      : doubtCount > 0
+      ? { label: "Twijfelzone", text: "Teams zijn nog niet eensgezind." }
+      : excludedCount > 0 && excludedCount >= suspectCount
+      ? {
+          label: "Koeler spoor",
+          text: "Meerdere groepen sluiten dit dossier uit.",
+        }
+      : {
+          label: "Nog stil",
+          text: "Er is nog weinig beweging in dit dossier.",
+        };
 
   const statusRows = groups.map((group) => {
     const statusRecord = statusesForMe.find(
@@ -747,6 +765,24 @@ export default function SuspectDashboard({ ctx }) {
               </div>
               <div style={styles.subtle}>Status ingevuld in dit dossier</div>
             </div>
+
+            <div style={styles.card}>
+              <strong>Dossierkleur</strong>
+              <div style={{ marginTop: 8, fontWeight: 800 }}>
+                {dossierMood.label}
+              </div>
+              <div style={styles.subtle}>{dossierMood.text}</div>
+            </div>
+
+            <div style={styles.card}>
+              <strong>Nog geen status</strong>
+              <div style={{ ...styles.statNumber, fontSize: 34 }}>
+                {unknownCount}
+              </div>
+              <div style={styles.subtle}>
+                Groep(en) hebben nog niets gekozen
+              </div>
+            </div>
           </div>
 
           {latestNote ? (
@@ -814,7 +850,8 @@ export default function SuspectDashboard({ ctx }) {
           <div style={styles.card}>
             <h2>Wat denken de onderzoekers?</h2>
             <p style={styles.subtle}>
-              Verdeling van de statussen die groepen jou hebben gegeven.
+              Verdeling van de statussen die groepen dit dossier hebben gegeven.
+              Dit is geen eindscore, maar een thermometer voor het speelveld.
             </p>
 
             <div
