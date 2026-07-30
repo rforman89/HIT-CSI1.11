@@ -813,8 +813,36 @@ export default function App() {
       return null;
     }
 
+    // clue-files is a private bucket: a public URL wouldn't work anyway, so
+    // we store the raw storage path and generate a fresh signed URL
+    // whenever someone actually needs to open the file (see openClueFile).
+    if (bucket === "clue-files") {
+      return path;
+    }
+
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     return data.publicUrl;
+  };
+
+  // Aanwijzing-bestanden staan in een privé-bucket en zijn alleen leesbaar
+  // voor admin of een groep die de aanwijzing gekocht/toegewezen heeft
+  // (afgedwongen door de storage-policy). We vragen daarom telkens een
+  // kortlevende signed URL op in plaats van een kale publieke link te tonen.
+  const openClueFile = async (path) => {
+    if (!path) return;
+
+    setError("");
+
+    const { data, error: signError } = await supabase.storage
+      .from("clue-files")
+      .createSignedUrl(path, 300);
+
+    if (signError || !data?.signedUrl) {
+      setError("Kon het bestand niet openen. Probeer het opnieuw.");
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const createGroup = async () => {
@@ -3848,6 +3876,7 @@ export default function App() {
     handleLogin,
     handleLogout,
     uploadFileToBucket,
+    openClueFile,
     createGroup,
     startEditGroup,
     saveEditGroup,
