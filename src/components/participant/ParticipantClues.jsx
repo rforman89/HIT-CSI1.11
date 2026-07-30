@@ -11,6 +11,7 @@ export default function ParticipantCluesPanel({ ctx }) {
     groupCluesByCategory,
     ParticipantGroupBar,
     myGroup,
+    openClueFile,
   } = ctx;
 
   const visibleClues = clues.filter((clue) => clue.is_visible);
@@ -91,15 +92,20 @@ export default function ParticipantCluesPanel({ ctx }) {
 
           <div style={{ minWidth: 150 }}>
             {isUnlocked ? (
-              clue.file_url ? (
-                <a
-                  href={clue.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={styles.link}
+              clue.file_url || clue.pdf_url ? (
+                <button
+                  type="button"
+                  onClick={() => openClueFile(clue.file_url || clue.pdf_url)}
+                  style={{
+                    ...styles.link,
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                  }}
                 >
                   Aanwijzing openen
-                </a>
+                </button>
               ) : (
                 <span style={styles.subtle}>Geen bestand gekoppeld</span>
               )
