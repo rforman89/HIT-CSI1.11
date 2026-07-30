@@ -1,0 +1,4 @@
+project_id = "uhfcrskkgutlqqogahbr"
+
+[functions.csi-hit-nightly-backup]
+verify_jwt = false

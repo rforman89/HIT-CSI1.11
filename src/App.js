@@ -508,10 +508,34 @@ export default function App() {
       .select("*")
       .order("sort_order");
 
-    const { data: cluesData } = await supabase
+    const { data: cluesData, error: cluesError } = await supabase
       .from("clues")
-      .select("*, suspects(name)")
+      .select("*")
       .order("sort_order");
+
+    if (cluesError) {
+      setError(`Aanwijzingen laden mislukt: ${cluesError.message}`);
+    }
+
+    const loadedClues = (cluesData || []).map((clue) => {
+      const linkedSuspect = (suspectData || []).find(
+        (suspect) => suspect.id === clue.suspect_id
+      );
+
+      return {
+        ...clue,
+        suspects: linkedSuspect ? { name: linkedSuspect.name } : null,
+      };
+    });
+
+    const addClueDetails = (rows = []) =>
+      rows.map((row) => ({
+        ...row,
+        clues:
+          loadedClues.find((clue) => clue.id === row.clue_id) ||
+          row.clues ||
+          null,
+      }));
 
     const { data: clueCategoryData } = await supabase
       .from("clue_categories")
@@ -538,7 +562,7 @@ export default function App() {
 
     setAgendaItems(agendaData || []);
     setSuspects(suspectData || []);
-    setClues(cluesData || []);
+    setClues(loadedClues);
     setClueCategories(clueCategoryData || []);
     setGameMode(gameModeData?.value || "test");
     setFinalReportsOpen(
@@ -559,11 +583,15 @@ export default function App() {
         .select("*")
         .order("created_at");
 
-      const { data: groupClueData } = await supabase
+      const { data: groupClueData, error: groupClueError } = await supabase
         .from("group_clues")
-        .select(
-          "*, groups(name), clues(title, price, file_url, pdf_url, suspect_id)"
+        .select("*, groups(name)");
+
+      if (groupClueError) {
+        setError(
+          `Groepsaanwijzingen laden mislukt: ${groupClueError.message}`
         );
+      }
 
       const { data: notesData } = await supabase
         .from("suspect_notes")
@@ -575,7 +603,7 @@ export default function App() {
         .select("*, groups(name), suspects(name)");
 
       setGroups(groupsData || []);
-      setGroupClues(groupClueData || []);
+      setGroupClues(addClueDetails(groupClueData || []));
       setSuspectNotes(notesData || []);
       setSuspectStatuses(statusData || []);
       setNotifications([]);
@@ -608,11 +636,15 @@ export default function App() {
         .select("*, groups(name)")
         .order("created_at", { ascending: false });
 
-      const { data: groupClueData } = await supabase
+      const { data: groupClueData, error: groupClueError } = await supabase
         .from("group_clues")
-        .select(
-          "*, groups(name), clues(title, price, file_url, pdf_url, suspect_id)"
+        .select("*, groups(name)");
+
+      if (groupClueError) {
+        setError(
+          `Groepsaanwijzingen laden mislukt: ${groupClueError.message}`
         );
+      }
 
       const { data: notesData } = await supabase
         .from("suspect_notes")
@@ -643,7 +675,7 @@ export default function App() {
       setMemberships(membershipData || []);
       setNotifications(notificationsData || []);
       setTransactions(transactionData || []);
-      setGroupClues(groupClueData || []);
+      setGroupClues(addClueDetails(groupClueData || []));
       setSuspectNotes(notesData || []);
       setSuspectStatuses(statusData || []);
       setFinalReports(finalReportsData || []);
@@ -690,10 +722,14 @@ export default function App() {
       .eq("group_id", myGroupId)
       .order("created_at", { ascending: false });
 
-    const { data: groupClueData } = await supabase
+    const { data: groupClueData, error: groupClueError } = await supabase
       .from("group_clues")
-      .select("*, clues(*)")
+      .select("*")
       .eq("group_id", myGroupId);
+
+    if (groupClueError) {
+      setError(`Groepsaanwijzingen laden mislukt: ${groupClueError.message}`);
+    }
 
     const { data: notesData } = await supabase
       .from("suspect_notes")
@@ -719,7 +755,7 @@ export default function App() {
 
     setNotifications(notificationsData || []);
     setTransactions(transactionData || []);
-    setGroupClues(groupClueData || []);
+    setGroupClues(addClueDetails(groupClueData || []));
     setSuspectNotes(notesData || []);
     setSuspectStatuses(statusData || []);
     setFinalReports(finalReportsData || []);
