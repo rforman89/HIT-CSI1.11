@@ -315,6 +315,7 @@ export default function AdminClues({ ctx }) {
     SuspectDashboard,
     LandingPage,
     LoginScreen,
+    openClueFile,
   } = ctx;
 
   return (
@@ -721,16 +722,23 @@ export default function AdminClues({ ctx }) {
                             bestand te behouden.
                           </p>
 
-                          {clue.file_url ? (
+                          {clue.file_url || clue.pdf_url ? (
                             <div style={{ marginBottom: 10 }}>
-                              <a
-                                href={clue.file_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={styles.link}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openClueFile(clue.file_url || clue.pdf_url)
+                                }
+                                style={{
+                                  ...styles.link,
+                                  background: "none",
+                                  border: "none",
+                                  padding: 0,
+                                  cursor: "pointer",
+                                }}
                               >
                                 Huidig bestand openen
-                              </a>
+                              </button>
                             </div>
                           ) : (
                             <div style={styles.subtle}>
@@ -784,16 +792,23 @@ export default function AdminClues({ ctx }) {
 
                         <p>{clue.description}</p>
 
-                        {clue.file_url && (
+                        {(clue.file_url || clue.pdf_url) && (
                           <div style={{ marginBottom: 10 }}>
-                            <a
-                              href={clue.file_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={styles.link}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openClueFile(clue.file_url || clue.pdf_url)
+                              }
+                              style={{
+                                ...styles.link,
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                cursor: "pointer",
+                              }}
                             >
                               Bestand openen
-                            </a>
+                            </button>
                           </div>
                         )}
 
