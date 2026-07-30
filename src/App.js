@@ -833,9 +833,15 @@ export default function App() {
 
     setError("");
 
+    // Defensive: older data may still hold the full public URL instead of
+    // a bare storage path. Strip it down if so.
+    const storagePath = path.includes("/object/public/clue-files/")
+      ? path.split("/object/public/clue-files/")[1]
+      : path;
+
     const { data, error: signError } = await supabase.storage
       .from("clue-files")
-      .createSignedUrl(path, 300);
+      .createSignedUrl(storagePath, 300);
 
     if (signError || !data?.signedUrl) {
       setError("Kon het bestand niet openen. Probeer het opnieuw.");
