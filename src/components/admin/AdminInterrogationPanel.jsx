@@ -16,6 +16,7 @@ export default function AdminInterrogationPanelComponent({ ctx }) {
     startEditNote,
     deleteNote,
     StatusBadge,
+    openClueFile,
   } = ctx;
 
   const AdminInterrogationPanel = () => {
@@ -289,16 +290,25 @@ export default function AdminInterrogationPanelComponent({ ctx }) {
                                     {formatDate(purchase.purchased_at)}
                                   </div>
                                 )}
-                                {clue?.file_url && (
+                                {(clue?.file_url || clue?.pdf_url) && (
                                   <div style={{ marginTop: 8 }}>
-                                    <a
-                                      href={clue.file_url}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      style={styles.link}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        openClueFile(
+                                          clue.file_url || clue.pdf_url
+                                        )
+                                      }
+                                      style={{
+                                        ...styles.link,
+                                        background: "none",
+                                        border: "none",
+                                        padding: 0,
+                                        cursor: "pointer",
+                                      }}
                                     >
                                       Bestand openen
-                                    </a>
+                                    </button>
                                   </div>
                                 )}
                               </div>
