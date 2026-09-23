@@ -86,11 +86,12 @@ export default function LandingPage() {
 
       <div
         style={{
-          minHeight: "100vh",
+          minHeight: "var(--app-viewport-height, 100vh)",
+          boxSizing: "border-box",
           background:
             "radial-gradient(circle at top, #2a1b1b 0%, #0f0f10 44%, #050505 100%)",
           color: "#f4f4f5",
-          padding: 18,
+          padding: "calc(18px + env(safe-area-inset-top, 0px)) calc(18px + env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) calc(18px + env(safe-area-inset-left, 0px))",
           fontFamily: "Arial, sans-serif",
         }}
       >

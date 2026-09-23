@@ -96,9 +96,9 @@ export default function AdminInterrogationPanelComponent({ ctx }) {
                 }}
               >
                 <div
+                  className="interrogation-layout"
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "minmax(220px, 320px) 1fr",
                     gap: 18,
                     alignItems: "start",
                   }}
