@@ -1,6 +1,6 @@
 # CSI HIT: geïsoleerde betrouwbaarheidstests
 
-Deze suite schrijft uitsluitend naar een eigen **lokale** Supabase-stack met project-ID `csi-hit-reliability`, API-poort 55421 en databasepoort 55422. De testhelper accepteert geen andere API-URL. De reguliere IScout-stack op 54321 blijft ongemoeid. Er worden geen productiegegevens gekopieerd: `backend/schema.sql` bevat alleen de relevante schemavorm, functies, grants, RLS en bucketdefinities, gevolgd door fictieve testdata.
+De standaard lokale suite schrijft uitsluitend naar een eigen **lokale** Supabase-stack met project-ID `csi-hit-reliability`, API-poort 55421 en databasepoort 55422. De testhelper accepteert geen andere API-URL. De reguliere IScout-stack op 54321 blijft ongemoeid. Er worden geen productiegegevens gekopieerd: `backend/schema.sql` bevat alleen de relevante schemavorm, functies, grants, RLS en bucketdefinities, gevolgd door fictieve testdata.
 
 ## Voorbereiden (PowerShell)
 
@@ -36,21 +36,49 @@ De tests verwachten opzettelijk afwijzingen bij een fout wachtwoord, RLS-overtre
 
 Stop alleen deze stack indien nodig: `supabase stop --workdir tests/backend`. Gebruik geen globale Docker-cleanup.
 
-## Gehoste Preview: nog te doen
+## Gehoste CSI HIT TEST
 
-Op 23 september 2026 kon binnen CSI Alphen geen extra gratis project worden aangemaakt: de eigenaar heeft de limiet van twee actieve gratis projecten bereikt. Er is niets gepauzeerd, verwijderd of opgewaardeerd. De bestaande Preview deelt de productiebackend en mag daarom niet voor schrijvende tests worden gebruikt.
+Het geautoriseerde testproject is **ksnagauoufsriwplvvtd**. Productie **uhfcrskkgutlqqogahbr** is nooit een schrijftarget. `backend/hosted.cjs` controleert de exacte HTTPS-URL, beide key-projectclaims en vóór tests de database-marker. Geen impliciete omgevingsfallback. Gebruik uitsluitend fictieve data.
 
-Een beheerder moet eerst een afzonderlijk Supabase-testproject beschikbaar stellen (en eventuele kosten afzonderlijk goedkeuren). Initialiseer uitsluitend dat lege project met het testschema en de hardeningmigratie; gebruik uitsluitend fictieve accounts/data. Laat vervolgens deze **Preview-only** variabelen naar dat project wijzen:
+Bewaar de testcredentials lokaal in `.local/hosted-backend.json` met velden `PROJECT_REF`, `API_URL`, `ANON_KEY`, `SERVICE_ROLE_KEY`. Toon of commit dit bestand nooit. De service-role wordt uitsluitend door Node-testhelpers gebruikt.
 
-- `REACT_APP_ENVIRONMENT=test`
-- `REACT_APP_TEST_PROJECT_ID=<testprojectref>`
-- `REACT_APP_SUPABASE_URL=https://<testprojectref>.supabase.co`
-- `REACT_APP_SUPABASE_ANON_KEY=<publieke testclientkey>`
+### Reproduceerbare schema-opbouw
 
-Nooit een service-role-key in een `REACT_APP_*` variabele. Wijzig de Production-variabelen niet. De buildguard weigert een Preview met de productiebackend, een onbekende backend of localhost. Een productiebuild op Vercel kiest expliciet `production` uit `VERCEL_ENV=production` en vereist het bestaande productieproject. Er is geen automatische fallback van test naar productie.
+De acht historische repositorymigraties beginnen bij een reeds bestaande legacydatabase. Daarom bevat `backend/supabase/migrations/20260923171313_legacy_test_base.sql` alleen de ontbrekende testbasis (tabellen, constraints, RLS, grants, helpers, buckets en publication), zonder gebruikers of productiegegevens. Deze TEST-bootstrap hoort **niet** in de productiemigratiereeks.
 
-Pas na verificatie van project-ID, backend-URL, schema en fictieve data kan de hardeningbranch gepusht worden en de Preview opnieuw worden getest. Deze lokale schrijf-tests zijn bewust niet op afstand configureerbaar; voeg voor een gehoste suite eerst een expliciete endpoint-allowlist en een controle van het testproject toe.
+`node tests/backend/migration-plan.cjs` genereert `.local/hosted-bootstrap.sql`: legacybasis, historische migraties, hardening en Storage-fix, gevolgd door een afgeschermd SHA-256-migratiemanifest en TEST-instellingen. De bundel weigert een niet-leeg public schema. Pas de bundel uitsluitend als één transactie/migratie toe op het hierboven genoemde, vooraf geverifieerde lege testproject, bijvoorbeeld via Supabase apply_migration met expliciet project_id. Niet via een blind db push en nooit op productie. Een bestaande testomgeving wordt niet automatisch verwijderd.
+
+### Dataset en uitvoeren
+
+`node tests/backend/setup-hosted.cjs` zet vaste testgroepen/aanwijzingen/notities en zes fictieve accounts klaar. Account-ID's en willekeurige wachtwoorden blijven in `.local/hosted-fixture.json`. Herhaalde setup herstelt vaste fixtures en saldi; de DB-suite test daarnaast de echte reset-RPC. Setup verwijdert niet blind alle testdata. Clientconfiguratie wordt apart geschreven naar `.local/hosted-client.env`.
+
+Voer achtereenvolgens uit (niet parallel op dezelfde backend):
+
+```powershell
+node tests/backend/setup-hosted.cjs
+$env:CSI_BACKEND='hosted'
+# Zo nodig: CSI_SUPABASE_CLI = absoluut pad naar supabase.exe
+npm run test:db
+node tests/backend/setup-hosted.cjs
+node --test --test-concurrency=1 tests/backend/hosted-services.test.cjs
+Copy-Item .local/hosted-client.env .env.local
+npm run build
+# Lokale frontend met hosted backend: laat .local/preview.json afwezig.
+# Preview: zet {"url":"https://<deployment>.vercel.app","branch":"hardening/core-reliability"}
+# in .local/preview.json, uitsluitend na verificatie van Vercel deployment/commit.
+npm run test:e2e
+```
+
+De browser controleert vóór login de werkelijk gebouwde endpoint/clientkey en weigert een service-role-key in de bundle. Netwerkverzoeken mogen uitsluitend naar de gekozen frontend en het vaste testendpoint. Landing wordt onder een gesimuleerde publieke hostname met dezelfde deploymentbestanden getest. Alle rollen, 16 E2E-flows en 48 responsive scenario's worden gecontroleerd. De aanvullende hosted-services-suite test RPC-autorisatie, metadata/RLS, twee Storage-flows en drie echte Realtime-scenario's.
+
+Clue-inhoud loopt via de gemaskeerde view. Browserrollen krijgen geen SELECT op clues_base, ook admins niet. Supabase kan een lege 401-eventenvelop terugsturen bij een verboden subscription; geen rijgegevens mogen worden doorgegeven. Aanwijzingen, spelinstelling en groepslidmaatschap convergeren via de bestaande veilige snapshot/pollingroute. Pegels en overige gepubliceerde tabellen gebruiken echte Realtime-events. De test wacht op de serverbevestiging van de Postgres-subscriptie, niet alleen op het geopende kanaal.
+
+### Preview-variabelen
+
+Stel uitsluitend voor Preview + branch `hardening/core-reliability` deze waarden in: REACT_APP_ENVIRONMENT=test, REACT_APP_TEST_PROJECT_ID=ksnagauoufsriwplvvtd, REACT_APP_SUPABASE_URL=https://ksnagauoufsriwplvvtd.supabase.co, REACT_APP_SUPABASE_ANON_KEY=publieke testclientkey. Nooit service-role onder REACT_APP_*. Production-variabelen blijven ongewijzigd.
+
+De buildguard blokkeert Preview met productie, onbekende configuratie of localhost. Als Vercel eerst een bestaande Git-branch verlangt, is vóór de eerste push expliciete toestemming nodig voor een bewust geblokkeerde eerste build. Configureer daarna de branch en bouw dezelfde commit opnieuw als Preview.
 
 ## Latere productie-review
 
-De migratie is alleen lokaal toegepast. Zij trekt toegang tot de oude `adjust_group_credits`-RPC in. Plan een gecoördineerde migratie en frontend-release: oude geopende clients moeten verversen. Geen productie-migratie, release of rollback uitvoeren als onderdeel van deze opdracht. Nieuwe guards blokkeren harde verwijdering van groepen, verdachten, aanwijzingen, toewijzingen en pegelhistorie buiten TEST; normale eigen notities blijven tijdens LIVE bewerkbaar/verwijderbaar.
+Alle migraties zijn in deze opdracht uitsluitend op test toegepast. De hardening trekt toegang tot de oude adjust_group_credits-RPC in. Plan later een gecoördineerde migratie en frontend-release: oude geopende clients moeten verversen. Alleen de twee nieuwe rootmigraties zijn kandidaat voor latere productie-review; de testbootstrap nooit. Nieuwe guards blokkeren harde verwijdering van groepen, verdachten, aanwijzingen, toewijzingen en pegelhistorie buiten TEST; normale eigen notities blijven tijdens LIVE bewerkbaar/verwijderbaar. Geen productiemigratie, release of rollback uitvoeren als onderdeel van deze opdracht.

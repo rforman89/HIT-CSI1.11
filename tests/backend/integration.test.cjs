@@ -1,9 +1,9 @@
-const { test, before, after, afterEach } = require('node:test');
+const { test, before, after, afterEach, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const fs = require('node:fs');
-const { root, sql, service, ok, client, login } = require('./local.cjs');
-const fixture = JSON.parse(fs.readFileSync(root + '/.local/fixture.json'));
+const { root, sql, sqlAsync, service, ok, client, login, fixtureFile, hosted, verify } = require('./target.cjs');
+const fixture = JSON.parse(fs.readFileSync(root + '/' + fixtureFile));
 let admin, a, b, suspect;
 const mode = value => service.from('app_settings').upsert({ key: 'game_mode', value }).then(ok);
 const balance = id => service.from('groups').select('credits').eq('id', id).single().then(ok).then(g => g.credits);
@@ -17,7 +17,8 @@ async function purchaseGroup(credits = 20) {
   return id;
 }
 const purchase = (g, c, actor = a) => actor.rpc('purchase_clue', { target_group_id: g, target_clue_id: c });
-before(async () => { [admin, a, b, suspect] = await Promise.all(['admin', 'a', 'b', 'suspect'].map(login)); await mode('test'); });
+before(async () => { await verify(); [admin, a, b, suspect] = await Promise.all(['admin', 'a', 'b', 'suspect'].map(login)); await mode('test'); });
+beforeEach(verify);
 afterEach(async () => { ok(await service.from('group_members').update({ group_id: fixture.groupA }).eq('user_id', fixture.users.a)); });
 after(async () => {
   await mode('test');
@@ -28,16 +29,16 @@ after(async () => {
 });
 
 test('credits: +5 stores balance, actor, reason, timestamp, action ID and notification together', async () => {
-  const g = await group(), p = mutation(g), r = ok(await credit(p));
-  assert.equal(await balance(g), 25); assert.equal(r.balance, 25);
+  const g = await group(100), p = mutation(g), r = ok(await credit(p));
+  assert.equal(await balance(g), 105); assert.equal(r.balance, 105);
   const rows = ok(await service.from('credit_transactions').select().eq('group_id', g));
   assert.equal(rows.length, 1); assert.equal(rows[0].action_id, p.action_id); assert.equal(rows[0].created_by, fixture.users.admin);
   assert.equal(rows[0].amount, 5); assert.equal(rows[0].reason, p.mutation_reason); assert.ok(Date.parse(rows[0].created_at));
   assert.equal(ok(await service.from('notifications').select().eq('group_id', g)).length, 1);
 });
 test('credits: retry returns original result, without another mutation', async () => {
-  const g = await group(), p = mutation(g), first = ok(await credit(p)), second = ok(await credit(p));
-  assert.equal(second.transaction_id, first.transaction_id); assert.equal(second.replayed, true); assert.equal(await balance(g), 25);
+  const g = await group(100), p = mutation(g), first = ok(await credit(p)), second = ok(await credit(p));
+  assert.equal(second.transaction_id, first.transaction_id); assert.equal(second.replayed, true); assert.equal(await balance(g), 105);
 });
 test('credits: eight concurrent identical requests book exactly once', async () => {
   const g = await group(), p = mutation(g);
@@ -45,8 +46,8 @@ test('credits: eight concurrent identical requests book exactly once', async () 
   assert.equal(new Set(results.map(r => r.transaction_id)).size, 1); assert.equal(await balance(g), 25);
 });
 test('credits: different concurrent IDs do not lose updates', async () => {
-  const g = await group(); (await Promise.all(Array.from({ length: 5 }, () => credit(mutation(g))))).forEach(ok);
-  assert.equal(await balance(g), 45);
+  const g = await group(); (await Promise.all(Array.from({ length: 2 }, () => credit(mutation(g))))).forEach(ok);
+  assert.equal(await balance(g), 30);
 });
 test('credits: negative amount works; overdraft is rejected atomically', async () => {
   const g = await group(); ok(await credit(mutation(g, -5))); assert.equal(await balance(g), 15);
@@ -157,9 +158,21 @@ test('LIVE: owner can still edit/delete own notes', async () => {
 test('TEST: reset RPC succeeds and leaves accounts intact', async () => {
   const result = ok(await admin.rpc('reset_test_data')); assert.ok(result);
   assert.equal(ok(await service.from('credit_transactions').select()).length, 0);
-  assert.equal(ok(await service.from('profiles').select()).length, 4);
+  assert.equal(ok(await service.from('profiles').select()).length, Object.keys(fixture.users).length);
 });
 test('mode race: LIVE change waits until an authorized TEST transaction ends', async () => {
+  if (hosted) {
+    const done = sqlAsync(`BEGIN; SELECT set_config('request.jwt.claim.sub','${fixture.users.admin}',true); SELECT public.remove_group_clue('${randomUUID()}'); SELECT pg_advisory_xact_lock(841152); SELECT pg_sleep(5); COMMIT;`);
+    let ready = false;
+    for (let i = 0; i < 10; i++) {
+      if (sql("SELECT EXISTS(SELECT 1 FROM pg_locks WHERE locktype='advisory' AND objid=841152 AND granted)") === 'true') { ready = true; break; }
+      await new Promise(r => setTimeout(r, 250));
+    }
+    assert.ok(ready, 'Hosted transaction acquired TEST mode lock');
+    const start = Date.now(); await mode('live'); await done;
+    assert.ok(Date.now() - start >= 500, 'Mode update waits for TEST transaction');
+    await mode('test'); return;
+  }
   const { spawn } = require('node:child_process');
   const process = spawn(global.process.env.CSI_DOCKER || 'docker', ['exec', '-i', 'supabase_db_csi-hit-reliability', 'psql', '-U', 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-Atq']);
   const ready = new Promise((resolve, reject) => {

@@ -1,10 +1,26 @@
-const { test, before, after } = require('node:test');
+const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { chromium } = require('playwright');
-const { root, service, ok, login: apiLogin } = require('../backend/local.cjs');
-const fixture = JSON.parse(fs.readFileSync(root + '/.local/fixture.json'));
-const base = 'http://127.0.0.1:3100';
+const { root, config, service, ok, hosted, fixtureFile, verify, login: apiLogin } = require('../backend/target.cjs');
+const fixture = JSON.parse(fs.readFileSync(root + '/' + fixtureFile));
+const preview = hosted && fs.existsSync(root + '/.local/preview.json') ? JSON.parse(fs.readFileSync(root + '/.local/preview.json')) : null;
+const base = preview?.url || 'http://127.0.0.1:3100';
+if (preview && (new URL(base).protocol !== 'https:' || !new URL(base).hostname.endsWith('.vercel.app') || preview.branch !== 'hardening/core-reliability')) throw new Error('Only the verified hardening Preview is allowed.');
+const browserState = preview && fs.existsSync(root + '/.local/preview-browser-state.json') ? root + '/.local/preview-browser-state.json' : undefined;
+async function verifyBundle() {
+  const context = await browser.newContext({ storageState: browserState });
+  try {
+  const response = await context.request.get(base); assert.equal(response.status(),200);
+  const html = await response.text(); const scripts = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m => m[1]);
+  assert.ok(scripts.length); let code = '';
+  for (const src of scripts) { const url=new URL(src,base); assert.equal(url.origin,new URL(base).origin); code += await (await context.request.get(url.href)).text(); }
+  assert.ok(code.includes(config.API_URL), 'Built frontend must use the intended test endpoint');
+  assert.ok(code.includes(config.ANON_KEY), 'Built frontend must use the matching test anon key');
+  assert.ok(!code.includes(config.SERVICE_ROLE_KEY), 'No service role in frontend');
+  console.log('Verified built frontend endpoint: ' + config.API_URL);
+  } finally { await context.close(); }
+}
 let browser, adminApi;
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function until(check, timeout = 20000) {
@@ -14,16 +30,18 @@ async function until(check, timeout = 20000) {
 }
 const balance = () => service.from('groups').select('credits').eq('id', fixture.groupA).single().then(ok).then(g => g.credits);
 before(async () => {
-  browser = await chromium.launch(); adminApi = await apiLogin('admin');
+  await verify(); browser = await chromium.launch(); await verifyBundle();
+  adminApi = await apiLogin('admin');
   ok(await service.from('app_settings').upsert({ key: 'game_mode', value: 'test' }));
 });
+beforeEach(verify);
 after(async () => { await browser?.close(); await adminApi?.auth.signOut(); });
 async function screen(t, role) {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const context = await browser.newContext({ storageState: browserState, viewport: { width: 390, height: 844 } });
   const errors = [], unexpectedHosts = [], network = [];
   await context.route('**/*', route => {
     const url = new URL(route.request().url());
-    if (url.hostname !== '127.0.0.1' || !['3100', '55421'].includes(url.port)) {
+    if (![new URL(base).origin, new URL(config.API_URL).origin].includes(url.origin)) {
       unexpectedHosts.push(url.hostname); return route.abort();
     }
     return route.continue();
@@ -32,7 +50,7 @@ async function screen(t, role) {
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', msg => { if (/warning.*react|react.*warning|invalid.*hook|unique.*key/i.test(msg.text())) errors.push(msg.text()); });
   page.on('response', r => { if (r.status() >= 400) network.push({ url: new URL(r.url()).pathname, status: r.status() }); });
-  t.after(async () => { assert.deepEqual(errors, [], 'No JS/React errors'); assert.deepEqual(unexpectedHosts, [], 'Only isolated local backend accessed'); await context.close(); });
+  t.after(async () => { assert.deepEqual(errors, [], 'No JS/React errors'); assert.deepEqual(unexpectedHosts, [], 'Only verified frontend and isolated test backend accessed'); await context.close(); });
   await page.goto(base); if (role) await login(page, role);
   return { page, context, network };
 }
@@ -148,6 +166,38 @@ async function clueForm(page, title) {
   await page.getByPlaceholder('Titel', { exact: true }).fill(title);
   await page.getByPlaceholder('Omschrijving', { exact: true }).fill('Fictieve uploadtest');
 }
+test('E2E purchase: real participant purchase deducts once and unlocks clue', async t => {
+  const row = ok(await service.from('clues_base').insert({ title: 'TEST - Browseraankoop', description: 'Fictieve aankoop', price: 5, is_visible: true, is_active: true }).select().single());
+  t.after(() => adminApi.from('clues').delete().eq('id', row.id).then(ok));
+  const { page } = await screen(t, 'a'), start = await balance();
+  await page.getByRole('button', { name: /📄 Clues/ }).click();
+  const card = page.getByRole('heading', { name: row.title, exact: true }).locator('..').locator('..');
+  await card.getByRole('button', { name: 'Koop voor 5 pegels', exact: true }).click();
+  await until(async () => await balance() === start - 5);
+  await card.getByText('✅ Ontgrendeld', { exact: true }).waitFor();
+  const assignments = ok(await service.from('group_clues').select().eq('group_id', fixture.groupA).eq('clue_id', row.id));
+  assert.equal(assignments.length, 1); assert.equal(assignments[0].source, 'purchase');
+});
+test('E2E membership: client converges to new group without showing old group', async t => {
+  const { page } = await screen(t, 'a');
+  t.after(() => service.from('group_members').update({ group_id: fixture.groupA }).eq('user_id', fixture.users.a).then(ok));
+  ok(await service.from('group_members').update({ group_id: fixture.groupB }).eq('user_id', fixture.users.a));
+  await until(async () => (await page.getByText('Team TEST - Groep B', { exact: true }).count()) === 1);
+  assert.equal(await page.getByText('Team TEST - Groep A', { exact: true }).count(), 0);
+});
+test('E2E races: overlapping snapshots retain the newest game mode', async t => {
+  const { page } = await screen(t, 'a'); let intercepted = false;
+  t.after(() => service.from('app_settings').upsert({ key: 'game_mode', value: 'test' }).then(ok));
+  await page.route('**/rest/v1/app_settings?*', async route => {
+    if (!intercepted) { intercepted = true; const response = await route.fetch(); await pause(2500); await route.fulfill({ response }).catch(() => {}); }
+    else await route.continue();
+  });
+  await page.getByRole('button', { name: 'Verversen', exact: true }).click(); await until(() => intercepted);
+  ok(await service.from('app_settings').upsert({ key: 'game_mode', value: 'live' }));
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await page.getByText('🔴 LIVE SPEL', { exact: true }).waitFor(); await pause(2800);
+  await page.getByText('🔴 LIVE SPEL', { exact: true }).waitFor();
+});
 const pdf = { name: 'fixture.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n%%EOF') };
 test('E2E upload: failure prevents clue insertion', async t => {
   const { page } = await screen(t, 'admin'), title = `TEST - Uploadfout ${Date.now()}`; await clueForm(page, title);
@@ -225,12 +275,12 @@ test('responsive: image modal remains closable at 8 mobile/short/landscape viewp
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)); await close.click();
   }
 });
-test('responsive: local landing page under simulated public hostname at 8 viewports', async t => {
-  const context = await browser.newContext(), errors = []; t.after(() => context.close());
+test('responsive: deployment landing page under simulated public hostname at 8 viewports', async t => {
+  const context = await browser.newContext({ storageState: browserState }), errors = []; t.after(() => context.close());
   await context.route('**/*', async route => {
     const url = new URL(route.request().url());
     if (url.hostname !== 'www.csi-hit.nl') { errors.push(url.hostname); return route.abort(); }
-    const response = await route.fetch({ url: base + url.pathname + url.search }); await route.fulfill({ response });
+    const response = await context.request.get(base + url.pathname + url.search); await route.fulfill({ response });
   });
   const page = await context.newPage(); page.on('pageerror', e => errors.push(e.message));
   await page.goto('https://www.csi-hit.nl/'); assert.ok((await page.title()).includes('CSI HIT'));
