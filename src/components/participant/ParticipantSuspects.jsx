@@ -3,6 +3,7 @@ import React from "react";
 export default function ParticipantSuspectsPanel({ ctx }) {
   const {
     supabase,
+    runAction,
     styles,
     formatDate,
     profile,
@@ -51,7 +52,7 @@ export default function ParticipantSuspectsPanel({ ctx }) {
     );
   };
 
-  const saveStatusForSuspect = async (suspectId, status) => {
+  const saveStatusForSuspect = (suspectId, status) => runAction("Status opslaan", async () => {
     setError("");
     setMessage("");
 
@@ -77,9 +78,9 @@ export default function ParticipantSuspectsPanel({ ctx }) {
 
     setMessage("Status opgeslagen.");
     await loadAppData(profile);
-  };
+  });
 
-  const addNoteForSuspect = async (suspectId) => {
+  const addNoteForSuspect = (suspectId) => runAction("Notitie opslaan", async () => {
     setError("");
     setMessage("");
 
@@ -109,7 +110,7 @@ export default function ParticipantSuspectsPanel({ ctx }) {
     setNewNote("");
     setMessage("Notitie opgeslagen.");
     await loadAppData(profile);
-  };
+  });
 
   return (
     <>

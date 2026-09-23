@@ -1,3 +1,4 @@
+import { purchaseTimestamp } from "../../utils/reliability";
 import React from "react";
 
 export default function AdminInterrogationPanelComponent({ ctx }) {
@@ -284,10 +285,10 @@ export default function AdminInterrogationPanelComponent({ ctx }) {
                                     </span>
                                   )}
                                 </div>
-                                {purchase.purchased_at && (
+                                {purchaseTimestamp(purchase) && (
                                   <div style={styles.subtle}>
                                     Gekocht op:{" "}
-                                    {formatDate(purchase.purchased_at)}
+                                    {formatDate(purchaseTimestamp(purchase))}
                                   </div>
                                 )}
                                 {(clue?.file_url || clue?.pdf_url) && (

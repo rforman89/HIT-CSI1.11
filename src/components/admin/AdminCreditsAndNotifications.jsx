@@ -2,6 +2,7 @@ import React from "react";
 
 export default function AdminCreditsAndNotificationsPanel({ ctx }) {
   const {
+    pendingCredit, retryCredit, busyAction,
     ENABLE_FINAL_REPORTS,
     supabase,
     styles,
@@ -321,6 +322,13 @@ export default function AdminCreditsAndNotificationsPanel({ ctx }) {
     <div style={styles.grid}>
       <div style={styles.card}>
         <h2>Pegels beheren</h2>
+        {pendingCredit && <div role="alert" style={styles.card}>
+          <p>Er staat een pegelactie ter controle open. Controleer deze eerst voordat je een nieuwe actie start.</p>
+          <p>{groups.find(group => group.id === pendingCredit.target_group_id)?.name || "Groep niet geladen"}: {pendingCredit.amount_change > 0 ? "+" : ""}{pendingCredit.amount_change} pegels — {pendingCredit.mutation_reason}</p>
+          <p style={{ overflowWrap: "anywhere" }}>Actie-ID: {pendingCredit.action_id}</p>
+          <button style={styles.button} disabled={Boolean(busyAction)} onClick={retryCredit}>Controleer/herhaal pegelactie</button>
+        </div>}
+        <fieldset disabled={Boolean(pendingCredit || busyAction)} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
         <select
           style={styles.select}
           value={creditGroup}
@@ -393,6 +401,7 @@ export default function AdminCreditsAndNotificationsPanel({ ctx }) {
             -5
           </button>
         </div>
+        </fieldset>
       </div>
 
       <div style={styles.card}>

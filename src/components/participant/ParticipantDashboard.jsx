@@ -1,3 +1,4 @@
+import { purchaseTimestamp } from "../../utils/reliability";
 import React from "react";
 
 export default function ParticipantDashboardPanel({ ctx }) {
@@ -30,8 +31,8 @@ export default function ParticipantDashboardPanel({ ctx }) {
     .filter((item) => item.clue)
     .sort(
       (a, b) =>
-        new Date(b.purchase.purchased_at || b.purchase.created_at || 0) -
-        new Date(a.purchase.purchased_at || a.purchase.created_at || 0)
+        new Date(purchaseTimestamp(b.purchase) || 0) -
+        new Date(purchaseTimestamp(a.purchase) || 0)
     )[0];
 
   const suspectStatusCount = suspectStatuses.filter(
@@ -434,8 +435,7 @@ export default function ParticipantDashboardPanel({ ctx }) {
               <div>{latestPurchase.clue?.title}</div>
               <div style={styles.subtle}>
                 {formatDate(
-                  latestPurchase.purchase.purchased_at ||
-                    latestPurchase.purchase.created_at
+                  purchaseTimestamp(latestPurchase.purchase)
                 )}
               </div>
             </div>

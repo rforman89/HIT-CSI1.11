@@ -83,7 +83,7 @@ export default function AdminSetupCheck({ ctx }) {
             borderColor: gameMode === "live" ? "#ef4444" : "#22c55e",
           }}
         >
-          {gameMode === "live" ? "🔴 LIVE SPEL" : "🧪 TESTMODUS"}
+          {gameMode === "live" ? "🔴 LIVE SPEL" : gameMode === "test" ? "🧪 TESTMODUS" : "⚠️ SPELMODUS ONBEKEND"}
         </span>
 
         <p style={styles.subtle}>
@@ -101,6 +101,7 @@ export default function AdminSetupCheck({ ctx }) {
         ) : (
           <button
             style={styles.buttonSecondary}
+            disabled={gameMode !== "live"}
             onClick={() => updateGameMode("test")}
           >
             Terug naar testmodus
@@ -131,7 +132,7 @@ export default function AdminSetupCheck({ ctx }) {
           </>
         ) : (
           <p style={styles.error}>
-            Demo-data is geblokkeerd omdat het spel live staat.
+            Demo-data is geblokkeerd omdat de actuele spelmodus niet TEST is.
           </p>
         )}
       </div>

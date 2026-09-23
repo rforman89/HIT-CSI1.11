@@ -844,7 +844,7 @@ export default function AdminManagePanel({ ctx }) {
           </>
         ) : (
           <p style={styles.error}>
-            Reset testdata is uitgeschakeld omdat het spel live staat.
+            Reset testdata is uitgeschakeld omdat de actuele spelmodus niet TEST is.
           </p>
         )}
       </div>

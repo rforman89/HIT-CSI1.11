@@ -4,3 +4,12 @@ node_modules
 build
 dist
 .DS_Store
+.env.*
+!.env.example
+.local/
+.vercel/
+supabase/.temp/
+tests/backend/supabase/.temp/
+tests/backend/supabase/.branches/
+test-results/
+playwright-report/

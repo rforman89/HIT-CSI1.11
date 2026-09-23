@@ -1,11 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
+import { validateBackend } from "./utils/reliability";
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Supabase environment variables ontbreken.");
-}
+export const backend = validateBackend({ url: supabaseUrl, key: supabaseAnonKey,
+  environment: process.env.REACT_APP_ENVIRONMENT,
+  expectedProject: process.env.REACT_APP_TEST_PROJECT_ID });
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

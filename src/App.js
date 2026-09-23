@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "./supabase";
+import { supabase, backend } from "./supabase";
+import { loadAppSnapshot } from "./services/loadAppSnapshot";
+import { createRequestGate, mutateCredits, creditStorageKey, readPendingCredit, purchaseTimestamp } from "./utils/reliability";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import { styles } from "./styles";
 import {
@@ -41,6 +43,20 @@ const ENABLE_FINAL_REPORTS = false;
 
 export default function App() {
   const reloadTimer = useRef(null);
+  const requestGate = useRef(createRequestGate());
+  const sessionRef = useRef(null);
+  const busyRef = useRef(false);
+  const [busyAction, setBusyAction] = useState("");
+  const [pendingCredit, setPendingCredit] = useState(null);
+  const [dataStatus, setDataStatus] = useState({ loading: false, error: "", lastUpdated: null });
+  const runAction = async (name, action) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusyAction(name);
+    try { return await action(); }
+    catch (err) { setError(err?.message || "Actie niet afgerond. Controleer de gegevens voordat je opnieuw probeert."); }
+    finally { busyRef.current = false; setBusyAction(""); }
+  };
   const isTypingRef = useRef(false);
   const editClueFileRef = useRef(null);
   const editSuspectFileRef = useRef(null);
@@ -162,7 +178,7 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [imageModal, setImageModal] = useState(null);
   const [expandedNoteIds, setExpandedNoteIds] = useState({});
-  const [gameMode, setGameMode] = useState("test");
+  const [gameMode, setGameMode] = useState("unknown");
 
   const isLandingDomain =
     window.location.hostname === "www.csi-hit.nl" ||
@@ -188,16 +204,6 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, [message]);
-
-  useEffect(() => {
-    if (!error) return;
-
-    const timer = setTimeout(() => {
-      setError("");
-    }, 7000);
-
-    return () => clearTimeout(timer);
-  }, [error]);
 
   const myMemberships = useMemo(() => {
     if (!profile) return [];
@@ -303,25 +309,54 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const acceptSession = (newSession) => {
+      const changed = sessionRef.current?.user?.id !== newSession?.user?.id;
+      sessionRef.current = newSession;
       setSession(newSession);
-
-      if (newSession?.user) {
-        setTimeout(() => {
-          loadProfile(newSession.user.id);
-        }, 0);
-      } else {
+      if (changed || !newSession) {
+        requestGate.current.invalidate();
         setProfile(null);
         clearAppData();
+        setPassword("");
+        setNewNote("");
+        setEditNoteText("");
+        setPendingCredit(null);
+        setDataStatus({ loading: false, error: "", lastUpdated: null });
       }
-    });
-
-    return () => subscription.unsubscribe();
+      if (newSession?.user) {
+        setTimeout(() => {
+          if (sessionRef.current?.user?.id === newSession.user.id) loadAppData({ id: newSession.user.id });
+        }, 0);
+      }
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => acceptSession(newSession));
+    return () => { subscription.unsubscribe(); requestGate.current.invalidate(); };
   }, []);
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+    try { setPendingCredit(readPendingCredit(sessionStorage, creditStorageKey(backend.project, userId))); }
+    catch (err) { setError(err.message); }
+    const refresh = () => {
+      if (document.visibilityState === "visible" && navigator.onLine && !busyRef.current) loadAppData({ id: userId });
+    };
+    const offline = () => {
+      requestGate.current.invalidate();
+      setGameMode("unknown");
+      setDataStatus(current => ({ ...current, loading: false, error: "Geen verbinding. Laatst geladen gegevens blijven zichtbaar." }));
+    };
+    const timer = setInterval(refresh, 10000);
+    window.addEventListener("online", refresh);
+    window.addEventListener("offline", offline);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("online", refresh);
+      window.removeEventListener("offline", offline);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (!profile) return;
@@ -350,11 +385,6 @@ export default function App() {
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "clues" },
-        () => scheduleReload(profile)
-      )
-      .on(
-        "postgres_changes",
         { event: "*", schema: "public", table: "agenda_items" },
         () => scheduleReload(profile)
       )
@@ -368,12 +398,15 @@ export default function App() {
         { event: "*", schema: "public", table: "suspect_statuses" },
         () => scheduleReload(profile)
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") scheduleReload(profile);
+        // Periodic refresh remains available when the realtime connection reconnects.
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile]);
+  }, [profile?.id]);
 
   useEffect(() => {
     if (!profile || profile.role !== "participant") return;
@@ -444,6 +477,7 @@ export default function App() {
   }, [profile?.role, selectedParticipantSuspect, suspects]);
 
   const clearAppData = () => {
+    setGameMode("unknown");
     setGroups([]);
     setProfiles([]);
     setMemberships([]);
@@ -463,302 +497,34 @@ export default function App() {
 
   const loadSession = async () => {
     const { data, error } = await supabase.auth.getSession();
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    setSession(data.session);
-
-    if (data.session?.user) {
-      await loadProfile(data.session.user.id);
-    }
+    if (error) { setError(error.message); return; }
+    if (data.session?.user) await loadAppData({ id: data.session.user.id });
   };
-
-  const loadProfile = async (userId) => {
-    setError("");
-    setMessage("");
-
-    const { data: profileData, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-
-    if (profileError) {
-      setError(profileError.message);
-      return;
-    }
-
-    setProfile(profileData);
-    await loadAppData(profileData);
-  };
-
+  const loadProfile = async (userId) => loadAppData({ id: userId });
   const loadAppData = async (currentProfile = profile) => {
-    if (!currentProfile) return;
-
-    const { data: agendaData } = await supabase
-      .from("agenda_items")
-      .select("*")
-      .order("starts_at");
-
-    const { data: suspectData } = await supabase
-      .from("suspects")
-      .select("*")
-      .order("sort_order");
-
-    const { data: cluesData, error: cluesError } = await supabase
-      .from("clues")
-      .select("*")
-      .order("sort_order");
-
-    if (cluesError) {
-      setError(`Aanwijzingen laden mislukt: ${cluesError.message}`);
-    }
-
-    const loadedClues = (cluesData || []).map((clue) => {
-      const linkedSuspect = (suspectData || []).find(
-        (suspect) => suspect.id === clue.suspect_id
-      );
-
-      return {
-        ...clue,
-        suspects: linkedSuspect ? { name: linkedSuspect.name } : null,
-      };
-    });
-
-    const addClueDetails = (rows = []) =>
-      rows.map((row) => ({
-        ...row,
-        clues:
-          loadedClues.find((clue) => clue.id === row.clue_id) ||
-          row.clues ||
-          null,
-      }));
-
-    const { data: clueCategoryData } = await supabase
-      .from("clue_categories")
-      .select("*")
-      .order("sort_order");
-
-    const { data: gameModeData } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "game_mode")
-      .maybeSingle();
-
-    const { data: finalReportsOpenData } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "final_reports_open")
-      .maybeSingle();
-
-    const { data: latestBackupData } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "latest_auto_backup")
-      .maybeSingle();
-
-    setAgendaItems(agendaData || []);
-    setSuspects(suspectData || []);
-    setClues(loadedClues);
-    setClueCategories(clueCategoryData || []);
-    setGameMode(gameModeData?.value || "test");
-    setFinalReportsOpen(
-      ENABLE_FINAL_REPORTS && finalReportsOpenData?.value === "true"
-    );
-
+    const userId = currentProfile?.id;
+    if (!userId || sessionRef.current?.user?.id !== userId) return;
+    const request = requestGate.current.begin();
+    const timeout = setTimeout(() => request.abort(), 8000);
+    setDataStatus(current => ({ ...current, loading: true }));
     try {
-      setLatestBackupInfo(
-        latestBackupData?.value ? JSON.parse(latestBackupData.value) : null
-      );
-    } catch (_error) {
-      setLatestBackupInfo(null);
-    }
-
-    if (currentProfile.role === "suspect") {
-      const { data: groupsData } = await supabase
-        .from("groups")
-        .select("*")
-        .order("created_at");
-
-      const { data: groupClueData, error: groupClueError } = await supabase
-        .from("group_clues")
-        .select("*, groups(name)");
-
-      if (groupClueError) {
-        setError(
-          `Groepsaanwijzingen laden mislukt: ${groupClueError.message}`
-        );
-      }
-
-      const { data: notesData } = await supabase
-        .from("suspect_notes")
-        .select("*, groups(name), suspects(name), profiles(display_name,email)")
-        .order("created_at", { ascending: false });
-
-      const { data: statusData } = await supabase
-        .from("suspect_statuses")
-        .select("*, groups(name), suspects(name)");
-
-      setGroups(groupsData || []);
-      setGroupClues(addClueDetails(groupClueData || []));
-      setSuspectNotes(notesData || []);
-      setSuspectStatuses(statusData || []);
-      setNotifications([]);
-      setTransactions([]);
-      return;
-    }
-
-    if (currentProfile.role === "admin") {
-      const { data: groupsData } = await supabase
-        .from("groups")
-        .select("*")
-        .order("created_at");
-
-      const { data: profilesData } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("email");
-
-      const { data: membershipData } = await supabase
-        .from("group_members")
-        .select("*");
-
-      const { data: notificationsData } = await supabase
-        .from("notifications")
-        .select("*, groups(name)")
-        .order("created_at", { ascending: false });
-
-      const { data: transactionData } = await supabase
-        .from("credit_transactions")
-        .select("*, groups(name)")
-        .order("created_at", { ascending: false });
-
-      const { data: groupClueData, error: groupClueError } = await supabase
-        .from("group_clues")
-        .select("*, groups(name)");
-
-      if (groupClueError) {
-        setError(
-          `Groepsaanwijzingen laden mislukt: ${groupClueError.message}`
-        );
-      }
-
-      const { data: notesData } = await supabase
-        .from("suspect_notes")
-        .select("*, groups(name), suspects(name), profiles(display_name,email)")
-        .order("created_at", { ascending: false });
-
-      const { data: statusData } = await supabase
-        .from("suspect_statuses")
-        .select("*, groups(name), suspects(name)");
-
-      let finalReportsData = [];
-
-      if (ENABLE_FINAL_REPORTS) {
-        const { data, error: finalReportsError } = await supabase
-          .from("final_reports")
-          .select("*")
-          .order("updated_at", { ascending: false });
-
-        if (finalReportsError) {
-          setError(`Eindrapporten laden mislukt: ${finalReportsError.message}`);
-        }
-
-        finalReportsData = data || [];
-      }
-
-      setGroups(groupsData || []);
-      setProfiles(profilesData || []);
-      setMemberships(membershipData || []);
-      setNotifications(notificationsData || []);
-      setTransactions(transactionData || []);
-      setGroupClues(addClueDetails(groupClueData || []));
-      setSuspectNotes(notesData || []);
-      setSuspectStatuses(statusData || []);
-      setFinalReports(finalReportsData || []);
-      return;
-    }
-
-    const { data: myMembershipsData, error: myMembershipsError } =
-      await supabase
-        .from("group_members")
-        .select("*, groups(*)")
-        .eq("user_id", currentProfile.id);
-
-    if (myMembershipsError) {
-      setError(myMembershipsError.message);
-      return;
-    }
-
-    setMemberships(myMembershipsData || []);
-    const myLoadedGroups = (myMembershipsData || [])
-      .map((m) => m.groups)
-      .filter(Boolean);
-    setGroups(myLoadedGroups);
-
-    const myGroupId = myMembershipsData?.[0]?.group_id;
-
-    if (!myGroupId) {
-      setNotifications([]);
-      setTransactions([]);
-      setGroupClues([]);
-      setSuspectNotes([]);
-      setSuspectStatuses([]);
-      return;
-    }
-
-    const { data: notificationsData } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("group_id", myGroupId)
-      .order("created_at", { ascending: false });
-
-    const { data: transactionData } = await supabase
-      .from("credit_transactions")
-      .select("*")
-      .eq("group_id", myGroupId)
-      .order("created_at", { ascending: false });
-
-    const { data: groupClueData, error: groupClueError } = await supabase
-      .from("group_clues")
-      .select("*")
-      .eq("group_id", myGroupId);
-
-    if (groupClueError) {
-      setError(`Groepsaanwijzingen laden mislukt: ${groupClueError.message}`);
-    }
-
-    const { data: notesData } = await supabase
-      .from("suspect_notes")
-      .select("*, groups(name), suspects(name), profiles(display_name,email)")
-      .eq("group_id", myGroupId)
-      .order("created_at", { ascending: false });
-
-    const { data: statusData } = await supabase
-      .from("suspect_statuses")
-      .select("*, groups(name), suspects(name)")
-      .eq("group_id", myGroupId);
-
-    let finalReportsData = [];
-
-    if (ENABLE_FINAL_REPORTS) {
-      const { data } = await supabase
-        .from("final_reports")
-        .select("*, suspects(name)")
-        .eq("group_id", myGroupId);
-
-      finalReportsData = data || [];
-    }
-
-    setNotifications(notificationsData || []);
-    setTransactions(transactionData || []);
-    setGroupClues(addClueDetails(groupClueData || []));
-    setSuspectNotes(notesData || []);
-    setSuspectStatuses(statusData || []);
-    setFinalReports(finalReportsData || []);
+      const snapshot = await loadAppSnapshot(supabase, userId, request.signal, ENABLE_FINAL_REPORTS);
+      if (!request.isCurrent() || sessionRef.current?.user?.id !== userId) return;
+      setProfile(snapshot.profile);
+      setAgendaItems(snapshot.agendaItems); setSuspects(snapshot.suspects); setClues(snapshot.clues);
+      setClueCategories(snapshot.clueCategories); setGameMode(snapshot.gameMode);
+      setFinalReportsOpen(snapshot.finalReportsOpen); setLatestBackupInfo(snapshot.latestBackupInfo);
+      setGroups(snapshot.groups); setProfiles(snapshot.profiles); setMemberships(snapshot.memberships);
+      setNotifications(snapshot.notifications); setTransactions(snapshot.transactions);
+      setGroupClues(snapshot.groupClues); setSuspectNotes(snapshot.suspectNotes);
+      setSuspectStatuses(snapshot.suspectStatuses); setFinalReports(snapshot.finalReports);
+      setDataStatus({ loading: false, error: snapshot.gameMode === "unknown" ? "Spelmodus onbekend. Testacties zijn geblokkeerd." : "", lastUpdated: Date.now() });
+    } catch (err) {
+      if (!request.isCurrent() || sessionRef.current?.user?.id !== userId) return;
+      setGameMode("unknown");
+      const message = "Verversen mislukt. Laatst geladen gegevens blijven zichtbaar. " + (err?.message || "Controleer de verbinding.");
+      setDataStatus(current => ({ ...current, loading: false, error: message }));
+    } finally { clearTimeout(timeout); }
   };
 
   const refreshWithLoading = async () => {
@@ -826,7 +592,10 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    const { error: logoutError } = await supabase.auth.signOut();
+    if (logoutError) { setError("Uitloggen mislukt. Controleer de verbinding en probeer opnieuw."); return; }
+    sessionRef.current = null;
+    requestGate.current.invalidate();
     setProfile(null);
     setSession(null);
     clearAppData();
@@ -845,8 +614,7 @@ export default function App() {
       .upload(path, file, { upsert: true });
 
     if (uploadError) {
-      setError(uploadError.message);
-      return null;
+      throw new Error("Upload mislukt: " + uploadError.message);
     }
 
     // clue-files is a private bucket: a public URL wouldn't work anyway, so
@@ -1204,6 +972,7 @@ export default function App() {
       return;
     }
 
+    if (!file && !window.confirm("Geen bestand geselecteerd. Aanwijzing zonder bestand aanmaken?")) return;
     const fileUrl = await uploadFileToBucket("clue-files", "clues", file);
 
     const clueType = newClueIsFree
@@ -1223,17 +992,22 @@ export default function App() {
       is_global: newClueIsGlobal,
       is_visible: true,
       sort_order: clues.length + 1,
+      is_active: true,
     };
 
     if (clueCategories.length > 0) {
       newCluePayload.category_id = newClueCategory || null;
     }
 
-    const { error } = await supabase.from("clues").insert(newCluePayload);
-
+    const { error, status } = await supabase.from("clues").insert(newCluePayload);
     if (error) {
-      setError(error.message);
-      return;
+      if (fileUrl && /^[0-9A-Z]{5}$/.test(error.code || "") && status < 500) {
+        const { error: cleanupError } = await supabase.storage.from("clue-files").remove([fileUrl]);
+        if (cleanupError) throw new Error("Aanwijzing niet opgeslagen; opruimen van de upload mislukte. Laat de organisatie dit controleren.");
+      }
+      throw new Error(status === 0 || status >= 500
+        ? "Uitkomst van aanwijzing opslaan onbekend. Ververs en controleer voordat je opnieuw aanmaakt."
+        : error.message);
     }
 
     setNewClueTitle("");
@@ -1336,103 +1110,16 @@ export default function App() {
     await loadAppData(profile);
   };
 
-  const giveCredits = async () => {
-    setError("");
-    setMessage("");
-
-    if (!creditGroup) {
-      setError("Selecteer een groep.");
-      return;
-    }
-
-    const amount = Number(creditAmount);
-
-    const { error: adjustError } = await supabase.rpc("adjust_group_credits", {
-      target_group_id: creditGroup,
-      amount_change: amount,
-    });
-
-    if (adjustError) {
-      setError(adjustError.message);
-      return;
-    }
-
-    const { error: transactionError } = await supabase
-      .from("credit_transactions")
-      .insert({
-        group_id: creditGroup,
-        amount,
-        reason: creditReason || "Handmatige wijziging",
-        created_by: profile.id,
-      });
-
-    if (transactionError) {
-      setError(transactionError.message);
-      return;
-    }
-
-    await supabase.from("notifications").insert({
-      group_id: creditGroup,
-      title: amount >= 0 ? "Pegels ontvangen" : "Pegels afgeschreven",
-      message:
-        amount >= 0
-          ? `Jullie hebben ${amount} pegels ontvangen.`
-          : `${Math.abs(amount)} pegels afgeschreven.`,
-      notification_type: "credits",
-      created_by: profile.id,
-    });
-
-    setMessage("Pegels bijgewerkt.");
-    await loadAppData(profile);
-  };
-
   const changeCredits = async (groupId, amount, reason) => {
-    setError("");
-    setMessage("");
-
-    if (!groupId) {
-      setError("Selecteer een groep.");
-      return;
-    }
-
-    const { error: adjustError } = await supabase.rpc("adjust_group_credits", {
-      target_group_id: groupId,
-      amount_change: amount,
-    });
-
-    if (adjustError) {
-      setError(adjustError.message);
-      return;
-    }
-
-    const { error: transactionError } = await supabase
-      .from("credit_transactions")
-      .insert({
-        group_id: groupId,
-        amount,
-        reason,
-        created_by: profile.id,
-      });
-
-    if (transactionError) {
-      setError(transactionError.message);
-      return;
-    }
-
-    await supabase.from("notifications").insert({
-      group_id: groupId,
-      title: amount >= 0 ? "Pegels ontvangen" : "Pegels afgeschreven",
-      message:
-        amount >= 0
-          ? `Jullie hebben ${amount} pegels ontvangen.`
-          : `${Math.abs(amount)} pegels afgeschreven.`,
-      notification_type: "credits",
-      created_by: profile.id,
-    });
-
-    setMessage("Pegels bijgewerkt.");
+    setError(""); setMessage("");
+    const result = await mutateCredits({ client: supabase, storage: sessionStorage,
+      storageKey: creditStorageKey(backend.project, profile.id), groupId, amount, reason,
+      onPending: setPendingCredit });
+    setMessage(result.replayed ? "Pegelactie gecontroleerd: al verwerkt, niet dubbel geboekt." : "Pegels bijgewerkt.");
     await loadAppData(profile);
   };
+  const giveCredits = () => changeCredits(creditGroup, Number(creditAmount), creditReason || "Handmatige wijziging");
+  const retryCredit = () => changeCredits();
 
   const toggleClueVisible = async (clue) => {
     setError("");
@@ -1733,7 +1420,7 @@ export default function App() {
     const dates = [
       ...groupClues
         .filter((item) => item.group_id === groupId)
-        .map((item) => item.purchased_at || item.created_at),
+        .map((item) => purchaseTimestamp(item)),
       ...suspectNotes
         .filter((item) => item.group_id === groupId)
         .map((item) => item.created_at),
@@ -1984,6 +1671,7 @@ export default function App() {
     const assignmentRows = newTargetGroupIds.map((groupId) => ({
       group_id: groupId,
       clue_id: manualClueId,
+      source: "manual",
     }));
 
     const { error: assignmentError } = await supabase
@@ -2698,23 +2386,8 @@ export default function App() {
 
     if (!ok) return;
 
-    const { error } = await supabase
-      .from("group_clues")
-      .delete()
-      .eq("id", purchase.id);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    await supabase.from("notifications").insert({
-      group_id: purchase.group_id,
-      title: "Aanwijzing gecorrigeerd",
-      message: `De aanwijzing "${clueTitle}" is door de organisatie verwijderd.`,
-      notification_type: "clue_removed",
-      created_by: profile.id,
-    });
+    const { error } = await supabase.rpc("remove_group_clue", { target_assignment_id: purchase.id });
+    if (error) { setError(error.message); return; }
 
     setMessage("Gekochte/toegewezen aanwijzing verwijderd bij groep.");
     await loadAppData(profile);
@@ -2747,89 +2420,8 @@ export default function App() {
       }
     }
 
-    const { data: demoGroups, error: groupLookupError } = await supabase
-      .from("groups")
-      .select("id")
-      .like("name", "DEMO -%");
-
-    if (groupLookupError) {
-      setError(groupLookupError.message);
-      return false;
-    }
-
-    const { data: demoSuspects, error: suspectLookupError } = await supabase
-      .from("suspects")
-      .select("id")
-      .like("name", "DEMO -%");
-
-    if (suspectLookupError) {
-      setError(suspectLookupError.message);
-      return false;
-    }
-
-    const { data: demoClues, error: clueLookupError } = await supabase
-      .from("clues")
-      .select("id")
-      .like("title", "DEMO -%");
-
-    if (clueLookupError) {
-      setError(clueLookupError.message);
-      return false;
-    }
-
-    const demoGroupIds = (demoGroups || []).map((item) => item.id);
-    const demoSuspectIds = (demoSuspects || []).map((item) => item.id);
-    const demoClueIds = (demoClues || []).map((item) => item.id);
-
-    if (demoGroupIds.length > 0) {
-      await supabase.from("group_clues").delete().in("group_id", demoGroupIds);
-      await supabase
-        .from("suspect_notes")
-        .delete()
-        .in("group_id", demoGroupIds);
-      await supabase
-        .from("suspect_statuses")
-        .delete()
-        .in("group_id", demoGroupIds);
-      await supabase
-        .from("notifications")
-        .delete()
-        .in("group_id", demoGroupIds);
-      await supabase
-        .from("credit_transactions")
-        .delete()
-        .in("group_id", demoGroupIds);
-      await supabase
-        .from("final_reports")
-        .delete()
-        .in("group_id", demoGroupIds);
-    }
-
-    if (demoClueIds.length > 0) {
-      await supabase.from("group_clues").delete().in("clue_id", demoClueIds);
-      await supabase.from("clues").delete().in("id", demoClueIds);
-    }
-
-    if (demoSuspectIds.length > 0) {
-      await supabase
-        .from("suspect_notes")
-        .delete()
-        .in("suspect_id", demoSuspectIds);
-      await supabase
-        .from("suspect_statuses")
-        .delete()
-        .in("suspect_id", demoSuspectIds);
-      await supabase
-        .from("final_reports")
-        .delete()
-        .in("suspect_id", demoSuspectIds);
-      await supabase.from("clues").delete().in("suspect_id", demoSuspectIds);
-      await supabase.from("suspects").delete().in("id", demoSuspectIds);
-    }
-
-    if (demoGroupIds.length > 0) {
-      await supabase.from("groups").delete().in("id", demoGroupIds);
-    }
+    const { error: cleanupError } = await supabase.rpc("delete_demo_data");
+    if (cleanupError) { setError(cleanupError.message); return false; }
 
     if (!silent) {
       setMessage("Demo-data verwijderd.");
@@ -3043,7 +2635,7 @@ export default function App() {
 
     const { data: createdClues, error: clueError } = await supabase
       .from("clues")
-      .insert(demoCluesToCreate)
+      .insert(demoCluesToCreate.map(clue => ({ ...clue, is_active: true })))
       .select("*");
 
     if (clueError) {
@@ -3187,7 +2779,8 @@ export default function App() {
     }));
 
     if (notificationRows.length > 0) {
-      await supabase.from("notifications").insert(notificationRows);
+      const { error } = await supabase.from("notifications").insert(notificationRows);
+      if (error) throw new Error(error.message);
     }
 
     const transactionRows = activeDemoGroups.map((group, index) => ({
@@ -3201,7 +2794,8 @@ export default function App() {
     }));
 
     if (transactionRows.length > 0) {
-      await supabase.from("credit_transactions").insert(transactionRows);
+      const { error } = await supabase.from("credit_transactions").insert(transactionRows);
+      if (error) throw new Error(error.message);
     }
 
     setMessage(
@@ -3706,6 +3300,8 @@ export default function App() {
   const AdminManage = () => <AdminManagePanel ctx={getComponentContext()} />;
 
   const getComponentContext = () => ({
+    busyAction, dataStatus, pendingCredit, runAction,
+    retryCredit: () => runAction("Pegelactie controleren", retryCredit),
     ENABLE_FINAL_REPORTS,
     supabase,
     styles,
@@ -3914,54 +3510,54 @@ export default function App() {
     loadProfile,
     loadAppData,
     refreshWithLoading,
-    handleRegister,
-    handleLogin,
+    handleRegister: (...args) => runAction("Bezig met verwerken", () => handleRegister(...args)),
+    handleLogin: (...args) => runAction("Bezig met verwerken", () => handleLogin(...args)),
     handleLogout,
     uploadFileToBucket,
     openClueFile,
-    createGroup,
+    createGroup: (...args) => runAction("Bezig met verwerken", () => createGroup(...args)),
     startEditGroup,
-    saveEditGroup,
+    saveEditGroup: (...args) => runAction("Bezig met verwerken", () => saveEditGroup(...args)),
     cancelEditGroup,
-    addUserToGroup,
-    linkUserToSuspect,
-    removeUserFromGroup,
-    createSuspect,
+    addUserToGroup: (...args) => runAction("Bezig met verwerken", () => addUserToGroup(...args)),
+    linkUserToSuspect: (...args) => runAction("Bezig met verwerken", () => linkUserToSuspect(...args)),
+    removeUserFromGroup: (...args) => runAction("Bezig met verwerken", () => removeUserFromGroup(...args)),
+    createSuspect: (...args) => runAction("Bezig met verwerken", () => createSuspect(...args)),
     startEditSuspect,
     cancelEditSuspect,
-    saveEditSuspect,
-    createAgendaItem,
-    createClue,
+    saveEditSuspect: (...args) => runAction("Bezig met verwerken", () => saveEditSuspect(...args)),
+    createAgendaItem: (...args) => runAction("Bezig met verwerken", () => createAgendaItem(...args)),
+    createClue: (...args) => runAction("Bezig met verwerken", () => createClue(...args)),
     toggleSelectedManualClueGroup,
     toggleSelectedNotificationGroup,
-    sendNotification,
-    giveCredits,
-    changeCredits,
-    toggleClueVisible,
+    sendNotification: (...args) => runAction("Bezig met verwerken", () => sendNotification(...args)),
+    giveCredits: (...args) => runAction("Bezig met verwerken", () => giveCredits(...args)),
+    changeCredits: (...args) => runAction("Bezig met verwerken", () => changeCredits(...args)),
+    toggleClueVisible: (...args) => runAction("Bezig met verwerken", () => toggleClueVisible(...args)),
     startEditClue,
     cancelEditClue,
-    saveEditClue,
-    deleteClue,
-    toggleAgendaVisible,
+    saveEditClue: (...args) => runAction("Bezig met verwerken", () => saveEditClue(...args)),
+    deleteClue: (...args) => runAction("Bezig met verwerken", () => deleteClue(...args)),
+    toggleAgendaVisible: (...args) => runAction("Bezig met verwerken", () => toggleAgendaVisible(...args)),
     startEditAgenda,
     cancelEditAgenda,
-    saveEditAgenda,
-    deleteAgendaItem,
-    toggleSuspectActive,
-    toggleGroupActive,
+    saveEditAgenda: (...args) => runAction("Bezig met verwerken", () => saveEditAgenda(...args)),
+    deleteAgendaItem: (...args) => runAction("Bezig met verwerken", () => deleteAgendaItem(...args)),
+    toggleSuspectActive: (...args) => runAction("Bezig met verwerken", () => toggleSuspectActive(...args)),
+    toggleGroupActive: (...args) => runAction("Bezig met verwerken", () => toggleGroupActive(...args)),
     getGroupLastActivity,
     getGroupFinalReport,
     getParticipantProgress,
     getClueCategoryName,
     groupCluesByCategory,
-    createClueCategory,
+    createClueCategory: (...args) => runAction("Bezig met verwerken", () => createClueCategory(...args)),
     startEditClueCategory,
     cancelEditClueCategory,
-    saveEditClueCategory,
-    toggleClueCategoryActive,
+    saveEditClueCategory: (...args) => runAction("Bezig met verwerken", () => saveEditClueCategory(...args)),
+    toggleClueCategoryActive: (...args) => runAction("Bezig met verwerken", () => toggleClueCategoryActive(...args)),
     shouldShowParticipantFinalTab,
-    assignClueToGroup,
-    updateGameMode,
+    assignClueToGroup: (...args) => runAction("Bezig met verwerken", () => assignClueToGroup(...args)),
+    updateGameMode: (...args) => runAction("Bezig met verwerken", () => updateGameMode(...args)),
     updateFinalReportsOpen,
     createLiveBackup,
     safeCsvValue,
@@ -3976,17 +3572,17 @@ export default function App() {
     exportTransactionsCsv,
     exportFinalReportsCsv,
     exportCompleteCsvBackup,
-    resetTestData,
-    removeGroupClue,
-    deleteDemoData,
-    loadDemoData,
-    purchaseClue,
-    addParticipantNote,
+    resetTestData: (...args) => runAction("Bezig met verwerken", () => resetTestData(...args)),
+    removeGroupClue: (...args) => runAction("Bezig met verwerken", () => removeGroupClue(...args)),
+    deleteDemoData: (...args) => runAction("Bezig met verwerken", () => deleteDemoData(...args)),
+    loadDemoData: (...args) => runAction("Bezig met verwerken", () => loadDemoData(...args)),
+    purchaseClue: (...args) => runAction("Bezig met verwerken", () => purchaseClue(...args)),
+    addParticipantNote: (...args) => runAction("Bezig met verwerken", () => addParticipantNote(...args)),
     startEditNote,
     cancelEditNote,
-    saveEditNote,
-    deleteNote,
-    saveParticipantStatus,
+    saveEditNote: (...args) => runAction("Bezig met verwerken", () => saveEditNote(...args)),
+    deleteNote: (...args) => runAction("Bezig met verwerken", () => deleteNote(...args)),
+    saveParticipantStatus: (...args) => runAction("Bezig met verwerken", () => saveParticipantStatus(...args)),
     loadFinalReportForm,
     saveFinalReport,
     SuspectImage,
@@ -4183,7 +3779,7 @@ export default function App() {
   if (profile.role === "admin") {
     return (
       <div style={styles.app} {...appFocusHandlers}>
-        <div style={styles.shell}>
+        <fieldset disabled={Boolean(busyAction)} style={{ ...styles.shell, border: 0, padding: 0, minWidth: 0, width: "100%" }}>
           {Header({
             title: "CSI HIT Control Room",
             subtitle: `Ingelogd als ${profile.display_name || profile.email}`,
@@ -4220,7 +3816,7 @@ export default function App() {
 
           {MessageBlock()}
           {ImageModal()}
-        </div>
+        </fieldset>
 
         <div style={styles.adminMobileNav}>
           <button
@@ -4310,7 +3906,7 @@ export default function App() {
 
   return (
     <div style={styles.app} {...appFocusHandlers}>
-      <div style={styles.shell}>
+      <fieldset disabled={Boolean(busyAction)} style={{ ...styles.shell, border: 0, padding: 0, minWidth: 0, width: "100%" }}>
         {Header({
           title: "CSI HIT",
           subtitle: `Welkom ${profile.display_name || profile.email}`,
@@ -4356,7 +3952,7 @@ export default function App() {
         {MessageBlock()}
         {ENABLE_FINAL_REPORTS && FinalReportEditorModal()}
         {ImageModal()}
-      </div>
+      </fieldset>
 
       <div style={styles.mobileNav}>
         <button

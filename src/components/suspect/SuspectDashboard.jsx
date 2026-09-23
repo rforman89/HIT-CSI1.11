@@ -1,3 +1,4 @@
+import { purchaseTimestamp } from "../../utils/reliability";
 import React from "react";
 
 export default function SuspectDashboard({ ctx }) {
@@ -1021,9 +1022,9 @@ export default function SuspectDashboard({ ctx }) {
                       )}
                     </div>
 
-                    {purchase.purchased_at && (
+                    {purchaseTimestamp(purchase) && (
                       <div style={styles.subtle}>
-                        Gekocht op: {formatDate(purchase.purchased_at)}
+                        Gekocht op: {formatDate(purchaseTimestamp(purchase))}
                       </div>
                     )}
                   </div>
