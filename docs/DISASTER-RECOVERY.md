@@ -1,8 +1,8 @@
 # CSI HIT herstelprocedure
 
-**Huidig checkpoint: alleen lokaal bewezen. Hosted CSI HIT TEST en Preview moeten nog worden gevalideerd. Geen productierelease goedgekeurd.**
+**Release 23 september 2026: hosted restore en Preview gevalideerd; backup/restore-hardening in Production beschikbaar. De productieomgeving blijft altijd een verboden restoretarget.**
 
-Production `uhfcrskkgutlqqogahbr` is een verboden restoretarget, zowel in Node als in SQL. Er bestaat geen force-optie. Deze opdracht autoriseert uitsluitend de lokale teststack en, na hervatting, CSI HIT TEST `ksnagauoufsriwplvvtd`. Een toekomstig nieuw herstelproject vraagt afzonderlijke operationele autorisatie.
+Production `uhfcrskkgutlqqogahbr` is een verboden restoretarget, zowel in Node als in SQL. Er bestaat geen force-optie. De herstelproef op CSI HIT TEST `ksnagauoufsriwplvvtd` is afgerond. CSI HIT TEST mag gepauzeerd blijven; IScout blijft ongemoeid. Een nieuwe oefening of toekomstig herstelproject vraagt afzonderlijke operationele autorisatie.
 
 ## 1. Incident starten
 
@@ -26,7 +26,7 @@ Deze controle gebruikt geen backend en geen credentials. Bij fout: bestand behou
 1. Controleer het project in Supabase en noteer ref/URL. Production blijft verboden. Voor de oefening geldt uitsluitend CSI HIT TEST.
 2. Checkout de gereviewde repositoryversie die bij de bundle hoort. Bewaar daarom naast de off-project bundle ook de Git-commit/repositoryrelease.
 3. Op een **lege** omgeving: gebruik de schema-only legacy-testbootstrap gevolgd door alle repositorymigraties. `node tests/backend/migration-plan.cjs` schrijft het plan naar `.local/hosted-bootstrap.sql`. Inspecteer dit plan vóór toepassing. Het weigert een bestaande public database. Het is een TEST-bootstrap, nooit een productiemigratie.
-4. CSI HIT TEST heeft de eerdere schema-opbouw al. Pas daar uitsluitend de nieuwe operationsmigratie toe, met expliciet projectref. Geen blinde `db push`: de rootconfig verwijst historisch naar Production. Controleer RLS, grants, functions, Storage-policies en security/performance advisors.
+4. CSI HIT TEST heeft de operationsmigratie al. Controleer de bestaande migratiehistorie en pas alleen nog ontbrekende, gereviewde migraties toe met expliciet projectref. Geen blinde `db push`: de rootconfig verwijst historisch naar Production. Controleer RLS, grants, functions, Storage-policies en security/performance advisors.
 5. Marker: `app_settings.test_environment` moet exact het gekozen doel zijn. Op lokaal gebruikt `npm run test:recovery:setup` de vaste marker. Op een toekomstig ander, leeg herstelproject moet de beheerder na ref-verificatie bewust de juiste marker instellen. Wijzig nooit de marker van Production.
 6. De buckets/policies moeten al bestaan en exact overeenkomen met het manifest. De restore weigert afwijkende public/private-status, MIME-allowlist of bestandsgroottelimiet. Standaard is `clue-files` privé en `suspect-photos` publiek.
 7. De tool controleert schema-versie en kolomfingerprint; dat vervangt geen migratie-/policycontrole. Voer geen SQL uit die uit een onbekende backup afkomstig is.
@@ -64,14 +64,14 @@ De rapportage geeft `17/17 datasets`, aantallen en inhoudshashes, bestanden met 
 
 1. Stel alleen de betreffende **Preview-branch** in: `REACT_APP_ENVIRONMENT=test`, `REACT_APP_TEST_PROJECT_ID=ksnagauoufsriwplvvtd`, de test-URL en publieke test-anon-key. Backendkeys alleen server-side; de cronservicekey moet hetzelfde testproject bevatten. Stel `CSI_RELEASE` op de Edge Function in op de gereviewde commit indien beschikbaar.
 2. Deploy de backupfunctie uitsluitend op het expliciete testproject. De functie omvat `index.ts` en de gedeelde `.mjs`-modules. Houd de eigen bearer/admincontrole actief (`verify_jwt=false` is geen publieke toegang).
-3. Build de Preview en bewijs het daadwerkelijk ingebouwde endpoint/key. Geen Production-omgeving, domein of DNS wijzigen in deze opdracht.
+3. Build de Preview en bewijs het daadwerkelijk ingebouwde endpoint/key. Een herstelproef wijzigt geen Production-omgeving, domein of DNS.
 4. Controleer login voor admin/deelnemer/verdachte, exact pegelbedrag en transactiehistorie, aanwijzing/vrijgave, notities/status, bestand/foto, rolafscherming en backupstatus. Een groene data-import is nog geen bruikbare applicatie.
 5. Alleen na afzonderlijke releasegoedkeuring: productiegerichte configuratie, eventuele domein-/DNS-omschakeling, TLS, redirects en Auth site/redirect URLs controleren. Bewaar oude DNS-waarden en houd rekening met TTL. Geen DNS-wijziging als alleen een Vercel frontenddeployment wordt vervangen.
 6. Incidentleider bevestigt de controles, maakt een nieuwe backup, registreert de werkelijke eindtijd en geeft heropening vrij. LIVE wordt bewust via de bestaande adminprocedure geactiveerd; nooit automatisch tijdens restore.
 
-## 8. Gehoste oefening na het checkpoint
+## 8. Gehoste oefening bij een nieuwe, afzonderlijk goedgekeurde drill
 
-CSI HIT TEST moet eerst actief zijn en de hervatting moet in deze taak worden bevestigd. IScout hoeft niet tijdens lokale ontwikkeling gepauzeerd te zijn. Hervat/verplaats projecten niet zelfstandig.
+De bestaande hosted acceptatie is geslaagd: 17/17 applicatiedatasets, 3/3 bestanden en 6/6 accounts, met browsergebruik op de herstelde Preview. Herhaal dit niet tijdens een productierelease. Voor een nieuwe geautoriseerde oefening moet CSI HIT TEST eerst ACTIVE_HEALTHY zijn. Hervat/verplaats CSI HIT TEST of IScout niet zelfstandig.
 
 Na migratie en `node tests/backend/setup-hosted.cjs`:
 
@@ -93,4 +93,4 @@ node scripts/recovery/drill-smoke.mjs --target ksnagauoufsriwplvvtd --report .lo
 
 Dagelijkse succesvolle backup betekent normaal maximaal ongeveer 24 uur dataverlies; mislukte jobs vergroten dit. Health waarschuwt na 30 uur (24 uur + 6 uur tolerantie), met dezelfde aanlooptermijn na LIVE-activatie. Off-project RPO is de leeftijd van de laatste **extern opgeslagen** bundle; een download die alleen in dezelfde dienst staat telt niet.
 
-Noteer incidentstart, gekozen backup, laden/validatie, accounts, database, Storage, controle, eerste bruikbare login en vrijgave. Toolrapporten meten technische fasen; menselijk onderzoek, nieuwe omgeving, wachtwoordherstel en DNS horen óók bij operationele RTO. Lokale milliseconden zijn geen gehoste weekend-RTO. Gehoste RTO is op dit checkpoint nog onbekend.
+Noteer incidentstart, gekozen backup, laden/validatie, accounts, database, Storage, controle, eerste bruikbare login en vrijgave. Toolrapporten meten technische fasen; menselijk onderzoek, nieuwe omgeving, wachtwoordherstel en DNS horen óók bij operationele RTO. Lokale milliseconden zijn geen gehoste weekend-RTO. De hosted acceptatie mat 5,97 seconden voor restore inclusief verificatie en 21,57 seconden voor de volledige gescripte oefening tot werkende browserrollen, op een reeds ingerichte omgeving. Dit bewijst geen operationele RTO inclusief provisioning en menselijke handelingen.

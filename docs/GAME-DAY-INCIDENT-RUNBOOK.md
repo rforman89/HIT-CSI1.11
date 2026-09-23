@@ -23,17 +23,17 @@ node scripts/recovery/cli.mjs backup --config .local/verified-backend.json --tar
 node scripts/recovery/cli.mjs verify --bundle .local/new-portable.json
 ```
 
-Deze opdracht schrijft ook de in-project backup; op Production pas na afzonderlijke vrijgave van deze fase. In deze Work-opdracht wordt dit commando nooit tegen Production uitgevoerd. Kopieer de gecontroleerde download naar afgesproken externe opslag, met beperkte toegang. Leg tijd/UUID en bewaarplek vast, geen credentials.
+Deze opdracht schrijft ook de in-project backup. De operationsrelease van 23 september 2026 heeft dit backupmechanisme op Production gecontroleerd. Voer een productiebackup bewust uit met geverifieerde productieconfiguratie en beheerautorisatie; een restore naar Production blijft verboden. Kopieer de gecontroleerde download naar afgesproken externe opslag, met beperkte toegang. Leg tijd/UUID en bewaarplek vast, geen credentials.
 
 ## Frontend rollback
 
 1. Controleer of het incident frontendcode betreft. Bewaar deployment-ID, commit en tijd. Kijk in Vercel welke eerdere deployment daadwerkelijk goed was.
 2. Controleer databasecompatibiliteit vóór terugzetten. De oude frontend van vóór core hardening gebruikt een ingetrokken pegel-RPC: die terugzetten kan mutaties breken. Ook de nieuwe backupinterface vereist de operationsmigratie én Edge worker.
 3. Na expliciete releasebeslissing: Vercel project → Deployments → gekozen compatibele Ready-deployment → rollback naar de bedoelde omgeving. Controleer domeinen, drie rollen en schrijfflows. Geen automatische down-migratie.
-4. Previewproblemen los je op in Preview. Geen promote/Production deployment als onderdeel van deze hardeningopdracht.
+4. Previewproblemen los je op in Preview. Een verdere Production deployment vraagt een eigen releasebeslissing.
 
 ## Audit opzoeken (admin, read-only)
 
-Gebruik Supabase Table Editor/SQL Editor met beperkte beheerrechten. Filter `operation_audit` op `target`, `actor`, `action_id` en tijd; newest first. Pegelacties bewaren hun UUID, andere gekoppelde mutaties delen een transactie-ID. Actietypen bevatten tabel en insert/update/delete; reset en demo-cleanup hebben daarnaast een expliciete actieregel, ook bij nul gewijzigde rijen. Serviceacties hebben een lege actor. Geweigerde transacties rollen inclusief audit terug: zoek mislukte pogingen in platformlogs. Geen onbewezen ‘succes’ uit een clientlog afleiden.
+Gebruik Supabase Table Editor/SQL Editor met beperkte beheerrechten. Filter `operation_audit` op `target`, `actor`, `action_id` en tijd; newest first. Pegelacties bewaren hun UUID, andere gekoppelde mutaties delen een transactie-ID. Actietypen bevatten tabel en insert/update/delete; reset en demo-cleanup hebben daarnaast een expliciete actieregel, ook bij nul gewijzigde rijen. Serviceacties hebben een lege actor. Backupacties hebben hun eigen duurzame registratie in `backup_runs`: UUID, actor (of NULL voor servicebeheer), source, start/eindtijd, status en counts. Ze krijgen in deze versie geen dubbele regel in `operation_audit`. Geweigerde transacties rollen inclusief audit terug: zoek mislukte pogingen in platformlogs. Geen onbewezen ‘succes’ uit een clientlog afleiden.
 
 Bij escalatie deel je alleen tijd, release, foutcategorie, request/actie-ID en betrokken groep-ID. Auth-support of ontvangen wachtwoordherstellinks gaan via het afgesproken privébeheerproces.
