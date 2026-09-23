@@ -30,7 +30,13 @@
     "test:setup": "node tests/backend/setup.cjs",
     "test:db": "node --test --test-concurrency=1 tests/backend/integration.test.cjs",
     "test:e2e": "node --test --test-concurrency=1 tests/browser/e2e.test.cjs",
-    "test:config": "node --test tests/config/build-guard.test.cjs"
+    "test:config": "node --test tests/config/build-guard.test.cjs",
+    "test:recovery": "node --test tests/recovery/unit.test.mjs",
+    "test:recovery:db": "node --test --test-concurrency=1 tests/recovery/database.test.mjs",
+    "recovery": "node scripts/recovery/cli.mjs",
+    "test:recovery:setup": "node tests/recovery/setup.cjs",
+    "test:recovery:handler": "node --test tests/recovery/handler.test.mjs",
+    "test:recovery:browser": "node --test tests/recovery/browser.test.mjs"
   },
   "browserslist": [
     ">0.2%",

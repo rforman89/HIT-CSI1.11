@@ -1,4 +1,5 @@
 import React from "react";
+import {recordDiagnostic} from "../../services/diagnostics";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -17,6 +18,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
+    recordDiagnostic("render");
     console.error("CSI HIT render error:", error, info);
   }
 

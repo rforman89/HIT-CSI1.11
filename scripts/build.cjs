@@ -4,6 +4,7 @@ require('react-scripts/config/env');
 const { spawnSync } = require('node:child_process');
 const production = 'uhfcrskkgutlqqogahbr';
 if (process.env.VERCEL_ENV === 'production') process.env.REACT_APP_ENVIRONMENT = 'production';
+process.env.REACT_APP_RELEASE = process.env.VERCEL_GIT_COMMIT_SHA || process.env.CSI_RELEASE || 'local';
 const environment = process.env.REACT_APP_ENVIRONMENT;
 let endpoint;
 try { endpoint = new URL(process.env.REACT_APP_SUPABASE_URL); } catch { throw new Error('Supabase URL ontbreekt of is ongeldig.'); }

@@ -7,12 +7,11 @@ module.exports = async function handler(req, res) {
   }
 
   const authHeader = req.headers.authorization || "";
-  const querySecret = req.query?.secret || "";
   const expectedSecret = process.env.CRON_SECRET;
 
   const isAuthorized =
     expectedSecret &&
-    (authHeader === `Bearer ${expectedSecret}` || querySecret === expectedSecret);
+    authHeader === `Bearer ${expectedSecret}`;
 
   if (!isAuthorized) {
     return res.status(401).json({
@@ -33,6 +32,9 @@ module.exports = async function handler(req, res) {
     });
   }
 
+  if (process.env.VERCEL_ENV === "preview" && supabaseUrl !== "https://ksnagauoufsriwplvvtd.supabase.co") {
+    return res.status(500).json({ok:false,message:"Preview backend geweigerd."});
+  }
   try {
     const keepAliveResponse = await fetch(
       `${supabaseUrl}/rest/v1/app_settings?select=key%2Cvalue&key=eq.game_mode`,
@@ -102,7 +104,7 @@ module.exports = async function handler(req, res) {
       message: timedOut
         ? "CSI HIT-onderhoud duurde te lang."
         : "Onverwachte fout bij CSI HIT-onderhoud.",
-      error: err?.message || String(err),
+      error: timedOut ? "maintenance_timeout" : "maintenance_failed",
     });
   }
 };

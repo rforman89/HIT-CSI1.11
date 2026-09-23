@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase, backend } from "./supabase";
+import { recordDiagnostic, diagnosticScreen } from "./services/diagnostics";
 import { loadAppSnapshot } from "./services/loadAppSnapshot";
 import { createRequestGate, mutateCredits, creditStorageKey, readPendingCredit, purchaseTimestamp } from "./utils/reliability";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
@@ -511,6 +512,7 @@ export default function App() {
       const snapshot = await loadAppSnapshot(supabase, userId, request.signal, ENABLE_FINAL_REPORTS);
       if (!request.isCurrent() || sessionRef.current?.user?.id !== userId) return;
       setProfile(snapshot.profile);
+      diagnosticScreen(snapshot.profile.role);
       setAgendaItems(snapshot.agendaItems); setSuspects(snapshot.suspects); setClues(snapshot.clues);
       setClueCategories(snapshot.clueCategories); setGameMode(snapshot.gameMode);
       setFinalReportsOpen(snapshot.finalReportsOpen); setLatestBackupInfo(snapshot.latestBackupInfo);
@@ -521,6 +523,7 @@ export default function App() {
       setDataStatus({ loading: false, error: snapshot.gameMode === "unknown" ? "Spelmodus onbekend. Testacties zijn geblokkeerd." : "", lastUpdated: Date.now() });
     } catch (err) {
       if (!request.isCurrent() || sessionRef.current?.user?.id !== userId) return;
+      recordDiagnostic("sync");
       setGameMode("unknown");
       const message = "Verversen mislukt. Laatst geladen gegevens blijven zichtbaar. " + (err?.message || "Controleer de verbinding.");
       setDataStatus(current => ({ ...current, loading: false, error: message }));

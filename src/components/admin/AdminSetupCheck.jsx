@@ -1,4 +1,5 @@
 import React from "react";
+import BackupOperations from "./BackupOperations";
 
 export default function AdminSetupCheck({ ctx }) {
   const {
@@ -262,94 +263,12 @@ export default function AdminSetupCheck({ ctx }) {
         )}
       </div>
 
+      <BackupOperations client={ctx.supabase} styles={styles} />
       <div style={styles.card}>
-        <h3>Backup & export</h3>
-
-        <p style={styles.subtle}>
-          Nachtbackups draaien alleen wanneer het spel in LIVE-modus staat. In
-          testmodus wordt automatische backup bewust overgeslagen, zodat
-          testdata geen backup-archief vult.
-        </p>
-
-        <div
-          style={{
-            ...styles.card,
-            borderColor: latestBackupInfo ? "#166534" : "#52525b",
-            background: latestBackupInfo
-              ? "linear-gradient(180deg, rgba(20,83,45,0.14), #18181b)"
-              : "#18181b",
-          }}
-        >
-          <strong>Laatste Supabase backup</strong>
-
-          {latestBackupInfo ? (
-            <>
-              <div style={styles.ok}>
-                ✅ {formatDate(latestBackupInfo.created_at)}
-              </div>
-              <div style={styles.subtle}>
-                Pad: {latestBackupInfo.path || "onbekend"}
-              </div>
-              {latestBackupInfo.source && (
-                <span style={styles.badge}>
-                  Bron: {latestBackupInfo.source}
-                </span>
-              )}
-              {latestBackupInfo.record_counts && (
-                <div style={{ marginTop: 8 }}>
-                  {Object.entries(latestBackupInfo.record_counts).map(
-                    ([name, count]) => (
-                      <span key={name} style={styles.badge}>
-                        {name}: {count}
-                      </span>
-                    )
-                  )}
-                </div>
-              )}
-            </>
-          ) : (
-            <p style={styles.subtle}>
-              Nog geen automatische LIVE-backup gevonden. Maak vóór het echte
-              spel minimaal één handmatige backup in LIVE-modus.
-            </p>
-          )}
-        </div>
-
-        {gameMode === "live" ? (
-          <button
-            style={{
-              ...styles.button,
-              opacity: isBackupRunning ? 0.65 : 1,
-              cursor: isBackupRunning ? "not-allowed" : "pointer",
-            }}
-            onClick={createLiveBackup}
-            disabled={isBackupRunning}
-          >
-            {isBackupRunning
-              ? "Backup wordt gemaakt..."
-              : "Handmatige LIVE-backup maken"}
-          </button>
-        ) : (
-          <p style={styles.error}>
-            Supabase nachtbackup staat uit zolang het spel in testmodus staat.
-          </p>
-        )}
-
-        <p style={styles.subtle}>
-          Lokale export blijft beschikbaar als snelle handmatige noodkopie. Je
-          browser downloadt dan meerdere CSV-bestanden achter elkaar.
-        </p>
-
-        <button
-          style={styles.buttonSecondary}
-          onClick={exportCompleteCsvBackup}
-        >
-          Volledige CSV-backup downloaden
-        </button>
-
-        <button style={styles.buttonSecondary} onClick={exportFullBackup}>
-          Technische JSON-backup downloaden
-        </button>
+        <h3>Speloverzichten exporteren</h3>
+        <p style={styles.subtle}>Deze browseroverzichten zijn geen herstelbackup. Gebruik de portable bundle voor volledig herstel.</p>
+        <button style={styles.buttonSecondary} onClick={exportCompleteCsvBackup}>CSV-overzichten downloaden</button>
+        <button style={styles.buttonSecondary} onClick={exportFullBackup}>JSON-schermoverzicht downloaden</button>
       </div>
     </div>
   );
