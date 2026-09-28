@@ -31,7 +31,7 @@ test('jury browser -> limited credit/release RPC -> real database and signed pho
  await p.getByRole('button',{name:'Pegels verwerken'}).click();await p.getByText('Pegels bijgewerkt.',{exact:true}).waitFor();
  assert.equal(ok(await service.from('groups').select('credits').eq('id',f.groupB).single()).credits,before+3);
  const release=p.getByRole('button',{name:'Vrijgeven',exact:true}).first();assert.ok(await release.count()>0,'requested clue fixture must exist');await release.click();await p.waitForTimeout(500);
- const photos=p.locator('img[src*="/object/sign/suspect-photos/"]');assert.ok(await photos.count()>0);await photos.first().waitFor();assert.equal(await photos.first().evaluate(i=>i.complete&&i.naturalWidth>0),true);
+ const photos=p.locator('img[src*="/object/sign/suspect-photos/"]');assert.ok(await photos.count()>0);await photos.first().waitFor();await photos.first().evaluate(i=>new Promise((resolve,reject)=>{if(i.complete)return i.naturalWidth>0?resolve():reject(Error('Photo failed'));i.addEventListener('load',resolve,{once:true});i.addEventListener('error',()=>reject(Error('Photo failed')),{once:true});}));
  await photos.first().click();await p.getByRole('button',{name:'Sluiten',exact:true}).click();
  for(const [width,height]of [[360,800],[390,500],[844,390]]){await p.setViewportSize({width,height});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);}
  await p.setViewportSize({width:390,height:844});await p.evaluate(()=>scrollTo(0,0));
