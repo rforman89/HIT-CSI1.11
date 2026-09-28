@@ -1,6 +1,6 @@
 const {test,before,after}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),{randomUUID}=require('node:crypto');
-const {service,sql,ok,client,login}=require('../backend/local.cjs');
-const f=JSON.parse(fs.readFileSync('.local/fixture.json'));
+const {service,sql,ok,client,login,config,fixtureFile,verify,hosted}=require('../backend/target.cjs');
+const f=JSON.parse(fs.readFileSync(fixtureFile));
 let actors={};
 const tables=['groups','suspects','clues','clue_categories','group_members','group_clues','suspect_notes','suspect_statuses','notifications','credit_transactions','agenda_items','app_settings','final_reports','operation_audit','backup_runs','restore_checks'];
 
@@ -9,9 +9,11 @@ test('Realtime delivers own-group changes but not cross-group, unassigned or ina
  const beforeName=ok(await service.from('groups').select('name').eq('id',f.groupA).single()).name;
  try{
   for(const role of Object.keys(events)){
-   const channel=actors[role].channel('security-'+role+'-'+randomUUID()).on('postgres_changes',{event:'UPDATE',schema:'public',table:'groups',filter:'id=eq.'+f.groupA},p=>events[role].push(p));
+   let ready=false;
+   const channel=actors[role].channel('security-'+role+'-'+randomUUID()).on('system',{},p=>{if(p.extension==='postgres_changes'&&p.status==='ok')ready=true;}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'groups',filter:'id=eq.'+f.groupA},p=>events[role].push(p));
    channels.push([actors[role],channel]);
    await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Realtime subscription timeout')),8000);channel.subscribe(status=>{if(status==='SUBSCRIBED'){clearTimeout(timer);resolve();}if(status==='CHANNEL_ERROR'){clearTimeout(timer);reject(Error(status));}});});
+   const deadline=Date.now()+15000;while(!ready&&Date.now()<deadline)await new Promise(r=>setTimeout(r,100));assert.ok(ready,'Postgres subscription ready');
   }
   ok(await service.from('groups').update({name:beforeName+' [security]'}).eq('id',f.groupA));
   const end=Date.now()+8000;while(!events.a.length&&Date.now()<end)await new Promise(r=>setTimeout(r,100));
@@ -33,11 +35,13 @@ test('jury cannot fetch unreferenced storage objects; admin may clean them',asyn
  try{assert.ok((await actors.jury.storage.from('clue-files').download(path)).error);assert.ok((await actors.admin.storage.from('clue-files').download(path)).data);
  ok(await actors.admin.storage.from('clue-files').upload(path,Buffer.from('%PDF-1.4 replaced'),{contentType:'application/pdf',upsert:true}));
  }finally{ok(await actors.admin.storage.from('clue-files').remove([path]));}
- assert.ok((await actors.admin.storage.from('clue-files').download(path)).error);
+ const {data:{session}}=await actors.admin.auth.getSession();
+ const fresh=await fetch(config.API_URL+'/storage/v1/object/authenticated/clue-files/'+path+'?deleted='+randomUUID(),{headers:{apikey:config.ANON_KEY,Authorization:'Bearer '+session.access_token}});assert.notEqual(fresh.status,200,'fresh download after deletion');
 });
 
 const denied=result=>{if(!result.error)assert.equal(result.data?.length||0,0)};
 before(async()=>{
+ await verify();
  for(const role of ['admin','a','b','suspect','jury','unassigned','inactive','no_profile']) actors[role]=await login(role);
  actors.anon=client();
  sql("DELETE FROM public.profiles WHERE id='"+f.users.no_profile+"'");
@@ -116,7 +120,7 @@ test('jury release changes only status and time, repeated release preserves time
  denied(await actors.jury.from('group_clues').update({group_id:f.groupA}).eq('id',row.id).select());
 });
 test('public/anon/unassigned photo reads denied, own participant and jury allowed',async()=>{
- const pub=await fetch('http://127.0.0.1:55421/storage/v1/object/public/suspect-photos/security/own.png');assert.notEqual(pub.status,200);
+ const pub=await fetch(config.API_URL+'/storage/v1/object/public/suspect-photos/security/own.png');assert.notEqual(pub.status,200);
  for(const r of ['anon','unassigned','inactive'])assert.ok((await actors[r].storage.from('suspect-photos').download('security/own.png')).error);
  for(const r of ['a','jury','admin','suspect'])assert.ok((await actors[r].storage.from('suspect-photos').download('security/own.png')).data);
  assert.ok((await actors.suspect.storage.from('suspect-photos').download('security/other.png')).error);
@@ -144,7 +148,13 @@ test('signed URL works and expires',async()=>{
 });
 test('signup cannot assign role through metadata and sees no game data before assignment',async()=>{
  const c=client(),email='signup-'+randomUUID()+'@example.test';
- const {user}=ok(await c.auth.signUp({email,password:randomUUID()+'A!9',options:{data:{role:'admin',is_active:true}}}));
+ const password=randomUUID()+'A!9';let user;
+ if(hosted){
+  // Hosted default mailer rejects reserved .test addresses; generate a real signup token without sending email.
+  assert.ok((await c.auth.signUp({email,password})).error);
+  const generated=ok(await service.auth.admin.generateLink({type:'signup',email,password,options:{data:{role:'admin',is_active:true}}}));user=generated.user;
+  const confirmed=ok(await c.auth.verifyOtp({type:'signup',token_hash:generated.properties.hashed_token}));assert.ok(confirmed.session);
+ }else({user}=ok(await c.auth.signUp({email,password,options:{data:{role:'admin',is_active:true}}})));
  try{assert.equal(ok(await service.from('profiles').select('role').eq('id',user.id).single()).role,'participant');denied(await c.from('clues').select());}
  finally{await c.auth.signOut();ok(await service.auth.admin.deleteUser(user.id));}
 });
@@ -157,13 +167,14 @@ test('SQL grants and invoker views remain closed; no new unrestricted definers',
 
 test('backup handler denies jury and inactive admin for start AND signed download',async()=>{
  const {createHandler}=await import('../../supabase/functions/_shared/handler.mjs');
- const {createClient}=require('@supabase/supabase-js'),{config}=require('../backend/local.cjs');
+ const {createClient}=require('@supabase/supabase-js'),{config}=require('../backend/target.cjs');
  const env={SUPABASE_URL:config.API_URL,SUPABASE_ANON_KEY:config.ANON_KEY,SUPABASE_SERVICE_ROLE_KEY:config.SERVICE_ROLE_KEY};
  const handler=createHandler(createClient,key=>env[key]);
  ok(await service.from('profiles').update({is_active:false}).eq('id',f.users.admin));
  try{for(const role of ['jury','admin'])for(const body of [{request_id:randomUUID()},{action:'download',backup_id:randomUUID()}]){
   const {data:{session}}=await actors[role].auth.getSession();
-  const response=await handler(new Request(config.API_URL+'/functions/v1/csi-hit-nightly-backup',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify(body)}));
+  const send=hosted?fetch:handler;
+  const response=await send(new Request(config.API_URL+'/functions/v1/csi-hit-nightly-backup',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify(body)}));
   assert.equal(response.status,403);
  }}finally{ok(await service.from('profiles').update({is_active:true}).eq('id',f.users.admin));}
 });

@@ -33,7 +33,7 @@ test('hosted Storage: private clue upload, replacement, purchase-gated download,
   const c = ok(await service.from('clues_base').insert({ title:'TEST - Storage',description:'Fictief opslagbestand',price:5,is_visible:true,is_active:true,file_url:name }).select().single());
   t.after(async () => { ok(await admin.storage.from(bucket).remove([name])); ok(await admin.from('clues').delete().eq('id',c.id)); });
   const buckets = ok(await service.storage.listBuckets());
-  assert.equal(buckets.find(x=>x.id===bucket).public,false); assert.equal(buckets.find(x=>x.id==='suspect-photos').public,true);
+  assert.equal(buckets.find(x=>x.id===bucket).public,false); assert.equal(buckets.find(x=>x.id==='suspect-photos').public,false);
   ok(await admin.storage.from(bucket).upload(name,Buffer.from('%PDF-1.4 fictitious v1'),{contentType:'application/pdf'}));
   ok(await admin.storage.from(bucket).upload(name,Buffer.from('%PDF-1.4 fictitious v2'),{contentType:'application/pdf',upsert:true}));
   assert.ok((await a.storage.from(bucket).download(name)).error);
@@ -44,14 +44,15 @@ test('hosted Storage: private clue upload, replacement, purchase-gated download,
   assert.ok((await b.storage.from(bucket).download(name)).error);
   assert.ok((await suspect.storage.from(bucket).download(name)).error);
 });
-test('hosted Storage: suspect photo upload and replacement preserve public access with admin-only writes', async t => {
+test('hosted Storage: suspect photo upload and replacement preserve private access with admin-only writes', async t => {
   const bucket='suspect-photos',name=`hosted-${randomUUID()}.png`,bytes=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrWQAAAAASUVORK5CYII=','base64');
   t.after(async()=>{ok(await service.storage.from(bucket).remove([name]));});
   ok(await admin.storage.from(bucket).upload(name,bytes,{contentType:'image/png'}));
   ok(await admin.storage.from(bucket).upload(name,bytes,{contentType:'image/png',upsert:true}));
   assert.ok((await b.storage.from(bucket).upload(name,bytes,{contentType:'image/png',upsert:true})).error);
   const {data}=admin.storage.from(bucket).getPublicUrl(name);
-  assert.equal((await fetch(data.publicUrl)).status,200);
+  assert.notEqual((await fetch(data.publicUrl)).status,200);
+  assert.ok((await admin.storage.from(bucket).download(name)).data);
 });
 async function watch(actor,table,events) {
   let postgresReady = false;

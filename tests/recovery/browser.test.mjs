@@ -10,7 +10,7 @@ before(local.verify);beforeEach(local.verify);
 const fixture=JSON.parse(await fs.readFile(local.fixtureFile,'utf8'));
 const preview=local.hosted?JSON.parse(await fs.readFile('.local/preview.json','utf8')):null;
 const base=preview?.url||'http://127.0.0.1:3100';
-if(preview&&(preview.branch!=='hardening/backup-restore-operations'||new URL(base).protocol!=='https:'||!new URL(base).hostname.endsWith('.vercel.app')))throw Error('verified_preview_required');
+if(preview&&(!['hardening/backup-restore-operations','hardening/security-roles-product'].includes(preview.branch)||new URL(base).protocol!=='https:'||!new URL(base).hostname.endsWith('.vercel.app')))throw Error('verified_preview_required');
 const storageState=local.hosted?'.local/preview-browser-state.json':undefined;
 const targetRef=local.hosted?'ksnagauoufsriwplvvtd':'csi-hit-reliability';
 const env={SUPABASE_URL:local.config.API_URL,SUPABASE_ANON_KEY:local.config.ANON_KEY,SUPABASE_SERVICE_ROLE_KEY:local.config.SERVICE_ROLE_KEY};

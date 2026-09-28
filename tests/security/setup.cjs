@@ -1,9 +1,15 @@
 const fs=require('node:fs'),{randomBytes,randomUUID}=require('node:crypto');
-const {sql,service,ok,root}=require('../backend/local.cjs');
+const {sql,service,ok,root,fixtureFile,verify,hosted}=require('../backend/target.cjs');
 (async()=>{
- const migration='supabase/migrations/20260928182236_security_roles_product.sql';
- if(sql("SELECT to_regprocedure('private.has_game_access()') IS NULL")==='t')sql(fs.readFileSync(migration,'utf8'));
- const file=root+'/.local/fixture.json',f=JSON.parse(fs.readFileSync(file,'utf8'));
+ await verify();
+ for(const [migration,probe] of [
+  ['20260928182236_security_roles_product.sql','private.has_game_access()'],
+  ['20260928192617_security_advisor_refinements.sql','private.release_group_clue(uuid)']
+ ])if(['t','true'].includes(sql("SELECT to_regprocedure('"+probe+"') IS NULL"))){
+  if(hosted)throw Error('Apply the reviewed migrations to verified TEST first');
+  sql(fs.readFileSync('supabase/migrations/'+migration,'utf8'));
+ }
+ const file=root+'/'+fixtureFile,f=JSON.parse(fs.readFileSync(file,'utf8'));
  for(const role of ['jury','unassigned','inactive','no_profile']) {
   if(!f.accounts[role]) {
    f.accounts[role]={email:`security-${role}@example.test`,password:randomBytes(24).toString('base64url')};
@@ -24,5 +30,5 @@ const {sql,service,ok,root}=require('../backend/local.cjs');
  ok(await service.from('suspect_notes').insert({group_id:f.groupB,suspect_id:f.securitySuspect,user_id:f.users.b,note:'TEST SECRET B'}));
  fs.writeFileSync(file,JSON.stringify(f,null,2));
  sql("NOTIFY pgrst,'reload schema'");
- console.log('Local security fixtures prepared; no credentials printed.');
+ console.log('Verified security fixtures prepared; no credentials printed.');
 })().catch(e=>{console.error(e.message);process.exitCode=1});

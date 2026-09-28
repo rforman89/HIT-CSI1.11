@@ -1,5 +1,6 @@
-const {test}=require('node:test'),assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
-const {client,service,ok}=require('../backend/local.cjs');
+const {test,before}=require('node:test'),assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+const {client,service,ok,verify,hosted}=require('../backend/target.cjs');
+before(verify);
 async function account(confirmed=true){const credentials={email:'auth-'+randomUUID()+'@example.test',password:randomUUID()+'Aa9!'};const {user}=ok(await service.auth.admin.createUser({...credentials,email_confirm:confirmed}));return {credentials,user};}
 test('unconfirmed account cannot login; verified email permits login without granting game access',async()=>{
  const {credentials,user}=await account(false),c=client();
@@ -10,6 +11,7 @@ test('password recovery token is verified, password changes, old password fails'
  const {credentials,user}=await account(),c=client();
  try{const link=ok(await service.auth.admin.generateLink({type:'recovery',email:credentials.email}));
   ok(await c.auth.verifyOtp({type:'recovery',token_hash:link.properties.hashed_token}));
+  if(hosted){const short=await c.auth.updateUser({password:'Aa9!1234567'});assert.ok(short.error);assert.match(short.error.message,/12/,'hosted minimum is twelve characters');}
   const password=randomUUID()+'New!9';ok(await c.auth.updateUser({password}));await c.auth.signOut();
   assert.ok((await c.auth.signInWithPassword(credentials)).error);ok(await c.auth.signInWithPassword({...credentials,password}));
  }finally{await c.auth.signOut();ok(await service.auth.admin.deleteUser(user.id));}

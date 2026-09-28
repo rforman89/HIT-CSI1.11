@@ -1,6 +1,6 @@
-# Lokale securityvalidatie
+# Securityvalidatie: lokaal en expliciet hosted TEST
 
-Alle scripts in deze map gebruiken uitsluitend tests/backend/local.cjs: vaste lokale CSI HIT API 127.0.0.1:55421 en DB-container supabase_db_csi-hit-reliability op poort 55422. Geen CSI_BACKEND=hosted-adapter in deze nieuwe suite. Geen productie- of hosted TEST-writes.
+Standaard gebruiken de suites uitsluitend de vaste lokale CSI HIT API 127.0.0.1:55421 en DB-container supabase_db_csi-hit-reliability op poort 55422. Alleen expliciet CSI_BACKEND=hosted selecteert de bestaande helper met exacte TEST-ref, beide keyclaims en database-marker. Productie wordt altijd geweigerd.
 
 ## Voorbereiding
 
@@ -55,3 +55,11 @@ Stop bij het lokale checkpoint. Hervat CSI HIT TEST niet automatisch. Pas na exp
 9. Meld direct wanneer TEST weer gepauzeerd kan worden.
 
 Verwachte hosted validatietijd na ACTIVE_HEALTHY: ongeveer 45–75 minuten inclusief Auth-config, adapter/fixturevoorbereiding, advisors en Preview; geen garantie als mail- of platformproblemen optreden.
+
+## Geautoriseerd hosted vervolg op 28 september
+
+Na ACTIVE_HEALTHY zijn beide securitymigrations en de backup-handler uitsluitend op TEST toegepast. Gebruik CSI_BACKEND=hosted, CSI_PREVIEW_BRANCH=hardening/security-roles-product en zo nodig CSI_SUPABASE_CLI met het absolute CLI-pad. Voer setup-hosted.cjs, test:security:setup en de suites achtereenvolgens uit; herstel fixtures na destructieve regressies. Preview vereist de geverifieerde branch/URL in .local/preview.json en een geldige lokale Vercel-browserstate.
+
+Hosted signup weigert gereserveerde .test-adressen. De test verifieert deze weigering en doorloopt daarna een echte signup-tokenbevestiging via een servermatig gegenereerde link, zonder email te versturen. Recovery en het twaalftekensminimum worden via echte Auth-calls getest. Realtime wacht op de Postgres-system acknowledgement; delete-validatie gebruikt een verse Storage-request om CDN-cache te onderscheiden van een nog bestaand object.
+
+node scripts/privacy/inspect-hosted.cjs inventariseert uitsluitend TEST en kan niets verwijderen. Nieuwe advisorbevindingen zijn verholpen in security_advisor_refinements; bestaande historische adviezen blijven expliciet gedocumenteerd.
