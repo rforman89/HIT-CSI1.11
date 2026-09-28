@@ -1,0 +1,20 @@
+# Production is built from GitHub main. Keep local CLI dry-runs/uploads safe too.
+.git
+.local
+.vercel
+node_modules
+build
+dist
+.env
+.env.*
+!.env.example
+.DS_Store
+supabase/.temp
+tests/backend/supabase/.temp
+tests/backend/supabase/.branches
+test-results
+playwright-report
+playwright/.auth
+browser-profiles
+test-downloads
+*.log

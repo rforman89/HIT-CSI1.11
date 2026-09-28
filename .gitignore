@@ -13,3 +13,7 @@ tests/backend/supabase/.temp/
 tests/backend/supabase/.branches/
 test-results/
 playwright-report/
+playwright/.auth/
+browser-profiles/
+test-downloads/
+*.log
