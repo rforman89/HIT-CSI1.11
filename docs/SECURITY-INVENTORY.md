@@ -80,7 +80,7 @@ Deze tabel omvat alle 38 bij aanvang aangetroffen functies, met het beoogde gedr
 | `private.schema_fingerprint()` | Invoker | Interne schemafingerprint; schema-only. |
 | `backup_storage_inventory()` | Definer | Service-only; bucket/objectmetadata, geen clientgrants. |
 
-Nieuwe functies: private.is_jury(), private.has_game_access(), private.photo_path(text), private.can_read_suspect_photo(text), public.release_group_clue(uuid).
+Nieuwe functies: private.is_jury(), private.has_game_access(), private.photo_path(text), private.can_read_suspect_photo(text), private.release_group_clue(uuid) en de publieke invoker-wrapper public.release_group_clue(uuid).
 Nieuwe helper-EXECUTE expliciet authenticated/service_role, geen PUBLIC/anon; private is geen Data API-schema. release_group_clue is authenticated-only met interne actuele rolcontrole. Nieuwe definers gebruiken lege search_path en gekwalificeerde objectnamen. Bestaande nieuwe helpers is_admin/is_group_member/is_own_suspect/is_test_mode/are_final_reports_open eveneens. handle_new_user gebruikt pg_catalog,public.
 
 Lokale catalogustests controleren: geen anon EXECUTE op public/private definers, geen tabel zonder RLS, geen invoker-loze public-view, geen client-DDL-tabelrechten. Guards en grantchecks in de bestaande recoverytests blijven actief.
@@ -103,10 +103,10 @@ React blijft tekst escapen. Geen dangerouslySetInnerHTML, Markdown-HTML of nieuw
 
 Accountwisseling remount de appdata/formulieren/modals; requestgeneraties blokkeren oude snapshots. Late file-open/download en geplande exports worden op sessie/mount gecontroleerd. Opgeslagen idempotencyreceipt blijft afgeschermd per actor in dezelfde tab; zie privacydocument voor deze bewuste betrouwbaarheidseigenschap.
 
-Vercelheaders voorbereid: CSP, frame-ancestors none, X-Frame-Options DENY, nosniff, no-referrer, Permissions-Policy en HSTS 1 jaar. Script alleen self, geen unsafe-inline/eval. Inline styles nodig voor bestaande Reactstijlobjecten. Backendconnecties uitsluitend eigen Production/TEST-Supabase-origins plus wss. Lokale testserver vervangt expliciet TEST-origin door loopback. Platformtoepassing op echte Preview blijft te bewijzen.
+Vercelheaders op de echte Preview bewezen: CSP, frame-ancestors none, X-Frame-Options DENY, nosniff, no-referrer, Permissions-Policy en HSTS 1 jaar. Script alleen self, geen unsafe-inline/eval. Inline styles nodig voor bestaande Reactstijlobjecten. Backendconnecties uitsluitend eigen Production/TEST-Supabase-origins plus wss. Lokale testserver vervangt expliciet TEST-origin door loopback.
 
 Browserflows testen ingelogde jury/admin, foto/modal, CSV-download, framing, CSP-events en accountwisseling. Hostingheaders zijn niet op Production gezet.
 
 ## Auth en privacy
 
-Zie [Privacy, Auth en retentie](SECURITY-PRIVACY-RETENTION.md) voor actuele public Auth-instellingen, ongeverifieerde beheerinstellingen, lifecycle, FK-risico's, accountplan en orphan-detector. Geen nieuwe Auth-config of automatische retentietaak is in productie toegepast.
+Zie [Privacy, Auth en retentie](SECURITY-PRIVACY-RETENTION.md) voor Auth-instellingen, lifecycle, FK-risico's, accountplan en orphan-detector. TEST-beheerinstellingen en Auth-flows zijn geverifieerd; Production-beheerinstellingen zijn niet gewijzigd. Geen automatische retentietaak is toegevoegd. [Het eindrapport](SECURITY-ROLES-PRODUCT-REPORT.md) bevat de definitieve hosted resultaten.

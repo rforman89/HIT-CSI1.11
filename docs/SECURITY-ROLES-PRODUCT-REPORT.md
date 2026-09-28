@@ -1,20 +1,20 @@
-# Security, Roles & Product Hardening — lokaal checkpoint
+# Security, Roles & Product Hardening — gevalideerde Preview
 
 Datum: 28 september 2026.
 
-**Klaar voor hosted security validation – CSI HIT TEST moet worden hervat.**
+**CSI HIT TEST kan nu veilig worden gepauzeerd en IScout kan worden hervat.**
 
 ## 1. Executive summary
 
-De lokale implementatie en regressievalidatie zijn afgerond: 187 verschillende tests geslaagd. Jury kan dossiers lezen, aangevraagde aanwijzingen vrijgeven en pegels corrigeren, zoals door de opdrachtgever bevestigd. Technisch beheer blijft bij actieve admins. Nieuwe, ongekoppelde en inactieve accounts krijgen geen speltoegang. Foto's zijn lokaal privé, exports zijn beschermd en browserheaders zijn voorbereid en lokaal getest.
+Lokale en gehoste validatie zijn afgerond: 195 verschillende automatische tests gedekt, waarvan 116 tegen hosted services/Preview. Jury kan dossiers lezen, aangevraagde aanwijzingen vrijgeven en pegels corrigeren, zoals door de opdrachtgever bevestigd. Technisch beheer blijft bij actieve admins. Nieuwe, ongekoppelde en inactieve accounts krijgen geen speltoegang. Foto's zijn op TEST privé, exports zijn beschermd en browserheaders worden op de echte Preview afgedwongen.
 
-Dit is uitsluitend het lokale checkpoint. CSI HIT TEST is niet hervat; er is niets gepusht of gedeployed. Gehoste validatie blijft een releasevoorwaarde.
+Na het lokale checkpoint heeft de opdrachtgever het hosted vervolg beschikbaar gesteld. TEST is hervat en pas na ACTIVE_HEALTHY beschreven. Beide migrations en de backup-handler zijn uitsluitend op TEST toegepast. Preview is Ready en volledig gevalideerd. Production is ongewijzigd. Na het directe pauze-checkpoint is alleen lokale rapportage/Git-afronding uitgevoerd.
 
 ## 2. Securityarchitectuur voor/na
 
 De read-only productie-inventaris omvat 20 RLS-tabellen, 6 security-invoker-views, 63 policies en 38 applicatiefuncties. De bestaande basis beschermde groepsmutaties en betaalde aanwijzingen, maar sommige leesrechten waren breder dan actieve deelname en foto's stonden publiek.
 
-De nieuwe migration voegt actieve deelname als aanvullende serverregel toe, beperkt juryacties via gerichte RPC's en maakt foto's privé. Bestaande eigendomsregels blijven behouden. UI-verbergen is geen autorisatiegrens. Zie [volledige inventaris](SECURITY-INVENTORY.md).
+De nieuwe migrations voegen actieve deelname als aanvullende serverregel toe, beperken juryacties via gerichte RPC's en maken foto's privé. Bestaande eigendomsregels blijven behouden. UI-verbergen is geen autorisatiegrens. De tweede migration verhelpt nieuwe advisorbevindingen zonder de rechten te verruimen. Zie [volledige inventaris](SECURITY-INVENTORY.md).
 
 ## 3. Rechtenmatrix
 
@@ -38,11 +38,11 @@ Aanvullende restrictive policies beveiligen 13 bestaande speltabellen. Eigen gro
 
 ## 8. RPC / SECURITY DEFINER
 
-De oorspronkelijke 38 applicatiefuncties zijn afzonderlijk geïnventariseerd. Helpers hebben expliciete grants en veilige search paths. `release_group_clue` controleert actieve jury/admin en verandert uitsluitend een aangevraagde vrijgave; herhalen wijzigt de vrijgavetijd niet. `mutate_group_credits` behoudt actorbinding, verplichte reden, locks en idempotency. Lokale controle vond geen ongewenst anon-uitvoerbare definerfunctie. Privileged service-/restorefuncties blijven afgeschermd.
+De oorspronkelijke 38 applicatiefuncties zijn afzonderlijk geïnventariseerd. Helpers hebben expliciete grants en veilige search paths. De publieke invoker-wrapper `release_group_clue` roept een private definer aan die actieve jury/admin controleert en uitsluitend een aangevraagde vrijgave verandert; herhalen wijzigt de vrijgavetijd niet. `mutate_group_credits` behoudt actorbinding, verplichte reden, locks en idempotency. Lokale en hosted checks vonden geen ongewenst anon-uitvoerbare definerfunctie. Privileged service-/restorefuncties blijven afgeschermd.
 
 ## 9. Storage
 
-`suspect-photos` is in de lokale migration private. De frontend gebruikt signed URLs en bewaart het oorspronkelijke objectpad; oude eigen Supabase-public-URLs worden zonder herschrijven van speldata als pad geïnterpreteerd. Clue-files vereisen exacte aanspraak; jury kan geen verweesde bestanden downloaden. Uploads hebben type-/groottelimieten, willekeurige paden en geen upsert. Padvalidatie weigert externe origins en traversal. Backups blijven private. Tests omvatten ongeoorloofde toegang, uploads, delete en echte signed-URL-expiratie.
+`suspect-photos` is op TEST private. De frontend gebruikt signed URLs en bewaart het oorspronkelijke objectpad; oude eigen Supabase-public-URLs worden zonder herschrijven van speldata als pad geïnterpreteerd. Clue-files vereisen exacte aanspraak; jury kan geen verweesde bestanden downloaden. Uploads hebben type-/groottelimieten, willekeurige paden en geen upsert. Padvalidatie weigert externe origins en traversal. Backups blijven private. Hosted tests omvatten ongeoorloofde toegang, uploads, delete en echte signed-URL-expiratie. Delete wordt via een verse request gecontroleerd, zodat een eerder gecachte response niet als nog bestaand object wordt behandeld.
 
 ## 10. CSV/export
 
@@ -50,13 +50,13 @@ CSV neutraliseert spreadsheetformules, inclusief voorafgaande whitespace/control
 
 ## 11. Browserheaders/CSP
 
-Voorbereid in vercel.json: CSP, DENY, nosniff, no-referrer, Permissions-Policy en HSTS. Scripts komen van self, zonder unsafe-inline/eval; bestaande inline React-stijlen vereisen style-src unsafe-inline. Supabase-origins zijn expliciet. Framing is in een echte browser geblokkeerd; login, foto's, modals, downloads en gewijzigde mobiele schermen werken lokaal. React escaping is met opgeslagen aanvalstekst getest. De lokale server gebruikt dezelfde headers met uitsluitend de TEST-origin vervangen door localhost en zonder lokale HSTS. Vercel-enforcement is nog niet bewezen.
+Op de Ready Preview bevestigd: CSP, DENY, nosniff, no-referrer, Permissions-Policy en HSTS. Scripts komen van self, zonder unsafe-inline/eval; bestaande inline React-stijlen vereisen style-src unsafe-inline. Supabase-origins zijn expliciet. Een echte browser blokkeert externe framing. Login, foto's, modals, downloads en gewijzigde mobiele schermen werken. React escaping is met opgeslagen aanvalstekst getest. De laatste afzonderlijke controle van admin, participant, suspect en jury telde per rol nul consolefouten, netwerkfouten en onverwachte hosts.
 
 ## 12. Auth/passwords/sessions
 
-Read-only hosted public settings bevestigen open signup, e-mailbevestiging verplicht, anonymous sign-ins uit en phone uit. Wachtwoordminimum, concrete ratelimits en sessieduur zijn daarmee niet verifieerbaar en blijven open hosted checks. Leaked-password protection was volgens eerdere advisor uit; beschikbaarheid is plan-afhankelijk. Er is geen productie-Auth-instelling gewijzigd.
+TEST-dashboard en echte Auth-calls bevestigen open signup, e-mailbevestiging verplicht, anonymous sign-ins en phone uit. Het TEST-wachtwoordminimum is gecontroleerd verhoogd van 6 naar 12; een update met 11 tekens wordt geweigerd. Site URL is exact de gevalideerde Preview, zonder wildcardredirects. JWT-duur is 3600 seconden, refresh replay detection staat aan met 10 seconden hergebruikmarge. Limieten per 5 minuten: refresh 150, verification 30, login/signup 30. Secure email change staat aan; single-session, timebox en inactivity timeout zijn niet aangezet. Leaked-password protection staat uit en vereist volgens het dashboard Pro. Er is geen productie-Auth-instelling gewijzigd.
 
-Lokale echte Auth-tests bewijzen confirmation-status, login, recovery-token/password-update, refresh en logout. Mailbezorging en hosted redirectconfig zijn nog niet getest. Er is geen nieuw resetwachtwoordscherm; de bestaande organisatie/Auth-beheerflow blijft van toepassing. Accountwisseling remount applicatiestate en wist drafts/modals; oude requests kunnen geen oude gegevens terugzetten. Openstaande, per actor gescheiden idempotencyreceipts blijven bewust in sessionStorage tot afhandeling of sluiten van de tab.
+Hosted Auth-tests bewijzen confirmation, login, recovery-token/password-update, refresh en logout. De gereserveerde fictieve .test-adressen kunnen geen gewone signupmail ontvangen; de tests genereren een echte signupbevestigingslink zonder SMTP. De browser volgt GoTrue, bevestigt het account, blijft op de exacte Preview en krijgt na expliciete passwordlogin geen speltoegang. Een ongeautoriseerde redirect wordt niet overgenomen. Ongebruikte Auth-tokens worden uit de URL-fragmenten verwijderd. Mailbezorging aan echte mailboxen is niet getest. Er is geen nieuw resetwachtwoordscherm; de bestaande organisatie/Auth-beheerflow blijft van toepassing. Accountwisseling wist drafts/modals; oude requests kunnen geen oude gegevens terugzetten. Per actor gescheiden idempotencyreceipts blijven bewust in sessionStorage tot afhandeling of sluiten van de tab.
 
 ## 13. Privacy inventory
 
@@ -66,13 +66,15 @@ Lokale echte Auth-tests bewijzen confirmation-status, login, recovery-token/pass
 
 Voorstel: persoonsgebonden gegevens en audit beoordelen binnen 90 dagen na een vastgesteld evenementseinde; geen nieuwe automatische purge. Bestaande diagnostiekretentie is 30 dagen; backupcleanup bewaart de laatste succesvolle bundle ook als deze ouder is. Externe kopieën vereisen apart beheer.
 
-Een lokale read-only detector rapporteert ontbrekende en mogelijk verweesde Storage-bestanden. Een accountplan inventariseert FK's en referenties voordat Auth-verwijdering overwogen wordt. Bestaande cascades naar notities en nullable historische actoren vragen expliciete behandeling. Er is geen destructieve cleanup- of accountverwijderexecutor en geen productiecleanup.
+Lokale en expliciet TEST-gebonden read-only detectors rapporteren ontbrekende en mogelijk verweesde Storage-bestanden. De laatste TEST-inventaris bevat nul ontbrekende bestanden, nul ongeldige referenties en vijf verweesde kandidaten uit fictieve herstel/testfixtures. Er is niets automatisch verwijderd. Een accountplan inventariseert FK's en referenties voordat Auth-verwijdering overwogen wordt. Bestaande cascades naar notities en nullable historische actoren vragen expliciete behandeling. Er is geen destructieve cleanup- of accountverwijderexecutor en geen productiecleanup.
 
 ## 15. Backup/audit-security
 
 Backupstart en download vereisen nu ook een actieve admin in de gedeelde Edge-handler. Jury en inactieve admin zijn getest en geweigerd. Portable bundles bevatten geen service-role secrets, wachtwoordhashes, sessies of MFA. De Production-restoreguard blijft intact. Audit behoudt begrensde operationele velden zonder vrije notitietekst, tokens of volledige foutpayloads. Denials blijven via bestaande foutcodes en platformdiagnostiek te onderzoeken.
 
-De bestaande lokale herstelregressie slaagt met het nieuwe schema; er is geen nieuwe hosted restore drill uitgevoerd of vereist voor deze fase. Lokale browsertests gebruiken de echte gedeelde handler met lokaal transport, niet de hosted Edge-gateway.
+De bestaande herstelregressie slaagt ook op hosted TEST met het nieuwe schema: alle applicatierijen en bestanden zijn gewist en uit de portable bundle teruggezet. Automatisch geverifieerd: 17/17 applicatiedatasets, 6/6 bestanden, 10/10 accounts; 20 datasets in de volledige bundle inclusief Auth en Storage-metadata. Foreign keys, rollen, memberships en heraangemaakte Auth-UUID-mappings zijn getest. De gemeten herstelduur tot succesvolle login plus groepsread is **12,000 seconden**, waarvan restore en automatische verificatie **8,982 seconden**. Dit is een gemeten herstel-RTO voor deze fixture, exclusief projecthervatting/operatorbesluit. **RPO: geen verlies ten opzichte van de backupsnapshot**; dit bewijst geen nul seconden RPO voor een continu veranderende productieomgeving. De herstelrapportvlag application_usable_verified blijft bij dit API-testpad false; browserbruikbaarheid is afzonderlijk bewezen door de aansluitende Preview-E2E.
+
+De twee hosted backupbrowser-tests gebruiken de werkelijke Edge-gateway, inclusief portable download. De laatste vierrollencontrole bevestigt actuele restorestatus en TEST-backupstatus voor admin; audit bevat actor, actie, target, tijd en resultaat en is voor de drie andere rollen leeg.
 
 ## 16. Tests
 
@@ -91,34 +93,48 @@ De bestaande lokale herstelregressie slaagt met het nieuwe schema; er is geen ni
 | Bestaande browser-E2E | 22 |
 | Securitybrowser | 8 |
 | Recoverybrowser | 2 |
-| **Totaal, zonder dubbeltellingen** | **187** |
+| **Lokale basis, zonder dubbeltellingen** | **187** |
+| Aanvullend: hosted services | 7 |
+| Aanvullend: hosted signupconfirmation via Preview | 1 |
+| **Verschillende tests over lokaal/hosted samen** | **195** |
 
-Geen failures of skips in de afgeronde runs. Build en lint slagen. Secretscan van de 29 gewijzigde bestanden: nul bevindingen; diffcheck van de uiteindelijke branch: schoon. Geen nieuwe dependencies of lockfilewijziging. Testcredentials, lokale logs, builds en screenshots blijven genegeerde lokale artefacten. Responsieve screenshots zijn visueel gecontroleerd. [Reproduceerbare instructies](../tests/security/README.md) bevatten fixturevolgorde en veilige lokale doelbinding.
+Hosted opnieuw uitgevoerd: database 28, security API/RLS/Storage/Realtime 22, Auth 5, services 7, recovery database/audit/health 21, bestaande browser-E2E 22, securitybrowser 8, recoverybrowser 2 en confirmationbrowser 1: **116 geslaagd**. Deze overlappen de lokale basis en worden niet daarbij opgeteld. De vierrollencontrole is aanvullend bewijs, niet als extra tests geteld. Na de advisorrefinement slaagden lokaal opnieuw 31 security/Auth/privacychecks; op de laatste applicatiecommit ook 39 frontendtests, 40 pure/config/handlerchecks, build en lint.
+
+Geen failures of skips in de definitieve runs. Eerdere testharnasproblemen met Realtime-ready timing en foto-load timing zijn opgelost met expliciete readinesschecks, zonder assertions te schrappen. Secretscan van 35 gewijzigde bestanden: nul bevindingen; diffcheck schoon. Diff-/RLS-review controleerde onder andere beide migrations, helpergrants, private RPC-wrapper, actuele actorcontroles en browserdoelbinding. Geen nieuwe dependencies of lockfilewijziging. Credentials, logs, builds en screenshots blijven genegeerde lokale artefacten. [Reproduceerbare instructies](../tests/security/README.md) bevatten fixturevolgorde en veilige doelbinding.
 
 ## 17. Advisors
 
-Lokale catalogus- en migrationreview controleren RLS, grants, definer/search_path, views en relevante bestaande indexes. Hosted security/performance advisors zijn nog niet uitgevoerd voor deze migration en worden niet als groen geclaimd. Eventuele nieuwe relevante bevindingen moeten tijdens de hosted fase worden opgelost; historisch losstaand onderhoud blijft buiten scope.
+Beide hosted advisors zijn na beide migrations uitgevoerd. **Geen ERROR en geen nieuwe WARN door deze hardening.** Twee nieuwe initplanmeldingen, twee nieuwe multiple-policy-meldingen en de melding voor de nieuwe publieke definer zijn opgelost. Autorisatietests zijn daarna opnieuw groen.
+
+Resterend, historisch: security 12 meldingen voor bewust authenticated-uitvoerbare, intern geautoriseerde definers en 1 voor uitgeschakelde leaked-password protection. Performance: 9 initplan-WARN (baseline 10), 19 multiple-permissive-WARN (baseline 19), 2 duplicate-index-WARN, 8 unindexed-FK-INFO en 4 unused-index-INFO. Indexgebruik verandert door testverkeer. Historisch onderhoud valt buiten scope; de advisors zijn dus niet waarschuwingvrij.
+
+Remediatie: [definer grants](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection), [initplan](https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan), [policies](https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies), [duplicate indexes](https://supabase.com/docs/guides/database/database-linter?lint=0009_duplicate_index).
 
 ## 18. Git
 
 - Branch: `hardening/security-roles-product`.
 - Bevestigde uitgangsbasis main/origin/main: `352808e1cec7365f2f3fecee2600966c0b3ffba7`.
-- Functionele commit: `ff6e40b8bc8ffe303bca6e141d406a6616e8f0e4`.
-- Volgende rapportcommit bevat dit rapport en uitsluitend normalisatie van afsluitende lege regels; definitieve HEAD staat in de checkpointmelding.
-- Totaal: 29 gewijzigde bestanden ten opzichte van de uitgangsbasis. Geen push, merge of deployment.
+- Commits: `ff6e40b` implementatie, `a6dad7b` lokaal checkpoint, `153467e` hosted adapters/advisorrefinement, `b742352` Auth-callback en echte confirmationtest.
+- Gevalideerde applicatiecommit: `b742352bc9b2a8a9245e881b4b4168be4293bac8`.
+- De afsluitende rapportcommit verandert uitsluitend documentatie; definitieve branch-HEAD staat in de eindmelding. De hieronder gekoppelde Preview blijft het bewijs voor b742352.
+- Totaal: 35 gewijzigde bestanden ten opzichte van de uitgangsbasis. Alleen deze hardeningbranch gepusht; geen merge naar main.
 
 ## 19. Preview
 
-Geen nieuwe Preview in deze lokale fase. Vervolg: uitsluitend deze branch pushen en Preview aantoonbaar koppelen aan `ksnagauoufsriwplvvtd`. De TEST-adapter en concrete Preview-allowlist worden pas na verificatie van de actieve TEST-omgeving aangesloten; de Production-blokkade blijft behouden.
+[Gevalideerde Vercel Preview](https://hit-csi-1-11-6wcv1pr8h-rforman89s-projects.vercel.app), deployment `dpl_Bq15kGjRNFgVp3QMwvUDFpoknrhN`, status **READY**, commit b742352.
+
+Vier clientconfigvariabelen zijn uitsluitend voor Preview op deze branch ingesteld. Via env pull, deploymentmetadata en de daadwerkelijk geladen frontendbundle is **ksnagauoufsriwplvvtd** bewezen; de public key hoort bij TEST en er is geen service-role key in de bundle. De buildguard blijft fail-closed. Vercel-deploymentbeveiliging kan aanmelden bij Vercel vereisen. Na pauzeren van TEST blijft het statische Preview bestaan, maar zijn backendfuncties niet beschikbaar tot TEST wordt hervat.
 
 ## 20. Production
 
-Production blijft `CSI HIT ALPEN`, projectref `uhfcrskkgutlqqogahbr`. Deze run heeft uitsluitend schema/configuratiemetadata en tellingen gelezen. Geen productiedata, Auth-configuratie, Storage, migrations of deployments zijn gewijzigd; main is niet gewijzigd. Hosted CSI HIT TEST en IScout zijn niet hervat, gepauzeerd of aangepast.
+Production blijft `CSI HIT ALPEN`, projectref **uhfcrskkgutlqqogahbr**. Geen productiedata, Auth-configuratie, Storage, migrations of deployments zijn gewijzigd; main/origin/main zijn opnieuw als 352808e bevestigd. Het Production-deploymenttarget `dpl_DCQWNfp3Qw8JaJ2uesCteyjCG2Px` en alle 13 bestaande Vercel-envrecords zijn ongewijzigd. Een read-only controle van de live frontend op app.csi-hit.nl bewijst de Production-ref en passende public key, zonder servicekey. Bundle-SHA256: f1b857abd48ee41cb18e886a68ecc6b253a87383262fe4113aeec5bb24fd4762.
+
+TEST is voor deze geautoriseerde validatie hervat en aangepast. IScout is niet door deze run gewijzigd. TEST kan nu worden gepauzeerd; er staat geen hosted test meer open.
 
 ## 21. Resterende risico's
 
-- Hosted Auth/RLS/Storage/Realtime, Edge-gateway, advisors en echte Preview-headers/E2E zijn nog vereist.
-- Auth-managementinstellingen en mail/redirectgedrag moeten nog worden geverifieerd; het voorgestelde wachtwoordbeleid is niet live ingesteld.
+- SMTP-bezorging naar echte mailboxen is niet getest; bevestigingslink, redirect en recovery-tokenflow wel. Productie-wachtwoordbeleid moet in een latere release apart beoordeeld worden; alleen TEST heeft nu minimum 12.
+- Leaked-password protection is plan-afhankelijk en staat uit; historische advisor- en dependencywaarschuwingen zijn niet met brede onderhoudswijzigingen weggewerkt.
 - Reeds uitgegeven game-signed-URLs blijven maximaal 300 seconden bruikbaar; backupdownloadlinks 60 seconden. Gedownloade bytes zijn niet intrekbaar.
 - Private foto's, nieuw schema, Edge-handler en frontend vereisen een gecoördineerde latere release; een oude frontend kan na bucketomschakeling tijdelijk foto's verliezen.
 - De schemafingerprint verandert: oude bundles vereisen een passend schemaspoor. Bestaande grenzen van 40 MiB bundles en een niet-atomaire DB/Storage-snapshot blijven gelden.
@@ -127,6 +143,6 @@ Production blijft `CSI HIT ALPEN`, projectref `uhfcrskkgutlqqogahbr`. Deze run h
 
 ## 22. Conclusie
 
-**Nog niet gereed voor production-review.** De lokale implementatie en validatie zijn afgerond, maar hosted beveiliging en Vercel Preview moeten nog aantoonbaar slagen.
+**Gereed voor production-review.** Lokale regressies, hosted autorisatie/Auth/Storage/Realtime, backup/restore/audit, advisors en de echte Preview zijn gevalideerd. De genoemde beperkingen en gecoördineerde releasevolgorde horen bij die review; dit is geen toestemming voor een Production-release.
 
-**Klaar voor hosted security validation – CSI HIT TEST moet worden hervat.** Na expliciete beschikbaarstelling en status ACTIVE_HEALTHY is naar schatting 45–75 minuten nodig voor TEST-migration/handler, fictieve accounts, hosted Auth/RLS/Storage/Realtime, advisors en Preview-E2E. Mail- of platformproblemen kunnen dit verlengen. TEST is op dit checkpoint niet nodig om actief te houden; stop hier totdat de gebruiker de omwisseling beschikbaar stelt.
+**CSI HIT TEST kan nu veilig worden gepauzeerd en IScout kan worden hervat.** Geen verdere werkzaamheden in deze opdracht vereisen een actieve TEST-omgeving.

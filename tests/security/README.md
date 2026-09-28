@@ -14,7 +14,7 @@ npm run build
 node tests/browser/serve.cjs
 ```
 
-Security setup past de nieuwe migration alleen toe wanneer private.has_game_access ontbreekt. Iteraties op een bestaande lokale migration moeten expliciet lokaal worden toegepast; een tweede setup is geen migrationsynchronisatie. De fictieve credentials blijven uitsluitend in .local/fixture.json.
+Security setup controleert beide migrations via private.has_game_access en private.release_group_clue. Ontbrekende migrations worden alleen lokaal toegepast; hosted setup stopt als ze ontbreken. Iteraties op een bestaande lokale migration moeten expliciet lokaal worden toegepast; een tweede setup is geen migrationsynchronisatie. Fictieve credentials blijven uitsluitend in genegeerde .local-fixturebestanden.
 
 ## Suites
 
@@ -50,11 +50,11 @@ Stop bij het lokale checkpoint. Hervat CSI HIT TEST niet automatisch. Pas na exp
 4. Draai dezelfde autorisatiematrix via een expliciet TEST-geallowliste adapter; voer e-mailbevestiging/recovery/refresh, signed URL-expiry en Realtime met echte hosted services uit.
 5. Controleer Auth-beheerinstellingen en test het voorgestelde wachtwoordbeleid. Geen productie-authconfigwijziging.
 6. Run security/performance advisors. Bekijk vooral de bewust authenticated maar intern geautoriseerde release-RPC.
-7. Push alleen hardening/security-roles-product en maak Preview tegen TEST; bewijs deployment- en Supabase-ref. Bestaande browserhelpers accepteren deze nieuwe branch nog niet: voeg de concrete geverifieerde Preview toe aan de allowlist tijdens de hosted fase, zonder de Production-blokkade te versoepelen.
+7. Push alleen hardening/security-roles-product en maak Preview tegen TEST; bewijs deployment- en Supabase-ref. De browserhelpers accepteren deze expliciete branch via de geverifieerde Preview-configuratie; de Production-blokkade blijft behouden.
 8. Test rollen, jurywrites, revocatie, Storage, headers/CSP, downloads, backupstatus en responsive UI.
 9. Meld direct wanneer TEST weer gepauzeerd kan worden.
 
-Verwachte hosted validatietijd na ACTIVE_HEALTHY: ongeveer 45–75 minuten inclusief Auth-config, adapter/fixturevoorbereiding, advisors en Preview; geen garantie als mail- of platformproblemen optreden.
+Dit vervolg is uitgevoerd; zie het definitieve rapport in docs/SECURITY-ROLES-PRODUCT-REPORT.md. Geen actieve TEST-omgeving meer nodig voor afronding van deze opdracht.
 
 ## Geautoriseerd hosted vervolg op 28 september
 
@@ -63,3 +63,5 @@ Na ACTIVE_HEALTHY zijn beide securitymigrations en de backup-handler uitsluitend
 Hosted signup weigert gereserveerde .test-adressen. De test verifieert deze weigering en doorloopt daarna een echte signup-tokenbevestiging via een servermatig gegenereerde link, zonder email te versturen. Recovery en het twaalftekensminimum worden via echte Auth-calls getest. Realtime wacht op de Postgres-system acknowledgement; delete-validatie gebruikt een verse Storage-request om CDN-cache te onderscheiden van een nog bestaand object.
 
 node scripts/privacy/inspect-hosted.cjs inventariseert uitsluitend TEST en kan niets verwijderen. Nieuwe advisorbevindingen zijn verholpen in security_advisor_refinements; bestaande historische adviezen blijven expliciet gedocumenteerd.
+
+`node --test tests/security/hosted-confirmation.test.cjs` volgt een echte signupconfirmationlink via de geverifieerde Preview. De test verwijdert zijn tijdelijke fictieve Auth-account na afloop. De definitieve runs tellen 116 hosted tests, inclusief 33 browserchecks; geen skips of failures. Draai ze alleen na een nieuwe expliciete beschikbaarstelling van TEST.
