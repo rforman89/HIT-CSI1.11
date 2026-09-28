@@ -36,7 +36,13 @@
     "recovery": "node scripts/recovery/cli.mjs",
     "test:recovery:setup": "node tests/recovery/setup.cjs",
     "test:recovery:handler": "node --test tests/recovery/handler.test.mjs",
-    "test:recovery:browser": "node --test tests/recovery/browser.test.mjs"
+    "test:recovery:browser": "node --test tests/recovery/browser.test.mjs",
+    "test:security:setup": "node tests/security/setup.cjs",
+    "test:security": "node --test --test-concurrency=1 tests/security/database.test.cjs tests/security/auth.test.cjs tests/security/privacy.test.cjs",
+    "test:security:browser": "node --test --test-concurrency=1 tests/security/browser.test.cjs",
+    "security:scan": "node scripts/security-scan.cjs",
+    "privacy:inspect": "node scripts/privacy/inspect-local.cjs",
+    "lint": "eslint src --ext .js,.jsx --env browser,es6,jest --global process --global global --rule no-undef:error"
   },
   "browserslist": [
     ">0.2%",

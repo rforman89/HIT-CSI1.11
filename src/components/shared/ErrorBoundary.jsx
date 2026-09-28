@@ -17,9 +17,9 @@ class ErrorBoundary extends React.Component {
     };
   }
 
-  componentDidCatch(error, info) {
+  componentDidCatch() {
     recordDiagnostic("render");
-    console.error("CSI HIT render error:", error, info);
+    console.error("CSI HIT render error (render)");
   }
 
   render() {

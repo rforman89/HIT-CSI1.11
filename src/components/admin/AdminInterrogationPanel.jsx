@@ -3,6 +3,7 @@ import React from "react";
 
 export default function AdminInterrogationPanelComponent({ ctx }) {
   const {
+    profile,
     styles,
     formatDate,
     groups,
@@ -237,7 +238,7 @@ export default function AdminInterrogationPanelComponent({ ctx }) {
                                   "Onbekende groep"}{" "}
                                 · {formatDate(note.created_at)}
                               </div>
-                              <div style={{ marginTop: 8 }}>
+                              {profile?.role === "admin" && <div style={{ marginTop: 8 }}>
                                 <button
                                   style={styles.buttonSecondary}
                                   onClick={() => startEditNote(note)}
@@ -250,7 +251,7 @@ export default function AdminInterrogationPanelComponent({ ctx }) {
                                 >
                                   Verwijderen
                                 </button>
-                              </div>
+                              </div>}
                             </div>
                           ))
                         )}

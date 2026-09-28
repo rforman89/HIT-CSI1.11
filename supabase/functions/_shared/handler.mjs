@@ -89,13 +89,13 @@ export function createHandler(createClient, env) { return async (req) => {
       } else {
       const { data: profile, error: profileError } = await serviceClient
         .from("profiles")
-        .select("role")
+        .select("role,is_active")
         .eq("id", user.id)
         .maybeSingle();
 
       if (profileError) throw profileError;
 
-      if (profile?.role !== "admin") {
+      if (profile?.role !== "admin" || profile.is_active !== true) {
         return respond(
           { success: false, error: "Alleen admin mag een backup starten." },
           403

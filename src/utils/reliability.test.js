@@ -30,8 +30,8 @@ test('unrecognized response keeps action unresolved', async () => { await expect
 test('corrupt persisted action cannot silently create another mutation', async () => { sessionStorage.setItem('pending', '{}'); const client = mock({}); await expect(mutateCredits(params(client))).rejects.toThrow('ongeldig'); expect(client.rpc).not.toHaveBeenCalled(); });
 function snapshotClient(failure, settings = [{ key: 'game_mode', value: 'test' }]) {
   return { from: table => {
-    const builder = { select: () => builder, eq: () => builder, single: () => builder, order: () => builder,
-      abortSignal: async () => table === failure ? { error: { message: 'Verbinding verbroken' } } : { data: table === 'profiles' ? { id: 'a', role: 'participant' } : table === 'app_settings' ? settings : [] } };
+    const builder = { select: () => builder, eq: () => builder, single: () => builder, maybeSingle: () => builder, order: () => builder,
+      abortSignal: async () => table === failure ? { error: { message: 'Verbinding verbroken' } } : { data: table === 'profiles' ? { id: 'a', role: 'admin', is_active: true } : table === 'app_settings' ? settings : [] } };
     return builder;
   } };
 }

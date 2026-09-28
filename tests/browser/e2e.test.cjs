@@ -149,6 +149,7 @@ test('E2E races: delayed old snapshot cannot restore data after logout/account s
 
 test('E2E notes: double submission saves once and status still updates', async t => {
   const { page } = await screen(t, 'a'); await page.getByRole('button', { name: /🕵️ Verdachten/ }).click();
+  await page.locator('select').filter({has:page.locator(`option[value="${fixture.suspect}"]`)}).first().selectOption(fixture.suspect);
   const text = `Testnotitie ${Date.now()}`;
   await page.getByRole('button', { name: 'Notitie toevoegen', exact: true }).click();
   await page.locator('textarea').last().fill(text);
@@ -265,9 +266,11 @@ for (const role of [null, 'admin', 'a', 'suspect']) test(`responsive: ${role || 
   assert.deepEqual(network, [], 'No unexpected HTTP errors in normal responsive flow');
 });
 test('responsive: image modal remains closable at 8 mobile/short/landscape viewports', async t => {
-  const photo = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="1000"><rect width="600" height="1000" fill="#505060"/></svg>');
+  const photo = 'responsive/modal.png';
+  const imageBytes = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6SAAAAABJRU5ErkJggg==','base64');
+  ok(await service.storage.from('suspect-photos').upload(photo,imageBytes,{contentType:'image/png',upsert:true}));
   ok(await service.from('suspects').update({ photo_url: photo }).eq('id', fixture.suspect));
-  t.after(async () => ok(await service.from('suspects').update({ photo_url: null }).eq('id', fixture.suspect)));
+  t.after(async () => {ok(await service.from('suspects').update({ photo_url: null }).eq('id', fixture.suspect));ok(await service.storage.from('suspect-photos').remove([photo]));});
   const { page } = await screen(t, 'admin'); await page.getByRole('button', { name: /🕵️ Verhoor/ }).click();
   for (const [width,height] of sizes) {
     await page.setViewportSize({ width,height }); await page.getByRole('img', { name: 'TEST - Verdachte', exact: true }).click();

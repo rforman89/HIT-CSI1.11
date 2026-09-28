@@ -28,7 +28,8 @@ export default function BackupOperations({client,styles}) {
    const {data,error}=await client.functions.invoke('csi-hit-nightly-backup',{body:{action:'download',backup_id:id}});
    if(error||!data?.url)throw Error();
    const response=await fetch(data.url);if(!response.ok)throw Error();
-   const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');
+   const blob=await response.blob();if(!mounted.current)return;
+   const url=URL.createObjectURL(blob),a=document.createElement('a');
    a.href=url;a.download=`csi-hit-backup-${id}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
    setMessage('Bundle gedownload. Bewaar deze vertrouwelijk op een andere opslaglocatie en controleer hem met de hersteltool.');
   } catch {setMessage('Download mislukt. Probeer opnieuw of gebruik de portable CLI.');}

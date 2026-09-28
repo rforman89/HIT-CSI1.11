@@ -1,4 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import JuryDashboard from "./components/jury/JuryDashboard";
+import AccountAccess from "./components/admin/AccountAccess";
+import { safeCsvValue, buildCsvContent, snapshotJson, storagePath, validateUpload } from "./utils/security";
 import { supabase, backend } from "./supabase";
 import { recordDiagnostic, diagnosticScreen } from "./services/diagnostics";
 import { loadAppSnapshot } from "./services/loadAppSnapshot";
@@ -43,6 +46,17 @@ import {
 const ENABLE_FINAL_REPORTS = false;
 
 export default function App() {
+  const [identity,setIdentity]=useState(null);
+  useEffect(()=>{
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>setIdentity(session?.user?.id||null));
+    return ()=>subscription.unsubscribe();
+  },[]);
+  // Account transitions destroy all drafts, images, modal state and pending async UI.
+  return <GameApp key={identity||"signed-out"}/>;
+}
+
+function GameApp() {
+  const [hasAccess,setHasAccess]=useState(false);
   const reloadTimer = useRef(null);
   const requestGate = useRef(createRequestGate());
   const sessionRef = useRef(null);
@@ -331,7 +345,7 @@ export default function App() {
       }
     };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => acceptSession(newSession));
-    return () => { subscription.unsubscribe(); requestGate.current.invalidate(); };
+    return () => { subscription.unsubscribe(); sessionRef.current = null; requestGate.current.invalidate(); clearTimeout(reloadTimer.current); };
   }, []);
 
   useEffect(() => {
@@ -478,6 +492,8 @@ export default function App() {
   }, [profile?.role, selectedParticipantSuspect, suspects]);
 
   const clearAppData = () => {
+    setHasAccess(false);
+    setImageModal(null);
     setGameMode("unknown");
     setGroups([]);
     setProfiles([]);
@@ -512,6 +528,7 @@ export default function App() {
       const snapshot = await loadAppSnapshot(supabase, userId, request.signal, ENABLE_FINAL_REPORTS);
       if (!request.isCurrent() || sessionRef.current?.user?.id !== userId) return;
       setProfile(snapshot.profile);
+      setHasAccess(snapshot.access);
       diagnosticScreen(snapshot.profile.role);
       setAgendaItems(snapshot.agendaItems); setSuspects(snapshot.suspects); setClues(snapshot.clues);
       setClueCategories(snapshot.clueCategories); setGameMode(snapshot.gameMode);
@@ -520,7 +537,7 @@ export default function App() {
       setNotifications(snapshot.notifications); setTransactions(snapshot.transactions);
       setGroupClues(snapshot.groupClues); setSuspectNotes(snapshot.suspectNotes);
       setSuspectStatuses(snapshot.suspectStatuses); setFinalReports(snapshot.finalReports);
-      setDataStatus({ loading: false, error: snapshot.gameMode === "unknown" ? "Spelmodus onbekend. Testacties zijn geblokkeerd." : "", lastUpdated: Date.now() });
+      setDataStatus({ loading: false, error: snapshot.access && snapshot.gameMode === "unknown" ? "Spelmodus onbekend. Testacties zijn geblokkeerd." : "", lastUpdated: Date.now() });
     } catch (err) {
       if (!request.isCurrent() || sessionRef.current?.user?.id !== userId) return;
       recordDiagnostic("sync");
@@ -569,7 +586,8 @@ export default function App() {
       return;
     }
 
-    setMessage("Account aangemaakt.");
+    setPassword("");
+    setMessage("Controleer zo nodig je bevestigingsmail. Speltoegang volgt nadat de organisatie je account heeft gekoppeld.");
   };
 
   const handleLogin = async () => {
@@ -607,28 +625,12 @@ export default function App() {
   const uploadFileToBucket = async (bucket, folder, file) => {
     if (!file) return null;
 
-    const ext = file.name.split(".").pop();
-    const path = `${folder}/${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2)}.${ext}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(path, file, { upsert: true });
-
-    if (uploadError) {
-      throw new Error("Upload mislukt: " + uploadError.message);
-    }
-
-    // clue-files is a private bucket: a public URL wouldn't work anyway, so
-    // we store the raw storage path and generate a fresh signed URL
-    // whenever someone actually needs to open the file (see openClueFile).
-    if (bucket === "clue-files") {
-      return path;
-    }
-
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    return data.publicUrl;
+    validateUpload(bucket,file);
+    const extensions={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","application/pdf":"pdf","application/msword":"doc","application/vnd.openxmlformats-officedocument.wordprocessingml.document":"docx"};
+    const path=folder+"/"+crypto.randomUUID()+"."+extensions[file.type];
+    const {error:uploadError}=await supabase.storage.from(bucket).upload(path,file,{upsert:false,contentType:file.type});
+    if(uploadError) throw new Error("Upload mislukt: "+uploadError.message);
+    return path;
   };
 
   // Aanwijzing-bestanden staan in een privé-bucket en zijn alleen leesbaar
@@ -637,18 +639,19 @@ export default function App() {
   // kortlevende signed URL op in plaats van een kale publieke link te tonen.
   const openClueFile = async (path) => {
     if (!path) return;
+    const actor = sessionRef.current?.user?.id;
 
     setError("");
 
     // Defensive: older data may still hold the full public URL instead of
     // a bare storage path. Strip it down if so.
-    const storagePath = path.includes("/object/public/clue-files/")
-      ? path.split("/object/public/clue-files/")[1]
-      : path;
+    const filePath = storagePath(path,"clue-files",process.env.REACT_APP_SUPABASE_URL);
 
     const { data, error: signError } = await supabase.storage
       .from("clue-files")
-      .createSignedUrl(storagePath, 300);
+      .createSignedUrl(filePath, 300);
+
+    if (!actor || actor !== sessionRef.current?.user?.id) return;
 
     if (signError || !data?.signedUrl) {
       setError("Kon het bestand niet openen. Probeer het opnieuw.");
@@ -831,7 +834,7 @@ export default function App() {
     const { error } = await supabase.from("suspects").insert({
       name: newSuspectName.trim(),
       description: newSuspectDescription.trim(),
-      photo_url: uploadedUrl || newSuspectPhotoUrl.trim(),
+      photo_url: storagePath(uploadedUrl || newSuspectPhotoUrl.trim(),"suspect-photos",process.env.REACT_APP_SUPABASE_URL),
       is_active: true,
       sort_order: suspects.length + 1,
     });
@@ -852,7 +855,7 @@ export default function App() {
     setEditingSuspectId(suspect.id);
     setEditSuspectName(suspect.name || "");
     setEditSuspectDescription(suspect.description || "");
-    setEditSuspectPhotoUrl(suspect.photo_url || "");
+    setEditSuspectPhotoUrl(suspect.photo_path || suspect.photo_url || "");
   };
 
   const cancelEditSuspect = () => {
@@ -883,7 +886,7 @@ export default function App() {
     const selectedFile = editSuspectFileRef.current?.files?.[0];
 
     let photoUrl =
-      editSuspectPhotoUrl.trim() || existingSuspect?.photo_url || null;
+      editSuspectPhotoUrl.trim() || existingSuspect?.photo_path || existingSuspect?.photo_url || null;
 
     if (selectedFile) {
       const uploadedUrl = await uploadFileToBucket(
@@ -904,7 +907,7 @@ export default function App() {
       .update({
         name: editSuspectName.trim(),
         description: editSuspectDescription.trim(),
-        photo_url: photoUrl,
+        photo_url: storagePath(photoUrl,"suspect-photos",process.env.REACT_APP_SUPABASE_URL),
       })
       .eq("id", editingSuspectId);
 
@@ -1884,13 +1887,6 @@ export default function App() {
     await loadAppData(profile);
   };
 
-  const safeCsvValue = (value) => {
-    if (value === null || value === undefined) return "";
-
-    const stringValue = String(value).replaceAll('"', '""');
-    return `"${stringValue}"`;
-  };
-
   const downloadTextFile = (filename, content, mimeType) => {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -1903,15 +1899,6 @@ export default function App() {
     document.body.removeChild(link);
 
     URL.revokeObjectURL(url);
-  };
-
-  const buildCsvContent = (headers, rows) => {
-    return [
-      headers.map(safeCsvValue).join(";"),
-      ...rows.map((row) =>
-        headers.map((header) => safeCsvValue(row[header])).join(";")
-      ),
-    ].join("\n");
   };
 
   const downloadCsv = (filename, headers, rows) => {
@@ -1945,7 +1932,7 @@ export default function App() {
 
     downloadTextFile(
       `csi-hit-backup-${getExportStamp()}.json`,
-      JSON.stringify(backup, null, 2),
+      snapshotJson(backup),
       "application/json;charset=utf-8;"
     );
   };
@@ -2100,7 +2087,7 @@ export default function App() {
       name: suspect.name || "",
       active: suspect.is_active ? "ja" : "nee",
       description: suspect.description || "",
-      photo_url: suspect.photo_url || "",
+      photo_url: suspect.photo_path || suspect.photo_url || "",
       created_at: suspect.created_at || "",
     }));
 
@@ -2308,8 +2295,10 @@ export default function App() {
       },
     ];
 
+    const exportActor = sessionRef.current?.user?.id;
     exports.forEach((exportFile, index) => {
       window.setTimeout(() => {
+        if (!exportActor || exportActor !== sessionRef.current?.user?.id) return;
         downloadCsv(
           `csi-hit-${exportFile.filename}`,
           exportFile.headers,
@@ -3300,10 +3289,20 @@ export default function App() {
     <AdminDashboardPanel ctx={getComponentContext()} />
   );
 
-  const AdminManage = () => <AdminManagePanel ctx={getComponentContext()} />;
+  const AdminManage = () => <><AccountAccess ctx={getComponentContext()}/><AdminManagePanel ctx={getComponentContext()} /></>;
 
   const getComponentContext = () => ({
     busyAction, dataStatus, pendingCredit, runAction,
+    releaseGroupClue: id => runAction("Aanwijzing vrijgeven",async()=>{
+      const {error}=await supabase.rpc("release_group_clue",{target_purchase_id:id});
+      if(error) throw error;
+      await loadAppData(profile);
+    }),
+    changeAccountAccess: (id,patch) => runAction("Toegang wijzigen",async()=>{
+      const {error}=await supabase.from("profiles").update(patch).eq("id",id).select("id").single();
+      if(error) throw error;
+      await loadAppData(profile);
+    }),
     retryCredit: () => runAction("Pegelactie controleren", retryCredit),
     ENABLE_FINAL_REPORTS,
     supabase,
@@ -3774,6 +3773,12 @@ export default function App() {
   if (!session || !profile) {
     return LoginScreen();
   }
+
+  if (!hasAccess) {
+    return <div style={styles.app}>{Header({title:"Nog geen speltoegang"})}
+      <div style={styles.card}><p>Je account is nog niet actief gekoppeld, of je deelname is beëindigd. Neem contact op met de organisatie.</p></div>{MessageBlock()}</div>;
+  }
+  if (profile.role === "jury") return <JuryDashboard ctx={getComponentContext()}/>;
 
   if (profile.role === "suspect") {
     return SuspectDashboard();
