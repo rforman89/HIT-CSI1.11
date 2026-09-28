@@ -10,4 +10,3 @@ for(const file of files){
  for(const m of text.matchAll(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g))try{if(JSON.parse(Buffer.from(m[0].split('.')[1],'base64url')).role==='service_role')findings.push({file,reason:'service JWT'});}catch{}
 }
 console.log(JSON.stringify({files:files.length,findings},null,2));if(findings.length)process.exitCode=1;
-

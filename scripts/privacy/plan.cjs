@@ -25,4 +25,3 @@ function removalPlan({profile,counts,foreignKeys}) {
   destructiveExecutionAvailable:false};
 }
 module.exports={storageReport,removalPlan};
-

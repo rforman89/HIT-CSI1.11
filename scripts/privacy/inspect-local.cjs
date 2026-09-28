@@ -8,4 +8,3 @@ if(arg) {
  report.account=removalPlan(data);
 }
 console.log(JSON.stringify(report,null,2));
-

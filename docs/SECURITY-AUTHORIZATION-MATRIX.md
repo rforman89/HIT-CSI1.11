@@ -51,4 +51,3 @@ Bestaande row predicates blijven behouden waar correct. Gedeelde actieve-deelnam
 Private fotobucket met korte signed URLs; bestaande eigen Storage-public-URL's worden als objectpad geïnterpreteerd. Geen externe foto-origins nodig volgens actuele inventaris. Reeds uitgegeven signed URLs blijven tot hun korte vervaltijd bruikbaar: revocatie wist geen eerder gedownloade bytes.
 
 Geen productie-authconfigwijziging. Hosted verificatie van signup/bevestiging/reset, RLS, Storage, Realtime en headers volgt pas na expliciet hervatten van TEST. Privacytooling werkt standaard alleen lokaal en read-only; geen automatische verwijdering.
-

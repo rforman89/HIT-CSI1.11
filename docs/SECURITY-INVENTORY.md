@@ -110,4 +110,3 @@ Browserflows testen ingelogde jury/admin, foto/modal, CSV-download, framing, CSP
 ## Auth en privacy
 
 Zie [Privacy, Auth en retentie](SECURITY-PRIVACY-RETENTION.md) voor actuele public Auth-instellingen, ongeverifieerde beheerinstellingen, lifecycle, FK-risico's, accountplan en orphan-detector. Geen nieuwe Auth-config of automatische retentietaak is in productie toegepast.
-

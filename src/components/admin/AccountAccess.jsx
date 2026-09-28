@@ -8,4 +8,3 @@ export default function AccountAccess({ctx}) {
  <label><input type="checkbox" checked={p.is_active} disabled={p.id===profile.id} onChange={e=>changeAccountAccess(p.id,{is_active:e.target.checked})}/> Account actief</label>
  </div>)}</section>;
 }
-

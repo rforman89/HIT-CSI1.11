@@ -70,4 +70,3 @@ Pure planner heeft tests voor deduplicatie, ontbrekende/verweesde objecten, uits
 Signed foto-/clue-URLs zijn maximaal 300 seconden bruikbaar, backup-downloadlinks 60 seconden. Intrekken voorkomt nieuwe links, maar maakt al uitgegeven links/gedownloade bytes niet ongedaan.
 
 Bij een latere release moeten nieuwe migration, actieve-admincontrole in de Edge Function en frontend bij elkaar passen. Oud frontend gebruikt publieke foto-URLs; na private maken kan dat tijdelijk afbeeldingen verliezen. Plan een gecontroleerde omschakeling. Schemafingerprint verandert door is_active: oude bundles vereisen een passend schemaspoor in herstelomgeving, geen guard omzeilen. De volledige lokale restore-regressie is met het nieuwe schema getest.
-
