@@ -107,7 +107,7 @@ Actions: push/PR, Ubuntu hosted runner, 15-minutentimeout, concurrency cancellat
 
 ## 10. Fresh clone
 
-Afsluitende schone checkout met uitsluitend gecommitteerde bestanden, zonder `.local`, `.env.local`, node_modules of Vercelconfig wordt apart uitgevoerd. Definitieve tijden en uitkomst worden na die proef ingevuld.
+Geslaagd op commit `a594c08`: nieuwe depth-1-clone, zonder `.local`, `.env.local`, node_modules of Vercelcache bij aanvang. Node 24.21.0/npm 11.19.0: `npm ci` **5,095 s**, `npm run check` **21,590 s**, beide exit 0; 39 frontend + 38 offline tests, lint/secrets/diff/build/bundle groen. De clone blijft Git-schoon. Ook de databaseproof draait vanuit deze clone zonder bestaande testconfig: 14 SQL-bestanden, tweemaal seed, 790/790 catalogusonderdelen gelijk aan Production. Een eerdere proef ving een nog niet gecommitteerde vercel.json op; die is toegevoegd vóór de geslaagde nieuwe clone.
 
 ## 11. Database migration inventory
 
