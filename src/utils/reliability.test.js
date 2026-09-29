@@ -1,3 +1,4 @@
+import { vi as jest } from 'vitest';
 import { validateBackend, createRequestGate, purchaseTimestamp, mutateCredits, readPendingCredit, creditStorageKey } from './reliability';
 import { loadAppSnapshot } from '../services/loadAppSnapshot';
 const id = '11111111-1111-4111-8111-111111111111';

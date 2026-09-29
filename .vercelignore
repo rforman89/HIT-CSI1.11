@@ -18,3 +18,8 @@ playwright/.auth
 browser-profiles
 test-downloads
 *.log
+coverage
+.vscode
+.idea
+Thumbs.db
+Desktop.ini

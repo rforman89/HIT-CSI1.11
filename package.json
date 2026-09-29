@@ -3,34 +3,33 @@
   "version": "1.0.0",
   "description": "",
   "keywords": [],
-  "main": "src/index.tsx",
   "engines": {
-    "node": "24.x"
+    "node": "24.x",
+    "npm": "11.x"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.105.4",
-    "ajv": "^8.17.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-scripts": "^5.0.0"
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0",
-    "loader-utils": "3.2.1",
-    "playwright": "1.63.0",
-    "typescript": "5.7.2"
+    "@vitejs/plugin-react": "6.1.1",
+    "vite": "8.3.1",
+    "vitest": "5.0.2",
+    "jsdom": "30.1.1",
+    "eslint": "10.11.0",
+    "globals": "17.12.0",
+    "playwright": "1.63.0"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "vite",
     "build": "node scripts/build.cjs",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
-    "test:unit": "react-scripts test --env=jsdom --watchAll=false --runInBand",
+    "test": "npm run test:unit && npm run test:static",
+    "test:unit": "vitest run",
     "test:setup": "node tests/backend/setup.cjs",
     "test:db": "node --test --test-concurrency=1 tests/backend/integration.test.cjs",
     "test:e2e": "node --test --test-concurrency=1 tests/browser/e2e.test.cjs",
-    "test:config": "node --test tests/config/build-guard.test.cjs",
+    "test:config": "node --test tests/config/*.test.cjs",
     "test:recovery": "node --test tests/recovery/unit.test.mjs",
     "test:recovery:db": "node --test --test-concurrency=1 tests/recovery/database.test.mjs",
     "recovery": "node scripts/recovery/cli.mjs",
@@ -42,12 +41,22 @@
     "test:security:browser": "node --test --test-concurrency=1 tests/security/browser.test.cjs",
     "security:scan": "node scripts/security-scan.cjs",
     "privacy:inspect": "node scripts/privacy/inspect-local.cjs",
-    "lint": "eslint src --ext .js,.jsx --env browser,es6,jest --global process --global global --rule no-undef:error"
+    "lint": "eslint src",
+    "dev": "vite",
+    "test:static": "node --test tests/config/*.test.cjs tests/recovery/unit.test.mjs tests/recovery/cron.test.cjs tests/security/privacy.test.cjs",
+    "check": "node scripts/check.cjs",
+    "security:audit": "npm audit --audit-level=moderate",
+    "test:database:build": "node scripts/database-proof.cjs",
+    "schema:diff": "node scripts/schema-diff.cjs",
+    "schema:capture": "node scripts/schema-capture.cjs",
+    "test:build:browser": "node tests/browser/build-smoke.cjs"
   },
   "browserslist": [
     ">0.2%",
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "private": true,
+  "packageManager": "npm@11.19.0"
 }

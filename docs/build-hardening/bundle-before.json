@@ -1,0 +1,62 @@
+[
+  {
+    "path": "build/asset-manifest.json",
+    "bytes": 369,
+    "gzip": 164
+  },
+  {
+    "path": "build/csi-hit-logo.jpg",
+    "bytes": 30338,
+    "gzip": 28003
+  },
+  {
+    "path": "build/favicon.ico",
+    "bytes": 35611,
+    "gzip": 34798
+  },
+  {
+    "path": "build/fonts/CoreDodam.woff2",
+    "bytes": 12960,
+    "gzip": 12929
+  },
+  {
+    "path": "build/index.html",
+    "bytes": 1141,
+    "gzip": 535
+  },
+  {
+    "path": "build/robots.txt",
+    "bytes": 72,
+    "gzip": 88
+  },
+  {
+    "path": "build/sitemap.xml",
+    "bytes": 275,
+    "gzip": 205
+  },
+  {
+    "path": "build/static/css/main.4c9f1244.css",
+    "bytes": 462,
+    "gzip": 287
+  },
+  {
+    "path": "build/static/css/main.4c9f1244.css.map",
+    "bytes": 913,
+    "gzip": 473
+  },
+  {
+    "path": "build/static/js/main.56efcf8d.js",
+    "bytes": 652157,
+    "gzip": 166062
+  },
+  {
+    "path": "build/static/js/main.56efcf8d.js.LICENSE.txt",
+    "bytes": 1210,
+    "gzip": 220
+  },
+  {
+    "path": "build/static/js/main.56efcf8d.js.map",
+    "bytes": 2911823,
+    "gzip": 649047
+  }
+]

@@ -1,4 +1,4 @@
-project_id = "uhfcrskkgutlqqogahbr"
+project_id = "csi-hit-app"
 
 [functions.csi-hit-nightly-backup]
 verify_jwt = false

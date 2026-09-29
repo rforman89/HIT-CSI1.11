@@ -1,6 +1,7 @@
 const fs=require('node:fs'),{execFileSync}=require('node:child_process');
 const git=(...a)=>execFileSync('git',a,{encoding:'utf8'}).trim().split(/\r?\n/).filter(Boolean);
-const files=[...new Set([...git('diff','--name-only','352808e1cec7365f2f3fecee2600966c0b3ffba7'),...git('ls-files','--others','--exclude-standard')])];
+// Scan the complete tracked tree, including a depth-1 CI checkout, plus new files.
+const files=[...new Set([...git('ls-files'),...git('ls-files','--others','--exclude-standard')])];
 const findings=[];
 for(const file of files){
  if(!fs.existsSync(file)||!fs.statSync(file).isFile())continue;
