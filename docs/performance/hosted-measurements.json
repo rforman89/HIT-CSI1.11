@@ -1,0 +1,3031 @@
+{
+  "generatedAt": "2026-09-29T19:53:30.542Z",
+  "scope": "Hosted fictitious TEST only; API sessions are not unique users",
+  "runs": [
+    {
+      "file": "hosted-normal-5.json",
+      "startedAt": "2026-09-29T18:18:08.201Z",
+      "options": {
+        "target": "hosted",
+        "profile": "B",
+        "clients": 5,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": true,
+      "durationSeconds": 129.60254120000002,
+      "loadDurationSeconds": 120.0150274,
+      "summary": {
+        "request": {
+          "count": 1623,
+          "p50": 78.31579999999667,
+          "p95": 185.99599999999919,
+          "p99": 267.2406,
+          "errorRate": 0,
+          "bytes": 18774434,
+          "perSecond": 12.522902598764782
+        },
+        "snapshot": {
+          "count": 117,
+          "p50": 271.67849999999453,
+          "p95": 779.0200000000041,
+          "p99": 897.3300000000017,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.9027600764359085
+        },
+        "realtime-join": {
+          "count": 5,
+          "p50": 108.95950000000039,
+          "p95": 134.71939999999995,
+          "p99": 134.71939999999995,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.038579490445979
+        },
+        "targeted-refresh": {
+          "count": 5,
+          "p50": 322.22680000000037,
+          "p95": 677.6821,
+          "p99": 677.6821,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.038579490445979
+        }
+      },
+      "errors": [],
+      "integrity": [],
+      "events": 0,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 691,
+          "requestP95": 186.27450000000044,
+          "snapshotP95": 736.7376999999979,
+          "errors": 0
+        },
+        {
+          "minute": 1,
+          "requests": 733,
+          "requestP95": 181.6518999999971,
+          "snapshotP95": 779.0200000000041,
+          "errors": 0
+        },
+        {
+          "minute": 2,
+          "requests": 67,
+          "requestP95": 188.4021999999968,
+          "snapshotP95": 887.5097999999998,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 21,
+          "p50": 685.104800000001,
+          "p95": 897.3300000000017,
+          "p99": 1093.3154000000013,
+          "errors": 0
+        },
+        "b": {
+          "count": 23,
+          "p50": 215.17889999999898,
+          "p95": 330.7149000000063,
+          "p99": 357.7335000000021,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 23,
+          "p50": 161.0665999999983,
+          "p95": 389.59619999999995,
+          "p99": 551.6359999999986,
+          "errors": 0
+        },
+        "jury": {
+          "count": 23,
+          "p50": 176.71500000001106,
+          "p95": 392.4421000000002,
+          "p99": 478.2681999999986,
+          "errors": 0
+        },
+        "admin": {
+          "count": 22,
+          "p50": 466.1262000000024,
+          "p95": 637.9423999999999,
+          "p99": 678.9068999999945,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 0
+    },
+    {
+      "file": "hosted-normal-10.json",
+      "startedAt": "2026-09-29T18:20:31.430Z",
+      "options": {
+        "target": "hosted",
+        "profile": "B",
+        "clients": 10,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": true,
+      "durationSeconds": 139.4857727,
+      "loadDurationSeconds": 120.0132649,
+      "summary": {
+        "request": {
+          "count": 3282,
+          "p50": 76.24600000000282,
+          "p95": 198.67089999999735,
+          "p99": 309.7265999999945,
+          "errorRate": 0,
+          "bytes": 43653991,
+          "perSecond": 23.529281420398224
+        },
+        "snapshot": {
+          "count": 228,
+          "p50": 350.1771000000008,
+          "p95": 866.1081000000122,
+          "p99": 1242.7504000000008,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 1.6345753089124908
+        },
+        "realtime-join": {
+          "count": 10,
+          "p50": 121.29390000000058,
+          "p95": 161.54169999999976,
+          "p99": 161.54169999999976,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.07169189951370573
+        },
+        "targeted-refresh": {
+          "count": 10,
+          "p50": 284.3673000000008,
+          "p95": 848.4027999999998,
+          "p99": 848.4027999999998,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.07169189951370573
+        }
+      },
+      "errors": [],
+      "integrity": [],
+      "events": 0,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 1162,
+          "requestP95": 164.68539999999848,
+          "snapshotP95": 943.3261999999995,
+          "errors": 0
+        },
+        {
+          "minute": 1,
+          "requests": 1458,
+          "requestP95": 179.6128000000026,
+          "snapshotP95": 715.2945999999938,
+          "errors": 0
+        },
+        {
+          "minute": 2,
+          "requests": 386,
+          "requestP95": 288.4003999999986,
+          "snapshotP95": 784.1497999999992,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 82,
+          "p50": 689.5501000000004,
+          "p95": 943.3261999999995,
+          "p99": 1332.2027999999991,
+          "errors": 0
+        },
+        "b": {
+          "count": 67,
+          "p50": 226.748299999992,
+          "p95": 330.94810000000143,
+          "p99": 866.1081000000122,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 23,
+          "p50": 145.4768999999942,
+          "p95": 274.99489999999787,
+          "p99": 730.8646000000008,
+          "errors": 0
+        },
+        "jury": {
+          "count": 24,
+          "p50": 145.8362000000052,
+          "p95": 210.78289999999106,
+          "p99": 227.21649999999863,
+          "errors": 0
+        },
+        "admin": {
+          "count": 22,
+          "p50": 492.58130000000165,
+          "p95": 705.4205000000075,
+          "p99": 758.398199999996,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 0
+    },
+    {
+      "file": "hosted-normal-25.json",
+      "startedAt": "2026-09-29T18:23:09.006Z",
+      "options": {
+        "target": "hosted",
+        "profile": "B",
+        "clients": 25,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": true,
+      "durationSeconds": 163.68125009999997,
+      "loadDurationSeconds": 120.39955980000002,
+      "summary": {
+        "request": {
+          "count": 7639,
+          "p50": 79.91969999999856,
+          "p95": 210.39949999999953,
+          "p99": 457.1719000000012,
+          "errorRate": 0,
+          "bytes": 98035056,
+          "perSecond": 46.66997591558596
+        },
+        "snapshot": {
+          "count": 534,
+          "p50": 364.4852000000101,
+          "p95": 1513.871500000001,
+          "p99": 2090.3197999999975,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 3.2624384263546147
+        },
+        "realtime-join": {
+          "count": 25,
+          "p50": 106.34419999999955,
+          "p95": 161.72350000000006,
+          "p99": 163.51910000000134,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.152735881383643
+        },
+        "targeted-refresh": {
+          "count": 25,
+          "p50": 349.02750000000015,
+          "p95": 832.7812000000013,
+          "p99": 851.6581000000006,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.152735881383643
+        }
+      },
+      "errors": [],
+      "integrity": [],
+      "events": 0,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 1557,
+          "requestP95": 264.2505000000019,
+          "snapshotP95": 2090.3197999999975,
+          "errors": 0
+        },
+        {
+          "minute": 1,
+          "requests": 3446,
+          "requestP95": 198.69670000000042,
+          "snapshotP95": 1349.0771999999997,
+          "errors": 0
+        },
+        {
+          "minute": 2,
+          "requests": 1952,
+          "requestP95": 180.52580000000307,
+          "snapshotP95": 946.0003999999899,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 169,
+          "p50": 905.4554000000062,
+          "p95": 1959.7032000000036,
+          "p99": 2532.136099999996,
+          "errors": 0
+        },
+        "b": {
+          "count": 149,
+          "p50": 240.1591000000044,
+          "p95": 447.4458999999915,
+          "p99": 769.962400000004,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 65,
+          "p50": 154.43490000000747,
+          "p95": 251.5570000000007,
+          "p99": 880.6425999999992,
+          "errors": 0
+        },
+        "jury": {
+          "count": 65,
+          "p50": 154.71829999999318,
+          "p95": 343.3660999999993,
+          "p99": 791.6734999999971,
+          "errors": 0
+        },
+        "admin": {
+          "count": 61,
+          "p50": 535.5158999999985,
+          "p95": 1124.2439999999915,
+          "p99": 1804.4942999999985,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 0
+    },
+    {
+      "file": "hosted-normal-50.json",
+      "startedAt": "2026-09-29T18:26:29.157Z",
+      "options": {
+        "target": "hosted",
+        "profile": "B",
+        "clients": 50,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": false,
+      "durationSeconds": 101.1515873,
+      "loadDurationSeconds": 13.53275559999999,
+      "summary": {
+        "request": {
+          "count": 2059,
+          "p50": 86.97899999999936,
+          "p95": 778.9227000000101,
+          "p99": 1601.405899999998,
+          "errorRate": 0,
+          "bytes": 28367436,
+          "perSecond": 20.355587637921328
+        },
+        "snapshot": {
+          "count": 99,
+          "p50": 691.2825000000012,
+          "p95": 4197.7600999999995,
+          "p99": 4890.041299999997,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.9787290802108846
+        },
+        "realtime-join": {
+          "count": 50,
+          "p50": 104.02769999999873,
+          "p95": 125.85769999999866,
+          "p99": 139.46390000000247,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.49430761626812353
+        },
+        "targeted-refresh": {
+          "count": 50,
+          "p50": 338.5922999999966,
+          "p95": 777.1800999999978,
+          "p99": 862.474000000002,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.49430761626812353
+        }
+      },
+      "errors": [
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        }
+      ],
+      "integrity": [],
+      "events": 0,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 0,
+          "requestP95": null,
+          "snapshotP95": null,
+          "errors": 0
+        },
+        {
+          "minute": 1,
+          "requests": 679,
+          "requestP95": 1356.6711000000068,
+          "snapshotP95": 4739.391100000008,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 19,
+          "p50": 3945.6910999999964,
+          "p95": 4890.041299999997,
+          "p99": 4890.041299999997,
+          "errors": 0
+        },
+        "b": {
+          "count": 15,
+          "p50": 1100.5331000000006,
+          "p95": 2859.968399999998,
+          "p99": 2859.968399999998,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 5,
+          "p50": 483.66410000000906,
+          "p95": 3139.696200000006,
+          "p99": 3139.696200000006,
+          "errors": 0
+        },
+        "jury": {
+          "count": 5,
+          "p50": 608.8581999999878,
+          "p95": 2047.6986000000034,
+          "p99": 2047.6986000000034,
+          "errors": 0
+        },
+        "admin": {
+          "count": 5,
+          "p50": 2733.339500000002,
+          "p95": 3261.8362999999954,
+          "p99": 3261.8362999999954,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 0
+    },
+    {
+      "file": "hosted-writes-10.json",
+      "startedAt": "2026-09-29T18:28:56.724Z",
+      "options": {
+        "target": "hosted",
+        "profile": "C",
+        "clients": 10,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": true
+      },
+      "passed": true,
+      "durationSeconds": 139.1684272,
+      "loadDurationSeconds": 120.22614069999999,
+      "summary": {
+        "request": {
+          "count": 5689,
+          "p50": 80.69160000000556,
+          "p95": 175.14540000000852,
+          "p99": 306.5577000000012,
+          "errorRate": 0,
+          "bytes": 75425913,
+          "perSecond": 40.87852478079885
+        },
+        "snapshot": {
+          "count": 395,
+          "p50": 318.053100000001,
+          "p95": 873.858699999997,
+          "p99": 1254.348100000001,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 2.838287447427587
+        },
+        "realtime-join": {
+          "count": 10,
+          "p50": 101.51789999999983,
+          "p95": 152.25860000000011,
+          "p99": 152.25860000000011,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.07185537841588828
+        },
+        "targeted-refresh": {
+          "count": 27,
+          "p50": 688.0138999999999,
+          "p95": 1502.155999999999,
+          "p99": 1509.7217999999993,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.19400952172289837
+        },
+        "credit-write": {
+          "count": 1,
+          "p50": 98.65859999999884,
+          "p95": 98.65859999999884,
+          "p99": 98.65859999999884,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.007185537841588829
+        },
+        "credit-retry": {
+          "count": 1,
+          "p50": 53.76250000000073,
+          "p95": 53.76250000000073,
+          "p99": 53.76250000000073,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.007185537841588829
+        },
+        "note-write": {
+          "count": 2,
+          "p50": 66.58269999999902,
+          "p95": 80.22079999999914,
+          "p99": 80.22079999999914,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.014371075683177657
+        },
+        "purchase-write": {
+          "count": 2,
+          "p50": 72.97179999999935,
+          "p95": 98.29300000000148,
+          "p99": 98.29300000000148,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.014371075683177657
+        },
+        "clue-release": {
+          "count": 1,
+          "p50": 59.84399999999732,
+          "p95": 59.84399999999732,
+          "p99": 59.84399999999732,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.007185537841588829
+        },
+        "hotspot-convergence": {
+          "count": 7,
+          "p50": 1880.0656000000017,
+          "p95": 2101.8723000000027,
+          "p99": 2101.8723000000027,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.0502987648911218
+        }
+      },
+      "errors": [],
+      "integrity": [
+        {
+          "balances": true,
+          "transactions": true,
+          "notes": 2,
+          "purchases": 2,
+          "creditRetries": 1,
+          "audit": true,
+          "hotspotRecipients": 7
+        }
+      ],
+      "events": 84,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 2113,
+          "requestP95": 192.5300999999963,
+          "snapshotP95": 997.7331000000049,
+          "errors": 0
+        },
+        {
+          "minute": 1,
+          "requests": 2644,
+          "requestP95": 153.02599999999802,
+          "snapshotP95": 864.1371999999974,
+          "errors": 0
+        },
+        {
+          "minute": 2,
+          "requests": 656,
+          "requestP95": 136.5610000000015,
+          "snapshotP95": 814.9723999999987,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 134,
+          "p50": 746.796699999999,
+          "p95": 1185.171199999997,
+          "p99": 1348.9164000000019,
+          "errors": 0
+        },
+        "b": {
+          "count": 123,
+          "p50": 232.32419999999547,
+          "p95": 364.7759000000078,
+          "p99": 503.4999000000025,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 44,
+          "p50": 153.7809999999954,
+          "p95": 352.62720000000263,
+          "p99": 405.0755999999965,
+          "errors": 0
+        },
+        "jury": {
+          "count": 45,
+          "p50": 154.92939999999362,
+          "p95": 307.74199999999837,
+          "p99": 395.3214000000007,
+          "errors": 0
+        },
+        "admin": {
+          "count": 39,
+          "p50": 520.3352999999915,
+          "p95": 883.1129999999976,
+          "p99": 918.3433999999979,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 52
+    },
+    {
+      "file": "hosted-writes-25.json",
+      "startedAt": "2026-09-29T18:32:00.597Z",
+      "options": {
+        "target": "hosted",
+        "profile": "C",
+        "clients": 25,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": true
+      },
+      "passed": false,
+      "failure": "Both participant notes must complete\n\n1 !== 2\n",
+      "durationSeconds": 52.638318700000006,
+      "loadDurationSeconds": 7.941549699999996,
+      "summary": {
+        "request": {
+          "count": 1109,
+          "p50": 90.99120000000039,
+          "p95": 484.4989000000023,
+          "p99": 1094.8694999999934,
+          "errorRate": 0,
+          "bytes": 14727726,
+          "perSecond": 21.068302092255085
+        },
+        "snapshot": {
+          "count": 56,
+          "p50": 697.640999999996,
+          "p95": 3503.8171999999977,
+          "p99": 4042.1077000000005,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 1.063863766606208
+        },
+        "realtime-join": {
+          "count": 25,
+          "p50": 106.58890000000247,
+          "p95": 138.88290000000052,
+          "p99": 146.0046000000002,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.4749391815206286
+        },
+        "targeted-refresh": {
+          "count": 25,
+          "p50": 329.41560000000027,
+          "p95": 791.3410999999996,
+          "p99": 791.7230999999992,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.4749391815206286
+        },
+        "credit-write": {
+          "count": 1,
+          "p50": 387.9834000000046,
+          "p95": 387.9834000000046,
+          "p99": 387.9834000000046,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.018997567260825143
+        },
+        "credit-retry": {
+          "count": 1,
+          "p50": 248.0457000000024,
+          "p95": 248.0457000000024,
+          "p99": 248.0457000000024,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.018997567260825143
+        },
+        "note-write": {
+          "count": 1,
+          "p50": 145.59500000000116,
+          "p95": 145.59500000000116,
+          "p99": 145.59500000000116,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.018997567260825143
+        },
+        "purchase-write": {
+          "count": 1,
+          "p50": 148.9010999999955,
+          "p95": 148.9010999999955,
+          "p99": 148.9010999999955,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.018997567260825143
+        },
+        "clue-release": {
+          "count": 1,
+          "p50": 62.668900000004214,
+          "p95": 62.668900000004214,
+          "p99": 62.668900000004214,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.018997567260825143
+        }
+      },
+      "errors": [
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        }
+      ],
+      "integrity": [],
+      "events": 134,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 425,
+          "requestP95": 825.3739999999962,
+          "snapshotP95": 3865.7186,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 9,
+          "p50": 3356.0714000000007,
+          "p95": 4042.1077000000005,
+          "p99": 4042.1077000000005,
+          "errors": 0
+        },
+        "b": {
+          "count": 10,
+          "p50": 537.5123999999996,
+          "p95": 1665.554400000001,
+          "p99": 1665.554400000001,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 4,
+          "p50": 380.62689999999566,
+          "p95": 925.9001999999964,
+          "p99": 925.9001999999964,
+          "errors": 0
+        },
+        "jury": {
+          "count": 4,
+          "p50": 409.6174000000028,
+          "p95": 1285.2943000000014,
+          "p99": 1285.2943000000014,
+          "errors": 0
+        },
+        "admin": {
+          "count": 4,
+          "p50": 1343.0581999999995,
+          "p95": 2542.014900000002,
+          "p99": 2542.014900000002,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 134
+    },
+    {
+      "file": "hosted-large-5.json",
+      "startedAt": "2026-09-29T18:34:45.012Z",
+      "options": {
+        "target": "hosted",
+        "profile": "B",
+        "clients": 5,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": false,
+      "durationSeconds": 51.6627318,
+      "loadDurationSeconds": 17.718822099999997,
+      "summary": {
+        "request": {
+          "count": 393,
+          "p50": 184.97959999999875,
+          "p95": 1356.8465999999971,
+          "p99": 4629.086199999998,
+          "errorRate": 0,
+          "bytes": 20488631,
+          "perSecond": 7.607030954565201
+        },
+        "snapshot": {
+          "count": 11,
+          "p50": 4438.076699999998,
+          "p95": 11501.787,
+          "p99": 11501.787,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.21291944147637967
+        },
+        "realtime-join": {
+          "count": 5,
+          "p50": 112.41430000000037,
+          "p95": 167.31589999999778,
+          "p99": 167.31589999999778,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.0967815643074453
+        },
+        "targeted-refresh": {
+          "count": 5,
+          "p50": 2783.8777999999984,
+          "p95": 4472.935600000001,
+          "p99": 4472.935600000001,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.0967815643074453
+        }
+      },
+      "errors": [
+        {
+          "kind": "sustained-latency-budget"
+        },
+        {
+          "kind": "sustained-latency-budget"
+        }
+      ],
+      "integrity": [],
+      "events": 0,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 153,
+          "requestP95": 2068.571700000004,
+          "snapshotP95": 11501.787,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 1,
+          "p50": 11084.255600000004,
+          "p95": 11084.255600000004,
+          "p99": 11084.255600000004,
+          "errors": 0
+        },
+        "b": {
+          "count": 1,
+          "p50": 11501.787,
+          "p95": 11501.787,
+          "p99": 11501.787,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 1,
+          "p50": 11231.574600000004,
+          "p95": 11231.574600000004,
+          "p99": 11231.574600000004,
+          "errors": 0
+        },
+        "jury": {
+          "count": 1,
+          "p50": 8869.556400000005,
+          "p95": 8869.556400000005,
+          "p99": 8869.556400000005,
+          "errors": 0
+        },
+        "admin": {
+          "count": 2,
+          "p50": 1622.6365000000005,
+          "p95": 6061.948100000001,
+          "p99": 6061.948100000001,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 0
+    },
+    {
+      "file": "hosted-reconnect-10.json",
+      "startedAt": "2026-09-29T19:34:03.061Z",
+      "options": {
+        "target": "hosted",
+        "profile": "B",
+        "clients": 10,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": true,
+      "durationSeconds": 139.78522850000002,
+      "loadDurationSeconds": 120.00252330000001,
+      "reconnect": {
+        "mode": "simultaneous",
+        "clients": 10,
+        "atMs": 78204.0495,
+        "ms": 2250.3582000000024
+      },
+      "summary": {
+        "request": {
+          "count": 3334,
+          "p50": 90.70699999999488,
+          "p95": 334.0341000000044,
+          "p99": 705.6484999999957,
+          "errorRate": 0,
+          "bytes": 46218524,
+          "perSecond": 23.85087491558523
+        },
+        "snapshot": {
+          "count": 232,
+          "p50": 451.5555000000022,
+          "p95": 1372.9207000000024,
+          "p99": 1782.502999999997,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 1.6596889563334654
+        },
+        "realtime-join": {
+          "count": 20,
+          "p50": 110.28089999999975,
+          "p95": 134.10510000000068,
+          "p99": 261.0238999999999,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.14307663416667804
+        },
+        "targeted-refresh": {
+          "count": 10,
+          "p50": 470.90860000000066,
+          "p95": 932.0167999999999,
+          "p99": 932.0167999999999,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.07153831708333902
+        }
+      },
+      "errors": [],
+      "integrity": [],
+      "events": 0,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 1081,
+          "requestP95": 288.0195999999996,
+          "snapshotP95": 1448.1811000000016,
+          "errors": 0
+        },
+        {
+          "minute": 1,
+          "requests": 1620,
+          "requestP95": 483.21770000000834,
+          "snapshotP95": 1372.9207000000024,
+          "errors": 0
+        },
+        {
+          "minute": 2,
+          "requests": 357,
+          "requestP95": 175.01320000000123,
+          "snapshotP95": 965.8987000000052,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 82,
+          "p50": 961.9103999999934,
+          "p95": 1534.1332000000002,
+          "p99": 1822.7662000000128,
+          "errors": 0
+        },
+        "b": {
+          "count": 69,
+          "p50": 236.41079999999783,
+          "p95": 708.7725999999966,
+          "p99": 1074.4021999999968,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 24,
+          "p50": 173.51780000000144,
+          "p95": 730.3453000000009,
+          "p99": 790.0743000000002,
+          "errors": 0
+        },
+        "jury": {
+          "count": 24,
+          "p50": 213.6996000000072,
+          "p95": 371.9096999999965,
+          "p99": 919.1466,
+          "errors": 0
+        },
+        "admin": {
+          "count": 23,
+          "p50": 493.24199999999837,
+          "p95": 892.1628000000055,
+          "p99": 1382.081600000005,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 0
+    },
+    {
+      "file": "hosted-soak-10.json",
+      "startedAt": "2026-09-29T19:36:51.599Z",
+      "options": {
+        "target": "hosted",
+        "profile": "A",
+        "clients": 10,
+        "seconds": 900,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": true,
+      "durationSeconds": 918.8029281,
+      "loadDurationSeconds": 900.0084995999999,
+      "summary": {
+        "request": {
+          "count": 6814,
+          "p50": 77.18530000001192,
+          "p95": 209.0115999999689,
+          "p99": 305.1710000000021,
+          "errorRate": 0,
+          "bytes": 40761992,
+          "perSecond": 7.416171402599604
+        },
+        "snapshot": {
+          "count": 150,
+          "p50": 540.4933000000019,
+          "p95": 911.577099999995,
+          "p99": 1264.20279999997,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.1632559011432258
+        },
+        "realtime-join": {
+          "count": 10,
+          "p50": 110.27099999999882,
+          "p95": 156.9937,
+          "p99": 156.9937,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.01088372674288172
+        },
+        "targeted-refresh": {
+          "count": 779,
+          "p50": 214.9322000000393,
+          "p95": 378.907600000035,
+          "p99": 1521.9334999999992,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.847842313270486
+        }
+      },
+      "errors": [],
+      "integrity": [],
+      "events": 87,
+      "maxChannelsPerClient": 1,
+      "minuteWindows": [
+        {
+          "minute": 0,
+          "requests": 345,
+          "requestP95": 156.56189999999333,
+          "snapshotP95": null,
+          "errors": 0
+        },
+        {
+          "minute": 1,
+          "requests": 582,
+          "requestP95": 262.71169999999984,
+          "snapshotP95": 1067.4809999999998,
+          "errors": 0
+        },
+        {
+          "minute": 2,
+          "requests": 397,
+          "requestP95": 237.1975000000093,
+          "snapshotP95": 846.0593999999983,
+          "errors": 0
+        },
+        {
+          "minute": 3,
+          "requests": 439,
+          "requestP95": 230.83150000000023,
+          "snapshotP95": 911.577099999995,
+          "errors": 0
+        },
+        {
+          "minute": 4,
+          "requests": 437,
+          "requestP95": 185.88649999999325,
+          "snapshotP95": 731.1514999999781,
+          "errors": 0
+        },
+        {
+          "minute": 5,
+          "requests": 422,
+          "requestP95": 178.14559999998892,
+          "snapshotP95": 688.4083000000101,
+          "errors": 0
+        },
+        {
+          "minute": 6,
+          "requests": 432,
+          "requestP95": 181.3517999999458,
+          "snapshotP95": 666.8910000000033,
+          "errors": 0
+        },
+        {
+          "minute": 7,
+          "requests": 415,
+          "requestP95": 301.624599999981,
+          "snapshotP95": 1306.5793999999878,
+          "errors": 0
+        },
+        {
+          "minute": 8,
+          "requests": 431,
+          "requestP95": 191.12770000001183,
+          "snapshotP95": 790.396299999964,
+          "errors": 0
+        },
+        {
+          "minute": 9,
+          "requests": 421,
+          "requestP95": 226.84990000003017,
+          "snapshotP95": 719.8379999999888,
+          "errors": 0
+        },
+        {
+          "minute": 10,
+          "requests": 427,
+          "requestP95": 230.37179999996442,
+          "snapshotP95": 1264.1345999999903,
+          "errors": 0
+        },
+        {
+          "minute": 11,
+          "requests": 427,
+          "requestP95": 171.3426000000909,
+          "snapshotP95": 810.6320999999298,
+          "errors": 0
+        },
+        {
+          "minute": 12,
+          "requests": 417,
+          "requestP95": 187.09279999998398,
+          "snapshotP95": 869.8000999999931,
+          "errors": 0
+        },
+        {
+          "minute": 13,
+          "requests": 417,
+          "requestP95": 186.37139999994542,
+          "snapshotP95": 811.6099000000395,
+          "errors": 0
+        },
+        {
+          "minute": 14,
+          "requests": 399,
+          "requestP95": 185.87849999999162,
+          "snapshotP95": 742.9985999999335,
+          "errors": 0
+        },
+        {
+          "minute": 15,
+          "requests": 130,
+          "requestP95": 206.33659999992233,
+          "snapshotP95": 740.1953999999678,
+          "errors": 0
+        }
+      ],
+      "roles": {
+        "a": {
+          "count": 56,
+          "p50": 709.8458999999566,
+          "p95": 1011.4100000000326,
+          "p99": 1306.5793999999878,
+          "errors": 0
+        },
+        "b": {
+          "count": 42,
+          "p50": 263.79019999998854,
+          "p95": 364.8383999999496,
+          "p99": 579.570000000007,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 14,
+          "p50": 249.48160000005737,
+          "p95": 540.4933000000019,
+          "p99": 540.4933000000019,
+          "errors": 0
+        },
+        "jury": {
+          "count": 14,
+          "p50": 300.4355000000214,
+          "p95": 579.1606000000029,
+          "p99": 579.1606000000029,
+          "errors": 0
+        },
+        "admin": {
+          "count": 14,
+          "p50": 655.8601999999955,
+          "p95": 1264.1345999999903,
+          "p99": 1264.1345999999903,
+          "errors": 0
+        }
+      },
+      "maxEventsPerSecond": 24
+    }
+  ],
+  "profiles": [
+    {
+      "file": "hosted-large-4g.json",
+      "network": "4g",
+      "metadata": {
+        "release": "46c2951512f6fd4e01d402a7c99028e6b1026340",
+        "environment": "test",
+        "tool": "vite",
+        "node": "24.21.0"
+      },
+      "roles": [
+        {
+          "role": "a",
+          "usableMs": 7152,
+          "navigation": [
+            {
+              "screen": "/Verdachten/",
+              "ms": 141
+            },
+            {
+              "screen": "/Clues/",
+              "ms": 210
+            }
+          ],
+          "metrics": {
+            "LayoutDuration": 0.428607,
+            "ScriptDuration": 0.448436,
+            "TaskDuration": 2.017725,
+            "JSHeapUsedSize": 11912104
+          },
+          "domNodes": 829,
+          "longTasks": [
+            114,
+            77,
+            283,
+            61,
+            136
+          ],
+          "requests": 83,
+          "backendRequests": 80,
+          "decodedBytes": 4833091,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "suspect",
+          "usableMs": 7425,
+          "navigation": [],
+          "metrics": {
+            "LayoutDuration": 0.56395,
+            "ScriptDuration": 3.54379,
+            "TaskDuration": 5.753273,
+            "JSHeapUsedSize": 15380412
+          },
+          "domNodes": 5019,
+          "longTasks": [
+            111,
+            659,
+            647,
+            454,
+            437,
+            697,
+            604,
+            436
+          ],
+          "requests": 49,
+          "backendRequests": 46,
+          "decodedBytes": 3249702,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "jury",
+          "usableMs": 5349,
+          "navigation": [],
+          "metrics": {
+            "LayoutDuration": 0.231681,
+            "ScriptDuration": 0.421157,
+            "TaskDuration": 1.556596,
+            "JSHeapUsedSize": 8053556
+          },
+          "domNodes": 233,
+          "longTasks": [
+            105,
+            86,
+            200
+          ],
+          "requests": 64,
+          "backendRequests": 61,
+          "decodedBytes": 4269281,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "admin",
+          "usableMs": 4482,
+          "navigation": [
+            {
+              "screen": "/Clues/",
+              "ms": 303
+            }
+          ],
+          "metrics": {
+            "LayoutDuration": 0.490054,
+            "ScriptDuration": 0.57915,
+            "TaskDuration": 2.192656,
+            "JSHeapUsedSize": 12140224
+          },
+          "domNodes": 1864,
+          "longTasks": [
+            130,
+            138,
+            366,
+            53,
+            213
+          ],
+          "requests": 74,
+          "backendRequests": 71,
+          "decodedBytes": 4779869,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        }
+      ]
+    },
+    {
+      "file": "hosted-pilot-normal.json",
+      "network": "normal",
+      "metadata": {
+        "release": "46c2951512f6fd4e01d402a7c99028e6b1026340",
+        "environment": "test",
+        "tool": "vite",
+        "node": "24.21.0"
+      },
+      "roles": [
+        {
+          "role": "a",
+          "usableMs": 1945,
+          "navigation": [
+            {
+              "screen": "/Verdachten/",
+              "ms": 52
+            },
+            {
+              "screen": "/Clues/",
+              "ms": 81
+            }
+          ],
+          "metrics": {
+            "LayoutDuration": 0.104994,
+            "ScriptDuration": 0.068614,
+            "TaskDuration": 0.310258,
+            "JSHeapUsedSize": 5727920
+          },
+          "domNodes": 125,
+          "longTasks": [
+            77
+          ],
+          "requests": 47,
+          "backendRequests": 44,
+          "decodedBytes": 1355766,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "suspect",
+          "usableMs": 1177,
+          "navigation": [],
+          "metrics": {
+            "LayoutDuration": 0.052048,
+            "ScriptDuration": 0.064119,
+            "TaskDuration": 0.197543,
+            "JSHeapUsedSize": 5532196
+          },
+          "domNodes": 137,
+          "longTasks": [],
+          "requests": 35,
+          "backendRequests": 32,
+          "decodedBytes": 621405,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "jury",
+          "usableMs": 1194,
+          "navigation": [],
+          "metrics": {
+            "LayoutDuration": 0.050366,
+            "ScriptDuration": 0.06901,
+            "TaskDuration": 0.219385,
+            "JSHeapUsedSize": 5617100
+          },
+          "domNodes": 144,
+          "longTasks": [],
+          "requests": 38,
+          "backendRequests": 35,
+          "decodedBytes": 632500,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "admin",
+          "usableMs": 1638,
+          "navigation": [
+            {
+              "screen": "/Clues/",
+              "ms": 59
+            }
+          ],
+          "metrics": {
+            "LayoutDuration": 0.096043,
+            "ScriptDuration": 0.072144,
+            "TaskDuration": 0.282303,
+            "JSHeapUsedSize": 6465960
+          },
+          "domNodes": 152,
+          "longTasks": [
+            66
+          ],
+          "requests": 48,
+          "backendRequests": 45,
+          "decodedBytes": 1453419,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        }
+      ]
+    },
+    {
+      "file": "hosted-under-load-4g.json",
+      "network": "4g",
+      "metadata": {
+        "release": "46c2951512f6fd4e01d402a7c99028e6b1026340",
+        "environment": "test",
+        "tool": "vite",
+        "node": "24.21.0"
+      },
+      "roles": [
+        {
+          "role": "a",
+          "usableMs": 3506,
+          "navigation": [
+            {
+              "screen": "/Verdachten/",
+              "ms": 105
+            },
+            {
+              "screen": "/Clues/",
+              "ms": 143
+            }
+          ],
+          "metrics": {
+            "LayoutDuration": 0.445886,
+            "ScriptDuration": 0.406236,
+            "TaskDuration": 1.478839,
+            "JSHeapUsedSize": 5732072
+          },
+          "domNodes": 191,
+          "longTasks": [
+            123,
+            76,
+            321,
+            59,
+            82
+          ],
+          "requests": 41,
+          "backendRequests": 38,
+          "decodedBytes": 1378541,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "suspect",
+          "usableMs": 2731,
+          "navigation": [],
+          "metrics": {
+            "LayoutDuration": 0.29049,
+            "ScriptDuration": 0.383199,
+            "TaskDuration": 1.155068,
+            "JSHeapUsedSize": 5555104
+          },
+          "domNodes": 202,
+          "longTasks": [
+            116,
+            81,
+            252
+          ],
+          "requests": 29,
+          "backendRequests": 26,
+          "decodedBytes": 1117081,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "jury",
+          "usableMs": 2700,
+          "navigation": [],
+          "metrics": {
+            "LayoutDuration": 0.269154,
+            "ScriptDuration": 0.417663,
+            "TaskDuration": 1.237215,
+            "JSHeapUsedSize": 5505496
+          },
+          "domNodes": 191,
+          "longTasks": [
+            107,
+            57,
+            110,
+            219
+          ],
+          "requests": 32,
+          "backendRequests": 29,
+          "decodedBytes": 1137913,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "admin",
+          "usableMs": 3499,
+          "navigation": [
+            {
+              "screen": "/Clues/",
+              "ms": 206
+            }
+          ],
+          "metrics": {
+            "LayoutDuration": 0.501206,
+            "ScriptDuration": 0.491586,
+            "TaskDuration": 1.691106,
+            "JSHeapUsedSize": 5895876
+          },
+          "domNodes": 214,
+          "longTasks": [
+            137,
+            60,
+            102,
+            345,
+            132
+          ],
+          "requests": 42,
+          "backendRequests": 39,
+          "decodedBytes": 1490067,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        }
+      ]
+    },
+    {
+      "file": "hosted-under-load-slow.json",
+      "network": "slow",
+      "metadata": {
+        "release": "46c2951512f6fd4e01d402a7c99028e6b1026340",
+        "environment": "test",
+        "tool": "vite",
+        "node": "24.21.0"
+      },
+      "roles": [
+        {
+          "role": "a",
+          "usableMs": 7942,
+          "navigation": [
+            {
+              "screen": "/Verdachten/",
+              "ms": 116
+            },
+            {
+              "screen": "/Clues/",
+              "ms": 158
+            }
+          ],
+          "metrics": {
+            "LayoutDuration": 0.464627,
+            "ScriptDuration": 0.426578,
+            "TaskDuration": 1.598663,
+            "JSHeapUsedSize": 4452780
+          },
+          "domNodes": 191,
+          "longTasks": [
+            131,
+            50,
+            83,
+            333,
+            61,
+            90
+          ],
+          "requests": 41,
+          "backendRequests": 38,
+          "decodedBytes": 1378540,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        },
+        {
+          "role": "admin",
+          "usableMs": 7911,
+          "navigation": [
+            {
+              "screen": "/Clues/",
+              "ms": 199
+            }
+          ],
+          "metrics": {
+            "LayoutDuration": 0.524845,
+            "ScriptDuration": 0.483197,
+            "TaskDuration": 1.745651,
+            "JSHeapUsedSize": 5962208
+          },
+          "domNodes": 214,
+          "longTasks": [
+            160,
+            96,
+            390,
+            131
+          ],
+          "requests": 42,
+          "backendRequests": 39,
+          "decodedBytes": 1490067,
+          "sockets": {
+            "opened": 1,
+            "closed": 0,
+            "joins": 1,
+            "leaves": 0
+          },
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "serverMetrics": [
+    {
+      "at": "2026-09-29T18:22:34.098Z",
+      "cpuBusyPercent": null,
+      "memoryAvailableBytes": 124751872,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.58,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 2,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16652544
+    },
+    {
+      "at": "2026-09-29T18:23:34.532Z",
+      "cpuBusyPercent": 15.619957400116602,
+      "memoryAvailableBytes": 115617792,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.23,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 126,
+      "replicationLagBytes": 60528
+    },
+    {
+      "at": "2026-09-29T18:24:35.515Z",
+      "cpuBusyPercent": 42.63984706175681,
+      "memoryAvailableBytes": 115523584,
+      "memoryTotalBytes": 452902912,
+      "load1": 2.21,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 4,
+      "restPoolTimeouts": 0,
+      "subscriptions": 175,
+      "replicationLagBytes": 120
+    },
+    {
+      "at": "2026-09-29T18:25:36.061Z",
+      "cpuBusyPercent": 44.3490464789899,
+      "memoryAvailableBytes": 112209920,
+      "memoryTotalBytes": 452902912,
+      "load1": 1.94,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 175,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T18:26:36.441Z",
+      "cpuBusyPercent": 13.968570715889028,
+      "memoryAvailableBytes": 120467456,
+      "memoryTotalBytes": 452902912,
+      "load1": 1.06,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 28,
+      "replicationLagBytes": 31984
+    },
+    {
+      "at": "2026-09-29T18:27:36.848Z",
+      "cpuBusyPercent": 20.547031354236424,
+      "memoryAvailableBytes": 116293632,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.51,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 343,
+      "replicationLagBytes": 28904
+    },
+    {
+      "at": "2026-09-29T18:28:37.342Z",
+      "cpuBusyPercent": 15.311799385535174,
+      "memoryAvailableBytes": 133120000,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.53,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 36696
+    },
+    {
+      "at": "2026-09-29T18:29:37.922Z",
+      "cpuBusyPercent": 25.541305796135983,
+      "memoryAvailableBytes": 115539968,
+      "memoryTotalBytes": 452902912,
+      "load1": 1.44,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 70,
+      "replicationLagBytes": 145176
+    },
+    {
+      "at": "2026-09-29T18:30:38.318Z",
+      "cpuBusyPercent": 35.868482231816266,
+      "memoryAvailableBytes": 113860608,
+      "memoryTotalBytes": 452902912,
+      "load1": 1.49,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 70,
+      "replicationLagBytes": 16526840
+    },
+    {
+      "at": "2026-09-29T18:31:38.721Z",
+      "cpuBusyPercent": 19.288451924679606,
+      "memoryAvailableBytes": 110850048,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.62,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 4176
+    },
+    {
+      "at": "2026-09-29T18:32:40.894Z",
+      "cpuBusyPercent": 19.38281901584642,
+      "memoryAvailableBytes": 114110464,
+      "memoryTotalBytes": 452902912,
+      "load1": 1.43,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 10,
+      "restPoolTimeouts": 0,
+      "subscriptions": 175,
+      "replicationLagBytes": 139896
+    },
+    {
+      "at": "2026-09-29T18:33:41.457Z",
+      "cpuBusyPercent": 6.722486112228532,
+      "memoryAvailableBytes": 113115136,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.52,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 176
+    },
+    {
+      "at": "2026-09-29T18:34:41.954Z",
+      "cpuBusyPercent": 20.199667221298334,
+      "memoryAvailableBytes": 142999552,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.53,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 1,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 3631088
+    },
+    {
+      "at": "2026-09-29T18:35:42.418Z",
+      "cpuBusyPercent": 54.8282727725234,
+      "memoryAvailableBytes": 118751232,
+      "memoryTotalBytes": 452902912,
+      "load1": 1.97,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 35,
+      "replicationLagBytes": 4400
+    },
+    {
+      "at": "2026-09-29T18:36:42.913Z",
+      "cpuBusyPercent": 21.634655358776367,
+      "memoryAvailableBytes": 124051456,
+      "memoryTotalBytes": 452902912,
+      "load1": 1.08,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 14,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T18:37:43.358Z",
+      "cpuBusyPercent": 13.72809567311698,
+      "memoryAvailableBytes": 125878272,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.5,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 14,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T18:38:43.933Z",
+      "cpuBusyPercent": 4.320424579152182,
+      "memoryAvailableBytes": 165122048,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.18,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T18:39:44.325Z",
+      "cpuBusyPercent": 4.942270952736772,
+      "memoryAvailableBytes": 130940928,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.11,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T18:40:44.692Z",
+      "cpuBusyPercent": 5.6895691232744845,
+      "memoryAvailableBytes": 138510336,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.09,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 2752
+    },
+    {
+      "at": "2026-09-29T18:41:45.183Z",
+      "cpuBusyPercent": 11.874010499125431,
+      "memoryAvailableBytes": 110505984,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.09,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 14,
+      "replicationLagBytes": 41304
+    },
+    {
+      "at": "2026-09-29T18:42:45.966Z",
+      "cpuBusyPercent": 35.97302023482345,
+      "memoryAvailableBytes": 129720320,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.48,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 7,
+      "replicationLagBytes": 36544
+    },
+    {
+      "at": "2026-09-29T18:43:46.839Z",
+      "cpuBusyPercent": 16.335321404903457,
+      "memoryAvailableBytes": 105836544,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.32,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 7,
+      "replicationLagBytes": 1174712
+    },
+    {
+      "at": "2026-09-29T18:44:47.398Z",
+      "cpuBusyPercent": 6.364536899455187,
+      "memoryAvailableBytes": 145375232,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.2,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T18:45:47.859Z",
+      "cpuBusyPercent": 2.0795360397689366,
+      "memoryAvailableBytes": 139509760,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.07,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T18:46:48.351Z",
+      "cpuBusyPercent": 2.770634591455945,
+      "memoryAvailableBytes": 178900992,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.05,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 16749096
+    },
+    {
+      "at": "2026-09-29T18:47:48.746Z",
+      "cpuBusyPercent": 1.7059166181237262,
+      "memoryAvailableBytes": 169893888,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.02,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T18:48:49.138Z",
+      "cpuBusyPercent": 2.2008138858895743,
+      "memoryAvailableBytes": 173428736,
+      "memoryTotalBytes": 452902912,
+      "load1": 0,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 16776912
+    },
+    {
+      "at": "2026-09-29T18:49:49.613Z",
+      "cpuBusyPercent": 1.2789635412348344,
+      "memoryAvailableBytes": 175628288,
+      "memoryTotalBytes": 452902912,
+      "load1": 0,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 16776912
+    },
+    {
+      "at": "2026-09-29T18:50:49.970Z",
+      "cpuBusyPercent": 1.4305913665476622,
+      "memoryAvailableBytes": 175177728,
+      "memoryTotalBytes": 452902912,
+      "load1": 0,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 16776912
+    },
+    {
+      "at": "2026-09-29T18:51:50.800Z",
+      "cpuBusyPercent": 3.984725219990193,
+      "memoryAvailableBytes": 148328448,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.08,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 16776912
+    },
+    {
+      "at": "2026-09-29T18:52:51.225Z",
+      "cpuBusyPercent": 13.968148639681022,
+      "memoryAvailableBytes": 196440064,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.17,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 16776912
+    },
+    {
+      "at": "2026-09-29T18:53:51.631Z",
+      "cpuBusyPercent": 1.4786509386939262,
+      "memoryAvailableBytes": 182472704,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.06,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 16776912
+    },
+    {
+      "at": "2026-09-29T18:54:52.103Z",
+      "cpuBusyPercent": 1.3862372374873089,
+      "memoryAvailableBytes": 192925696,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.02,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T18:55:52.477Z",
+      "cpuBusyPercent": 1.0463378176369442,
+      "memoryAvailableBytes": 189906944,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.01,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T18:56:52.903Z",
+      "cpuBusyPercent": 0.7888399900348064,
+      "memoryAvailableBytes": 185589760,
+      "memoryTotalBytes": 452902912,
+      "load1": 0,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T18:57:53.264Z",
+      "cpuBusyPercent": 0.7728103706175826,
+      "memoryAvailableBytes": 180506624,
+      "memoryTotalBytes": 452902912,
+      "load1": 0,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T18:58:53.656Z",
+      "cpuBusyPercent": 0.8221908479367879,
+      "memoryAvailableBytes": 180752384,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.06,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T18:59:54.156Z",
+      "cpuBusyPercent": 0.7045755968165257,
+      "memoryAvailableBytes": 181346304,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.02,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:00:54.655Z",
+      "cpuBusyPercent": 0.7624098781809696,
+      "memoryAvailableBytes": 179445760,
+      "memoryTotalBytes": 452902912,
+      "load1": 0,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:01:55.084Z",
+      "cpuBusyPercent": 0.7053941908694128,
+      "memoryAvailableBytes": 181678080,
+      "memoryTotalBytes": 452902912,
+      "load1": 0,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:02:55.712Z",
+      "cpuBusyPercent": 14.435129077779695,
+      "memoryAvailableBytes": 215752704,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.21,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:03:56.110Z",
+      "cpuBusyPercent": 1.15295288652979,
+      "memoryAvailableBytes": 191655936,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.07,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:04:56.582Z",
+      "cpuBusyPercent": 0.671808907688809,
+      "memoryAvailableBytes": 187174912,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.02,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:05:57.004Z",
+      "cpuBusyPercent": 0.8383829999164205,
+      "memoryAvailableBytes": 184131584,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.05,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:06:57.439Z",
+      "cpuBusyPercent": 0.6639555149806409,
+      "memoryAvailableBytes": 183996416,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.02,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:34:00.839Z",
+      "cpuBusyPercent": null,
+      "memoryAvailableBytes": 192966656,
+      "memoryTotalBytes": 452902912,
+      "load1": 0,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 0
+    },
+    {
+      "at": "2026-09-29T19:35:02.619Z",
+      "cpuBusyPercent": 51.12223612849343,
+      "memoryAvailableBytes": 85094400,
+      "memoryTotalBytes": 452902912,
+      "load1": 1.07,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 70,
+      "replicationLagBytes": 137632
+    },
+    {
+      "at": "2026-09-29T19:36:03.362Z",
+      "cpuBusyPercent": 30.552616586637825,
+      "memoryAvailableBytes": 146931712,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.69,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 70,
+      "replicationLagBytes": 16467096
+    },
+    {
+      "at": "2026-09-29T19:37:04.116Z",
+      "cpuBusyPercent": 13.147212327062807,
+      "memoryAvailableBytes": 114536448,
+      "memoryTotalBytes": 452902912,
+      "load1": 1,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 56,
+      "replicationLagBytes": 108296
+    },
+    {
+      "at": "2026-09-29T19:38:04.811Z",
+      "cpuBusyPercent": 15.945744768836645,
+      "memoryAvailableBytes": 125669376,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.59,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 91,
+      "replicationLagBytes": 16497224
+    },
+    {
+      "at": "2026-09-29T19:39:05.375Z",
+      "cpuBusyPercent": 16.803652968039017,
+      "memoryAvailableBytes": 113324032,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.64,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 84,
+      "replicationLagBytes": 864
+    },
+    {
+      "at": "2026-09-29T19:40:05.951Z",
+      "cpuBusyPercent": 10.129417620706171,
+      "memoryAvailableBytes": 115314688,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.4,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16509472
+    },
+    {
+      "at": "2026-09-29T19:41:06.316Z",
+      "cpuBusyPercent": 7.206982543639596,
+      "memoryAvailableBytes": 111464448,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.36,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 736
+    },
+    {
+      "at": "2026-09-29T19:42:07.187Z",
+      "cpuBusyPercent": 8.605809128628483,
+      "memoryAvailableBytes": 141373440,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.45,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16733648
+    },
+    {
+      "at": "2026-09-29T19:43:07.522Z",
+      "cpuBusyPercent": 6.476662536143651,
+      "memoryAvailableBytes": 116461568,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.42,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-29T19:44:08.331Z",
+      "cpuBusyPercent": 7.468017943179683,
+      "memoryAvailableBytes": 136220672,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.18,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16776168
+    },
+    {
+      "at": "2026-09-29T19:45:09.197Z",
+      "cpuBusyPercent": 37.23908523908484,
+      "memoryAvailableBytes": 145965056,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.74,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16776168
+    },
+    {
+      "at": "2026-09-29T19:46:09.651Z",
+      "cpuBusyPercent": 6.842409718207032,
+      "memoryAvailableBytes": 120463360,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.35,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16776168
+    },
+    {
+      "at": "2026-09-29T19:47:09.979Z",
+      "cpuBusyPercent": 5.787808127909533,
+      "memoryAvailableBytes": 120967168,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.18,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16776168
+    },
+    {
+      "at": "2026-09-29T19:48:10.396Z",
+      "cpuBusyPercent": 6.6156278605357555,
+      "memoryAvailableBytes": 118693888,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.1,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16776168
+    },
+    {
+      "at": "2026-09-29T19:49:10.683Z",
+      "cpuBusyPercent": 5.721185876081769,
+      "memoryAvailableBytes": 113827840,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.23,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16776168
+    },
+    {
+      "at": "2026-09-29T19:50:11.050Z",
+      "cpuBusyPercent": 5.8862764715687526,
+      "memoryAvailableBytes": 117370880,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.15,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16776168
+    },
+    {
+      "at": "2026-09-29T19:51:11.362Z",
+      "cpuBusyPercent": 5.454242651348595,
+      "memoryAvailableBytes": 114044928,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.12,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 77,
+      "replicationLagBytes": 16776168
+    },
+    {
+      "at": "2026-09-29T19:52:12.263Z",
+      "cpuBusyPercent": 6.584635849682686,
+      "memoryAvailableBytes": 128409600,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.12,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 70,
+      "replicationLagBytes": 16791664
+    },
+    {
+      "at": "2026-09-29T19:53:12.870Z",
+      "cpuBusyPercent": 16.09072164948322,
+      "memoryAvailableBytes": 189054976,
+      "memoryTotalBytes": 452902912,
+      "load1": 0.19,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 56
+    }
+  ],
+  "usageBefore": {
+    "observedAt": "2026-09-29T18:24:00Z",
+    "source": "Supabase organization usage dashboard",
+    "billingCycle": "2026-09-17/2026-10-17",
+    "plan": "Free",
+    "scope": "all projects",
+    "refreshDelay": "up to one hour; excludes current live ramp",
+    "egressGB": 0.035,
+    "egressQuotaGB": 5,
+    "cachedEgressGB": 0.001,
+    "cachedEgressQuotaGB": 5,
+    "storageGB": 0.002,
+    "storageQuotaGB": 1,
+    "realtimeMessages": 662,
+    "realtimeMessagesQuota": 2000000,
+    "realtimePeak": 7,
+    "realtimePeakQuota": 200,
+    "mau": 40,
+    "mauQuota": 50000,
+    "edgeInvocations": 51,
+    "edgeInvocationsQuota": 500000,
+    "logIngestionGB": 0.12,
+    "logIngestionQuotaGB": 1,
+    "logIngestionEnforcement": "start of 2027"
+  },
+  "usageAfter": {
+    "observedAt": "2026-09-29T19:38:00Z",
+    "source": "Supabase organization Usage UI",
+    "scope": "all projects",
+    "plan": "Free",
+    "cycle": "2026-09-17/2026-10-17",
+    "refreshLag": "up to 1 hour; MAU up to 24 hours",
+    "egressGB": 0.101,
+    "egressLimitGB": 5,
+    "cachedEgressGB": 0.001,
+    "cachedEgressLimitGB": 5,
+    "storageGB": 0.002,
+    "storageLimitGB": 1,
+    "realtimeMessages": 954,
+    "realtimeMessagesLimit": 2000000,
+    "realtimePeakConnections": 53,
+    "realtimeConnectionsLimit": 200,
+    "monthlyActiveUsers": 51,
+    "monthlyActiveUsersLimit": 50000,
+    "edgeFunctionInvocations": 58,
+    "edgeFunctionInvocationsLimit": 500000,
+    "logIngestionGB": 0.192,
+    "logIngestionLimitGB": 1,
+    "logQueryGB": 2.105,
+    "logQueryLimitGB": 100,
+    "testDatabaseMB": 32.35,
+    "quotaExceeded": false
+  },
+  "advisorsAfter": {
+    "observedAt": "2026-09-29T19:39:50Z",
+    "security": [
+      {
+        "name": "authenticated_security_definer_function_executable",
+        "level": "WARN",
+        "count": 12,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+      },
+      {
+        "name": "auth_leaked_password_protection",
+        "level": "WARN",
+        "count": 1,
+        "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+      }
+    ],
+    "performance": [
+      {
+        "name": "unindexed_foreign_keys",
+        "level": "INFO",
+        "count": 8,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys"
+      },
+      {
+        "name": "auth_rls_initplan",
+        "level": "WARN",
+        "count": 9,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan"
+      },
+      {
+        "name": "unused_index",
+        "level": "INFO",
+        "count": 6,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "level": "WARN",
+        "count": 19,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies"
+      },
+      {
+        "name": "duplicate_index",
+        "level": "WARN",
+        "count": 2,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0009_duplicate_index"
+      }
+    ]
+  },
+  "replicationSoak": {
+    "observedAt": "2026-09-29T19:47:38Z",
+    "dbBytes": 18697363,
+    "connections": 31,
+    "lockWaiters": 0,
+    "deadlocks": 0,
+    "slots": [
+      {
+        "active": true,
+        "restartLagBytes": 16776168,
+        "confirmedLagBytes": 0
+      },
+      {
+        "active": true,
+        "restartLagBytes": 16776168,
+        "confirmedLagBytes": -1
+      }
+    ],
+    "interpretation": "Restart/WAL retention lag is not event-delivery latency. Confirmed positions were current within read timing."
+  },
+  "logsFinal": {
+    "windowStart": "2026-09-29T19:34:00Z",
+    "windowEnd": "2026-09-29T19:52:40Z",
+    "source": "Supabase edge_logs",
+    "rows": [
+      {
+        "status": 101,
+        "requests": 44,
+        "originP95Ms": 63.85
+      },
+      {
+        "status": 200,
+        "requests": 10847,
+        "originP95Ms": 121
+      },
+      {
+        "status": 201,
+        "requests": 3,
+        "originP95Ms": 62.3
+      },
+      {
+        "status": 204,
+        "requests": 27,
+        "originP95Ms": 260.5
+      },
+      {
+        "status": 206,
+        "requests": 247,
+        "originP95Ms": 797.2
+      }
+    ],
+    "http4xx5xx": 0,
+    "scope": "Reconnect, soak, concurrent selected E2E and profiles; server log aggregation can lag"
+  },
+  "browserSoak": {
+    "seconds": 900,
+    "startedAt": "2026-09-29T19:37:02.641Z",
+    "samples": [
+      {
+        "elapsedSeconds": 0.012,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 0.261346,
+        "JSHeapUsedSize": 3698144,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 60.026,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 0.420211,
+        "JSHeapUsedSize": 4518864,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 120.051,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 0.598552,
+        "JSHeapUsedSize": 4582716,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 180.072,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 0.712711,
+        "JSHeapUsedSize": 4628768,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 240.096,
+        "Documents": 1,
+        "Nodes": 326,
+        "TaskDuration": 0.813404,
+        "JSHeapUsedSize": 4637356,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 300.113,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 0.922793,
+        "JSHeapUsedSize": 4647540,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 360.137,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 1.036546,
+        "JSHeapUsedSize": 5007000,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 420.157,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 1.138668,
+        "JSHeapUsedSize": 4657448,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 480.185,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 1.409533,
+        "JSHeapUsedSize": 4671780,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 540.208,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 1.540509,
+        "JSHeapUsedSize": 4684848,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 600.236,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 1.659177,
+        "JSHeapUsedSize": 4723296,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 660.262,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 1.791069,
+        "JSHeapUsedSize": 4736556,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 720.289,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 1.937869,
+        "JSHeapUsedSize": 4741620,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 780.316,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 2.074102,
+        "JSHeapUsedSize": 5117936,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 840.34,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 2.20329,
+        "JSHeapUsedSize": 4810148,
+        "sockets": 1
+      },
+      {
+        "elapsedSeconds": 900.022,
+        "Documents": 1,
+        "Nodes": 327,
+        "TaskDuration": 2.328723,
+        "JSHeapUsedSize": 4814316,
+        "sockets": 1
+      }
+    ],
+    "errors": [],
+    "sockets": {
+      "opened": 1,
+      "closed": 0
+    },
+    "passed": true
+  },
+  "dataCompleteness": {
+    "passed": true,
+    "transactions": 1509,
+    "notes": 1206,
+    "clues": 1110,
+    "audit": 2500,
+    "allDeterministicIdsPresent": true
+  },
+  "partialWriteIntegrity": {
+    "run": "hosted-writes-25",
+    "completeScenario": false,
+    "completedWritesConsistent": true,
+    "notes": 1,
+    "purchases": 1,
+    "creditTransactions": 1,
+    "creditRetryDuplicates": 0,
+    "release": true,
+    "groupABefore": 100,
+    "groupAAfter": 101,
+    "groupBBefore": 99,
+    "groupBAfter": 98,
+    "audit": true
+  }
+}

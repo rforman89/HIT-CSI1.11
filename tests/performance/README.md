@@ -1,6 +1,6 @@
-# Performance validation — checkpoint vóór hosted TEST
+# Performance validation — lokaal en hosted TEST
 
-Deze tooling is voorbereid voor `hardening/performance-scale`. **Niet uitvoeren op Production.** De lokale fase hervat TEST niet en pauzeert IScout niet. Voor actuele resultaten en beperkingen: [rapport](../../docs/PERFORMANCE-SCALE-REPORT.md).
+Deze tooling is gevalideerd op `hardening/performance-scale`; capaciteitstekorten staan in het rapport. **Niet uitvoeren op Production.** De lokale fase hervat TEST niet en pauzeert IScout niet. Voor actuele resultaten en beperkingen: [rapport](../../docs/PERFORMANCE-SCALE-REPORT.md).
 
 ## Lokale herhaling
 
@@ -65,8 +65,8 @@ De hotspot gebruikt een gerichte `group_clues`-vrijgave voor groep A. Het aantal
 
 1. Laat de operator bevestigen dat **CSI HIT TEST `ksnagauoufsriwplvvtd` ACTIVE_HEALTHY** is. Verifieer dit in de control plane vóór iedere run. Bespreek het korte IScout-venster; de scripts veranderen geen projectstatus.
 2. Controleer schema/migrations met de bestaande databaseprocedure. Geen Productiondata kopiëren, geen blinde migration-history-repair. Alleen ontbrekende, gereviewde TEST-migraties toepassen.
-3. Bewaar correcte TEST-credentials in genegeerde `.local/hosted-backend.json`; zet `CSI_BACKEND=hosted`. Draai `node tests/backend/setup-hosted.cjs`, `npm run test:recovery:setup`, `npm run test:security:setup`. Controleer database-marker en `game_mode=test`.
-4. Provision uitsluitend fictieve fixtureaccounts. Voer functionele database/security/recoverybaseline uit; herstel fixtures na destructieve tests. Daarna `node tests/performance/seed-hosted.cjs --allow-hosted`. Inspecteer aantallen en saldo. Een falende baseline betekent geen loadtest.
+3. Bewaar correcte TEST-credentials in genegeerde `.local/hosted-backend.json`; zet `CSI_BACKEND=hosted`. Draai `node tests/backend/setup-hosted.cjs`. `test:recovery:setup` is uitsluitend lokaal; controleer het bestaande hosted recoveryschema read-only. Controleer database-marker en `game_mode=test`.
+4. Provision uitsluitend fictieve fixtureaccounts. Voer `test:db` uit en herstel daarna met `setup-hosted.cjs` én `test:security:setup` vóór `test:security`; de core-reset verwijdert ook securityfixtures. Voer vervolgens `test:recovery:db` uit en herstel beide fixtures opnieuw. Een falende baseline betekent geen loadtest. Meet eerst de kleine fixture apart; daarna `node tests/performance/seed-hosted.cjs --allow-hosted`, controleer aantallen/saldo en meet de grote fixture. Geen seed tijdens een loadrun.
 5. Stel alleen branchspecifieke Preview-variabelen in op TEST; push `hardening/performance-scale`. Verifieer Preview READY, exacte commit en TEST-ref in build. Bewaar geverifieerde Preview-URL/branch in `.local/preview.json`; browserauthstate blijft lokaal. Zet `CSI_PREVIEW_BRANCH=hardening/performance-scale`. Geen main-merge of Productiondeployment.
 6. Draai onderstaande stappen sequentieel. Inspecteer tussen stappen Supabase REST-/Realtime-/databasegrafieken, errors en quota. Een script kan control-planemetrics niet zelfstandig bewijzen. Stop bij stijgende disconnects, poolerwachttijd, resource-uitputting of budgetoverschrijding, ook als de process-exitcode nul is.
 
@@ -74,24 +74,32 @@ De hotspot gebruikt een gerichte `group_clues`-vrijgave voor groep A. Het aantal
 # 12 minuten meetduur, plus setup; stopt bij de eerste mislukte trede.
 node tests/performance/ramp.cjs --allow-hosted
 # Alleen op de laatste gezonde trede; begin schrijftest bij 10.
-node tests/performance/load.mjs --target=hosted --allow-hosted --profile=C --clients=10 --seconds=120 --writes --out=hosted-writes-10
+node tests/performance/hosted-stage.cjs --target=hosted --allow-hosted --profile=C --clients=10 --seconds=120 --writes --out=hosted-writes-10
 # Herhaal writes bij 25/50 uitsluitend als vorige trede en quota gezond zijn.
-node tests/performance/load.mjs --target=hosted --allow-hosted --profile=B --clients=25 --seconds=120 --reconnect --out=hosted-reconnect-25
+node tests/performance/hosted-stage.cjs --target=hosted --allow-hosted --profile=B --clients=10 --seconds=120 --reconnect --out=hosted-reconnect-10
 # Apart: representatieve reads tijdens browser-E2E; géén gelijktijdige andere writes.
-node tests/performance/load.mjs --target=hosted --allow-hosted --profile=A --clients=25 --seconds=300 --out=hosted-e2e-background
+node tests/performance/hosted-stage.cjs --target=hosted --allow-hosted --profile=A --clients=10 --seconds=300 --out=hosted-e2e-background
 # In tweede terminal: relevante E2E/browser suites tegen geverifieerde TEST Preview.
 # Na gezonde ramp/E2E: 15-minutensoak op de gekozen veilige trede.
-node tests/performance/load.mjs --target=hosted --allow-hosted --profile=A --clients=50 --seconds=900 --out=hosted-soak-50
+node tests/performance/hosted-stage.cjs --target=hosted --allow-hosted --profile=A --clients=10 --seconds=900 --out=hosted-soak-10
 ```
 
-Ramp: 5 → 10 → 25 → 50 → 75 → 100; per trede 120 s. B tot 50, D daarboven. Stop vóór verdere verhoging zodra p95 snapshot >3 s of requests fouten vertonen. Honderd is een bovengrens, geen doel dat koste wat kost bereikt moet worden. Op een trage fixture kan de stage-timeout van vijf minuten eerder stoppen. Hard-limit, resource-exhaustion of integriteitsfout betekent afbreken en rapporteren, niet automatisch plan upgraden.
+Ramp: 5 → 10 → 25 → 50 → 75 → 100; per trede 120 s. B tot 50, D daarboven. Stop vóór verdere verhoging zodra p95 snapshot >3 s of requests fouten vertonen. Honderd is een bovengrens, geen doel dat koste wat kost bereikt moet worden. De rampwrapper begrenst iedere korte trede op 330 seconden; de workloadwatchdog begrenst langere duurproeven afzonderlijk. Hard-limit, resource-exhaustion of integriteitsfout betekent afbreken en rapporteren, niet automatisch plan upgraden.
 
 Meet per trede p50/p95/p99, requests/s, bytes, errors, joins, eventdelivery, hotspot-convergentie en admin/jury afzonderlijk. API-metingen omvatten response-bodymeting en lokale clientoverhead; gebruik daarnaast hosted querylogs. Throughput in de JSON-samenvatting gebruikt de totale run inclusief login/cleanup; `loadDurationSeconds` geeft de eigenlijke workloadduur. Kleine aantallen snapshots geven weinig betrouwbaar p99-bewijs.
 
 Voer daarna mobiele browser-E2E met latency uit onder gezonde achtergrondload; controleer oorspronkelijke rollen, mutationfeedback en reconnect. Controleer na de soak channel counts, memorytrend, p95 per tijdvak en serverlogs/advisors. Hosteddetails en gecontroleerde metrics toevoegen aan het rapport. Capaciteit pas vaststellen als reads, writes, Realtime én browsergedrag op dezelfde trede slagen.
 
+De browserprofiler kan de geverifieerde TEST Preview gebruiken met `CSI_BACKEND=hosted` en `node tests/performance/browser-profile.cjs hosted normal a,suspect,jury,admin --allow-hosted` (ook `4g`/`slow`). Hij verifieert buildmetadata en de gebundelde TEST-URL vóór login en schrijft uitsluitend lokale meetbestanden. De volledige E2E-suite met logout/accountwissels hoort buiten de gedeelde-accountload: globale logout kan de andere sessies bewust intrekken. Kies onder load de niet-destructieve spelacties; geen reset, herstel of membershipwijziging tegelijk met de integriteitsproef.
+
+`hosted-stage.cjs` gebruikt de ingelogde Supabase CLI (`CSI_SUPABASE_CLI` of `supabase`) om vóór elke run de TEST-status opnieuw te controleren. `node tests/performance/server-metrics.cjs --allow-hosted --samples=30` verzamelt maximaal één uur Metrics API-samples, één per minuut, uitsluitend van TEST. CPU is de delta van de aangeboden node-counters; dit is geen dedicated-CPUgarantie. Ruimteseries, poolwachttijd/timeouts en Realtime-tabelbindings blijven in lokale ruwe bestanden. `node tests/performance/soak-browser.cjs --allow-hosted --seconds=900` observeert daarnaast één echte adminbrowser, met minuutmetingen van sockets/DOM en heap na expliciete garbage collection. Tel die browser bovenop de API-sessies. `summarize-hosted.cjs` exporteert alleen gesanitiseerde meetgegevens naar `docs/performance/hosted-measurements.json`.
+
+De grote hosted seed voegt een deterministisch gegenereerde private PNG van 480.613 bytes toe (400 × 400 fictieve ruispixels). Hiermee wordt bestandsoverdracht in dezelfde orde als de geïnventariseerde Productionfoto gemeten, zonder productiecontent over te nemen. Het model bewijst geen rendering van zeer hoge-resolutiefoto's. Herstel `test:security:setup` voordat tests draaien die specifiek `security/own.png` verwachten.
+
+`seed-hosted.cjs --allow-hosted --cleanup` verwijdert uitsluitend de deterministische grote fixture-IDs en de eigen synthetische foto op geverifieerde TEST. De willekeurige run-IDs van loadwrites blijven behouden. `--photo-only` zet alleen de fictieve foto terug voor mobiele metingen met de kleine dataset. Een voortijdig gestopte schrijftest telt nooit als volledige integriteitsproef: de tool controleert de afgeronde writes apart, vereist alle zes acties plus convergentie voor succes en bewaart de runstate lokaal voor inspectie.
+
 Verwachte hosted sessie: **45–60 minuten**, inclusief ramp, gerichte writes/reconnect, E2E en 15-minutensoak; setup-/herstelproblemen kunnen dit verlengen. Meld zodra gehost werk klaar is dat TEST weer gepauzeerd en IScout hervat kan worden. Geen automatische statuswisseling.
 
 ## Korte check vóór Pasen 2027
 
-Op opnieuw geverifieerde TEST: functionele login/pegel-smoke, vijf sessies profiel A gedurende 120 s met reconnect, één gerichte schrijftest met vijf sessies en daarna de integriteitscontrole. Vergelijk met de uiteindelijk goedgekeurde hosted baseline, controleer actuele quota/plan en test mobiel. Stop bij regressie; niet opschalen. Production uitsluitend bestaande logs/health observeren. Deze pre-event check vervangt de nog openstaande hosted capaciteitsvalidatie niet.
+Op opnieuw geverifieerde TEST: functionele login/pegel-smoke, vijf sessies profiel A gedurende 120 s met reconnect, één gerichte schrijftest met vijf sessies en daarna de integriteitscontrole. Vergelijk met de uiteindelijk goedgekeurde hosted baseline, controleer actuele quota/plan en test mobiel. Stop bij regressie; niet opschalen. Production uitsluitend bestaande logs/health observeren. Deze pre-event check vervangt de afgekeurde hogere capaciteitstreden en noodzakelijke vervolgvalidatie niet.

@@ -65,6 +65,6 @@ Voor release: groene Actions en Preview, volledige lokale regressie, diff/secret
 
 De audit, afwegingen, aantallen en resterende releasepunten staan in [het onderhoudsrapport](docs/BUILD-TOOLING-HARDENING-REPORT.md).
 
-## Performance & schaal — lokaal checkpoint
+## Performance & schaal — hosted validatie
 
-Fase 5 werkt op `hardening/performance-scale`, met Production/main op `8ef8bee`. De lokale wijzigingen voegen complete cursorpaginering, gerichte/coalesced refreshes en begrensde pegelhistorie- en aanwijzingenlijsten toe. Het [performancerapport](docs/PERFORMANCE-SCALE-REPORT.md) scheidt lokale meetresultaten van de nog openstaande hosted capaciteitsvalidatie. Het [testdraaiboek](tests/performance/README.md) beschrijft de beveiligde lokale/TEST-harness en het expliciete hervattingscheckpoint. `npm run test:performance` draait alleen lokaal; geen Production-loadtest, main-merge of deployment in deze fase.
+Fase 5 werkt op `hardening/performance-scale`, met Production/main op `8ef8bee`. De lokale wijzigingen voegen complete cursorpaginering, gerichte/coalesced refreshes en begrensde pegelhistorie- en aanwijzingenlijsten toe. Het [performancerapport](docs/PERFORMANCE-SCALE-REPORT.md) bevat lokale en hosted meetresultaten. De kleine fixture slaagt bij tien sessies met writes; hogere piekbelasting en de grote fixture overschrijden het latencybudget. De beoogde 40–50 sessies zijn niet goedgekeurd: nog niet gereed voor production-review. Het [testdraaiboek](tests/performance/README.md) beschrijft de beveiligde lokale/TEST-harness en het expliciete hervattingscheckpoint. `npm run test:performance` draait alleen lokaal; geen Production-loadtest, main-merge of deployment in deze fase.

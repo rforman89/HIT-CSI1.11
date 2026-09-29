@@ -40,6 +40,7 @@ export function observeHotspot(state,actor,samples){
  }
 }
 export async function verifyWrites(state,service,clients,fixture){
+ for(const actor of clients.filter(a=>a.role==='b'))assert(!actor.snapshot.groupClues.some(c=>c.id===state.assignment.id),'Group B received the group A hotspot');
  for(const old of state.before){
   const now=ok(await service.from('groups').select('credits').eq('id',old.id).single());
   const expected=old.credits+(old.id===fixture.groupA?state.credits.length:0)-state.purchases.filter(p=>p.group===old.id).length;
@@ -56,6 +57,7 @@ export async function verifyWrites(state,service,clients,fixture){
   const tx=ok(await service.from('credit_transactions').select('id,amount').eq('group_id',p.group).eq('reason','Aanwijzing gekocht: '+p.clue.title));assert.equal(tx.length,1);assert.equal(tx[0].amount,-1);
   const audit=ok(await service.from('operation_audit').select('id').eq('target',rows[0].id).eq('action_type','group_clues.insert'));assert.equal(audit.length,1);
  }
- if(state.hotspotAt)for(const actor of clients.filter(a=>['a','admin','jury','suspect'].includes(a.role)))assert(state.observed.has(actor.index),'Missing hotspot convergence');
- return {balances:true,transactions:true,notes:state.notes.length,purchases:state.purchases.length,creditRetries:state.credits.length,audit:true,hotspotRecipients:state.observed.size};
+ const converged=!!state.hotspotAt&&clients.filter(a=>['a','admin','jury','suspect'].includes(a.role)).every(a=>state.observed.has(a.index));
+ const complete=state.notes.length===2&&state.purchases.length===2&&state.credits.length===1&&converged;
+ return {complete,balances:true,transactions:true,notes:state.notes.length,purchases:state.purchases.length,creditRetries:state.credits.length,audit:true,hotspotRecipients:state.observed.size};
 }

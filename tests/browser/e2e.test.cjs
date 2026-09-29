@@ -36,7 +36,7 @@ before(async () => {
   ok(await service.from('app_settings').upsert({ key: 'game_mode', value: 'test' }));
 });
 beforeEach(verify);
-after(async () => { await browser?.close(); await adminApi?.auth.signOut(); });
+after(async () => { await browser?.close(); await adminApi?.auth.signOut({scope:'local'}); });
 async function screen(t, role) {
   const context = await browser.newContext({ storageState: browserState, viewport: { width: 390, height: 844 } });
   const errors = [], unexpectedHosts = [], network = [];

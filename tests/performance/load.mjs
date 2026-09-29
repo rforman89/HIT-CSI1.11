@@ -75,7 +75,13 @@ try{
     await snapshot(actor,options.profile==='A'&&elapsed()-actor.lastFull<60000?['app_settings','groups','clues_base','suspects']:null);iteration++;
     if(writeState&&iteration===2)await writeStep(writeState,actor,clients,fixture,measure);
     if(args.reconnect&&!reconnected&&actor.index===0&&elapsed()-loadStarted>options.seconds*500){
-     reconnected=true;for(const a of clients){a.reconnecting=true;try{a.queue.clear();await a.client.removeAllChannels();await connect(a);await snapshot(a);assert.equal(a.client.getChannels().length,1);}finally{a.reconnecting=false;}}
+     reconnected=true;const reconnectStarted=elapsed();
+     for(const a of clients){a.reconnecting=true;a.queue.clear();}
+     try{
+      await Promise.all(clients.map(async a=>{await a.busy;await a.client.removeAllChannels();}));
+      await Promise.all(clients.map(async a=>{await connect(a);await snapshot(a);assert.equal(a.client.getChannels().length,1);}));
+      report.reconnect={mode:'simultaneous',clients:clients.length,atMs:reconnectStarted-started,ms:elapsed()-reconnectStarted};
+     }finally{for(const a of clients)a.reconnecting=false;}
     }
    }catch(e){errors.push({role:actor.role,kind:'workload',error:e.name||'Error'});stopping=true;break;}
    await pause(Math.min(interval+actor.index*37,Math.max(0,end-elapsed())));
@@ -84,6 +90,7 @@ try{
  report.loadDurationSeconds=(elapsed()-loadStarted)/1000;
  if(writeState){
   integrity.push(await verifyWrites(writeState,service,clients,fixture));
+  assert(integrity[0].complete,'Write scenario stopped before all operations and hotspot convergence completed');
   assert(quantile(samples.filter(s=>s.kind==='hotspot-convergence').map(s=>s.ms),.95)<=3000,'Hotspot convergence exceeds 3s budget');
  }
  report.passed=!stopping&&errors.length===0;
@@ -93,12 +100,13 @@ finally{
  for(const a of clients)a.queue?.dispose();
  await Promise.allSettled([...pending]);
  phase='cleanup';
- for(const a of clients){try{await a.client.removeAllChannels();assert.equal(a.client.getChannels().length,0);await a.client.auth.signOut({scope:'local'});}catch(e){errors.push({role:a.role,kind:'cleanup',error:e.name||'Error'});}}
- await service.removeAllChannels();
+ for(const a of clients){try{await a.client.removeAllChannels();assert.equal(a.client.getChannels().length,0);await a.client.auth.signOut({scope:'local'});}catch(e){errors.push({role:a.role,kind:'cleanup',error:e.name||'Error'});}finally{a.client.realtime.disconnect();}}
+ await service.removeAllChannels();service.realtime.disconnect();
  clearTimeout(watchdog);report.passed=report.passed===true&&errors.length===0;
  report.durationSeconds=(elapsed()-started)/1000;
  report.summary=Object.fromEntries([...new Set(samples.map(s=>s.kind))].map(kind=>{const x=samples.filter(s=>s.kind===kind);return [kind,{count:x.length,p50:quantile(x.map(s=>s.ms),.5),p95:quantile(x.map(s=>s.ms),.95),p99:quantile(x.map(s=>s.ms),.99),errorRate:x.filter(s=>!s.ok).length/x.length,bytes:x.reduce((n,s)=>n+(s.bytes||0),0),perSecond:x.length/report.durationSeconds}];}));
  report.minuteWindows=Array.from({length:Math.ceil(report.durationSeconds/60)},(_,minute)=>{const x=samples.filter(s=>s.phase==='load'&&Math.floor(s.atMs/60000)===minute);return {minute,requests:x.filter(s=>s.kind==='request').length,requestP95:quantile(x.filter(s=>s.kind==='request').map(s=>s.ms),.95),snapshotP95:quantile(x.filter(s=>s.kind==='snapshot').map(s=>s.ms),.95),errors:x.filter(s=>!s.ok).length};});
  fs.mkdirSync('.local/performance',{recursive:true});fs.writeFileSync(`.local/performance/${out}.json`,JSON.stringify(report,null,2));console.log(JSON.stringify({passed:report.passed,clients:clients.length,summary:report.summary,errors:errors.length,failure:report.failure}));
+ if(writeState)fs.writeFileSync(`.local/performance/${out}-write-state.json`,JSON.stringify(writeState,(_key,value)=>value instanceof Set?[...value]:value,null,2));
  if(!report.passed)process.exitCode=1;
 }
