@@ -35,5 +35,15 @@
         }
       ]
     }
+  ],
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": "build",
+  "rewrites": [
+    {
+      "source": "/((?!api/|assets/|.*\\.[^/]+$).*)",
+      "destination": "/index.html"
+    }
   ]
 }
