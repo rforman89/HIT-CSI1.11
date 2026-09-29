@@ -1,10 +1,36 @@
 {
-  "offline": ["test:unit", "test:static"],
-  "localOrExplicitHostedTestWrites": ["test:db", "test:security", "test:recovery:db", "test:recovery:handler", "test:e2e", "test:security:browser", "test:recovery:browser"],
-  "localOnly": ["test:setup", "test:recovery:setup", "test:database:build"],
-  "hostedOnly": ["tests/backend/hosted-services.test.cjs", "tests/security/hosted-confirmation.test.cjs"],
+  "offline": [
+    "test:unit",
+    "test:static"
+  ],
+  "localOrExplicitHostedTestWrites": [
+    "test:db",
+    "test:security",
+    "test:recovery:db",
+    "test:recovery:handler",
+    "test:e2e",
+    "test:security:browser",
+    "test:recovery:browser"
+  ],
+  "localOnly": [
+    "test:setup",
+    "test:recovery:setup",
+    "test:database:build"
+  ],
+  "hostedOnly": [
+    "tests/backend/hosted-services.test.cjs",
+    "tests/security/hosted-confirmation.test.cjs"
+  ],
   "productionWritesAllowed": false,
-  "browserPrerequisites": ["matching build env", "local server on 3100 or explicitly verified Preview", "fixtures restored between suites"],
+  "browserPrerequisites": [
+    "matching build env",
+    "local server on 3100 or explicitly verified Preview",
+    "fixtures restored between suites"
+  ],
   "hostedTestProject": "ksnagauoufsriwplvvtd",
-  "localApi": "http://127.0.0.1:55421"
+  "localApi": "http://127.0.0.1:55421",
+  "readOnlyBrowser": [
+    "tests/browser/build-smoke.cjs",
+    "tests/browser/deployment-transition.cjs"
+  ]
 }

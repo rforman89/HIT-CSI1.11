@@ -75,7 +75,7 @@ De drie runtimedependencies zijn apart van de zeven devdependencies geplaatst. A
 
 ## 7. Build
 
-Baseline `npm run build`: **80,132 s** wall-clock, exit 0. Vite compilatie circa 0,2–0,5 s in de waargenomen lokale builds; vergelijkbare wall-clockmeting staat in `build-after-time.json` (inclusief npm/startup). Tijden zijn machine-/cacheafhankelijk en geen performancebelofte. Node 24.19 CRA meldde fs.F_OK-deprecatie; de vervangende keten meldt die niet.
+Baseline `npm run build`: **80,132 s** wall-clock, exit 0. Vite `npm run build`: **0,879 s** wall-clock (Node 24.21.0, inclusief npm/startup); compilatie circa 0,2–0,5 s. Exacte meting staat in `build-after-time.json`. Tijden zijn machine-/cacheafhankelijk en geen performancebelofte. Node 24.19 CRA meldde fs.F_OK-deprecatie; de vervangende keten meldt die niet.
 
 ## 8. Tests
 
@@ -149,7 +149,9 @@ Platform/Auth-config, Edge-deployment en cron zijn geen applicatieschema en word
 
 ## 15. Vercel Preview
 
-Na alle lokale gates wordt uitsluitend de onderhoudsbranch gepusht. Preview URL, commit, READY-status, buildlog en read-only browserresultaat worden na de Git-build ingevuld. Geen lokale upload of Productiondeployment.
+Git Preview **READY** op commit `fdfd5093bfc2cb62c3c9e2f2440ec2d3ffbfedf2`: [gevalideerde Preview](https://hit-csi-1-11-1kt3pfn15-rforman89s-projects.vercel.app). Buildlog bevestigt `npm ci`, Vite, output build en Node 24.21.0; Vercel Build Completed 7 s. [GitHub Actions](https://github.com/rforman89/HIT-CSI1.11/actions/runs/36579573936) controleert dezelfde branch zonder secrets. De oorspronkelijke branchpush werd door de buildguard geblokkeerd omdat Vercel de nieuwe branch pas na die push accepteerde voor env-overrides. Daarna zijn uitsluitend vier Preview-branchvars toegevoegd en heeft de volgende Git-push groen gebouwd.
+
+De beschermde Preview is met een tijdelijke geautoriseerde toegangscookie getest; deployment protection is behouden. Chromium: 16 viewports, landing/login, direct URL, hard refresh, contenthash-assets, metadata, CSP, 401 op ongeautoriseerde API en 404 voor ontbrekende assets/.local. Nul browserfouten of backendrequests. [Machinebewijs](build-hardening/preview-smoke.json). Geen lokale upload of Productiondeployment. Latere rapport-/testharnesscommits veranderen de applicatie niet; de laatste branchbuild wordt vóór afsluiting opnieuw op READY en browser-smoke gecontroleerd.
 
 ## 16. Environment/config
 
@@ -157,11 +159,11 @@ Volledige canonical lijst en scopes staan in [README](../README.md). De oorspron
 
 ## 17. Bundle
 
-Baseline JS: **652.157 bytes**, gzip **166.062**; CSS **462**, gzip **287**; totale output **3.647.331 bytes**, inclusief sourcemaps. Vite: circa **607,6 kB JS**, gzip **160,8 kB**; CSS **401**, gzip **243**; totale output circa **688,7 kB**. Exacte laatste bestanden staan in de bundle-JSON. Geen onverwachte groei; totalereductie komt vooral door geen maps, JS daalt circa 6,8% raw / 3,1% gzip. Geen chunksplitsings-/performanceproject gestart.
+Baseline JS: **652.157 bytes**, gzip **166.062**; CSS **462**, gzip **287**; totale output **3.647.331 bytes**, inclusief sourcemaps. Vite: circa **607,6 kB JS**, gzip **160,8 kB**; CSS **401**, gzip **243**; totale output circa **688,7 kB**. Exacte laatste bestanden staan in de bundle-JSON. Geen onverwachte groei; totalereductie komt vooral door geen maps, JS daalt circa 6,8% raw / 3,1% gzip. Geen chunksplitsings-/performanceproject gestart. Een echte browser heeft ook de oude CRA-Productionclient geladen en een deploywissel naar Preview uitsluitend binnen zijn request-router gesimuleerd: geladen login bleef bedienbaar, hard refresh haalde de nieuwe Vite-entry; nul backendrequests/fouten. Zie `tests/browser/deployment-transition.cjs` en het bijbehorende machinebewijs. Er is geen externe alias omgezet.
 
 ## 18. Securityregressie, assets en browsers
 
-CSP en overige beveiligingsheaders zijn behouden. De echte lokale browser valideert CSP, iframeblokkade, escaped user content, private signed photos, fonts, afbeeldingen, exports, rollen, pegels en backup/diagnostiek. Geen onverwachte JS/Reactfouten in geslaagde suites. Viewport-fit en public-directory blijven behouden. Moderne Chromium is werkelijk getest; Safari/Firefox-syntaxdoelen zijn ingesteld, echte fysieke iOS/Android-apparaten zijn niet getest.
+CSP en overige beveiligingsheaders zijn behouden. De echte lokale browser valideert CSP, iframeblokkade, escaped user content, private signed photos, fonts, afbeeldingen, exports, rollen, pegels en backup/diagnostiek. Geen onverwachte JS/Reactfouten in geslaagde suites. Viewport-fit en public-directory blijven behouden. Moderne Chromium is werkelijk getest; daarnaast slaagt WebKit lokaal op dezelfde 16 landing/login-layouts en hard refresh. De smoke wacht op fonts/netwerk en twee frames na viewportwijziging; een directe meting vóór WebKit-layoutsettling gaf aanvankelijk een vals overflowresultaat. Firefox kon op deze Windows-host niet starten (`spawn UNKNOWN`), dus daarvoor geen geslaagde browserclaim. Echte fysieke iOS/Android-apparaten zijn niet getest.
 
 Baseline genereert sourcemaps; Vercel `protectedSourcemaps=true`, externe ongeauthenticeerde mapprobe gaf 403. Nieuw beleid: geen openbare maps genereren, ook niet als toekomstige hostingprotectie wijzigt. Debug via Git-release-ID en lokale builds; geen extra monitoringplatform. Metadata bevat alleen release, environment, buildtool en Node-versie, bewust geen timestamp voor minder nondeterminisme.
 
@@ -171,7 +173,7 @@ README vervangt de CodeSandbox-placeholder; testmatrix scheidt targets; database
 
 ## 20. Productiestatus
 
-Geen Productionmutation uitgevoerd. Eindcontrole van `main`, Vercel Productiondeployment en applicatieschema volgt na Preview; CSI HIT TEST blijft gepauzeerd. Geen Auth-/Storage-instellingen of echte gebruikersdata gewijzigd.
+Eindcontrole: GitHub `main` blijft `650a2cf9ee5693179aa98d1385dd28d9cb5b2db4`; Productiondeployment blijft `dpl_BvMcgdpPWc296d1ffQ15qjpsWcV3`. Gedeelde Vercel Node/framework/build/install/output/sourcemapsettings en alle Production-envrecords zijn ongewijzigd. Herhaalde read-only schemacapture blijft 790/790 gelijk. CSI HIT TEST is nog INACTIVE. Geen Auth-/Storage-instellingen of echte gebruikersdata gewijzigd. [Paritybewijs](build-hardening/production-parity.json).
 
 ## 21. Resterende technische schuld
 
@@ -183,4 +185,4 @@ Geen Productionmutation uitgevoerd. Eindcontrole van `main`, Vercel Productionde
 
 ## 22. Conclusie
 
-**Nog niet gereed voor production-review** zolang fresh-clone-proof en de nieuwe Git Preview niet zijn afgerond. Dit rapport wordt met het definitieve bewijs bijgewerkt vóór afsluiting; Productionrelease blijft buiten scope.
+**Gereed voor production-review.** Schone installatie/build, 191 unieke lokale runner-tests, databaseopbouw met seed en driftcontrole, CI en read-only Preview zijn bewezen. Hosted TEST blijft gepauzeerd; de historische migratieregistratie en gedeelde Vercel-dashboardwaarden blijven expliciete release-reviewpunten. Dit is geen toestemming voor merge of Productionrelease.

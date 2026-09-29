@@ -41,7 +41,7 @@ npm run security:audit
 | `CSI_BACKEND` | Testharness | Default local; hosted alleen bewust met aparte TEST-config. |
 | `CSI_DOCKER`, `CSI_SUPABASE_CLI` | Lokale tooling | Optioneel executablepad, geen machinepad in scripts. |
 | `CSI_PREVIEW_BRANCH` | Bestaande hosted E2E | Expliciet geverifieerde branch; hosted suites schrijven uitsluitend naar TEST. |
-| `CSI_READONLY_PREVIEW` | Nieuwe browser-smoke | HTTPS Vercel Preview origin; geen backendverzoeken of login toegestaan. |
+| `CSI_READONLY_PREVIEW` | Nieuwe browser-smoke | HTTPS Vercel Preview URL (eventueel tijdelijke beschermde share-URL); geen backendverzoeken of login toegestaan. |
 
 De vijf frontendnamen worden expliciet geïnjecteerd. Geen globale `process.env`-dump, automatische `VITE_*`-exposure of willekeurige `REACT_APP_*`-exposure. Vite envbestanden volgen mode en bestaande process-env heeft voorrang. Preview mag nooit terugvallen op Production. De bestaande globale Preview URL/key staan historisch op Production; branch-overrides zijn dus verplicht. Oude branchvars blijven voorlopig staan; geen Production-vars verwijderen tijdens onderhoud.
 
@@ -57,7 +57,7 @@ Werk op een branch, review vóór merge naar `main`. Alleen GitHub is de deployb
 
 `vercel.json` is leidend voor framework Vite, `npm ci`, `npm run build`, output `build`, SPA-rewrite, cron en beveiligingsheaders. `package.json engines.node=24.x` bepaalt de Vercel Node-major. Bij de latere release: dashboard Node 20 → 24 en de verouderde CRA/install-overrides gelijkzetten of verwijderen. In deze fase blijven de gedeelde projectsettings ongewijzigd.
 
-Preview krijgt uitsluitend branchspecifieke publieke CSI HIT TEST-config. Een gepauzeerde backend volstaat voor `CSI_READONLY_PREVIEW=<url> npm run test:build:browser` (zet de variabele met de syntax van je shell). De test controleert assets, login/landing, direct load, hard refresh, CSP, 16 viewportscenario's en een ongeautoriseerde API-request. Hij logt niet in en blokkeert backendrequests.
+Preview krijgt uitsluitend branchspecifieke publieke CSI HIT TEST-config. Een gepauzeerde backend volstaat voor `CSI_READONLY_PREVIEW=<url> npm run test:build:browser` (zet de variabele met de syntax van je shell). De test controleert assets, login/landing, direct load, hard refresh, CSP, 16 viewportscenario's en een ongeautoriseerde API-request. Hij logt niet in en blokkeert backendrequests. `node tests/browser/build-smoke.cjs webkit` kiest optioneel WebKit; `node tests/browser/deployment-transition.cjs` controleert met dezelfde Preview-variabele de oude CRA-client tegenover de nieuwe entry, via alleen een browser-lokale request-router.
 
 Voor release: groene Actions en Preview, volledige lokale regressie, diff/secretscan, schema-driftcontrole, geen onverwachte envverschillen, daarna expliciete release-review. Databasehistorie niet blind repareren of opnieuw toepassen. Bestaande [game-day runbook](docs/GAME-DAY-INCIDENT-RUNBOOK.md) en [disaster recovery](docs/DISASTER-RECOVERY.md) blijven operationeel leidend.
 

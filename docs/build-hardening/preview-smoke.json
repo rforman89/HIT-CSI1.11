@@ -1,0 +1,25 @@
+{
+  "engine": "chromium",
+  "origin": "https://hit-csi-1-11-1kt3pfn15-rforman89s-projects.vercel.app",
+  "layouts": 16,
+  "pages": [
+    {
+      "landing": false,
+      "hardRefresh": true,
+      "directLoad": true
+    },
+    {
+      "landing": true,
+      "hardRefresh": true,
+      "directLoad": false
+    }
+  ],
+  "errors": [],
+  "blockedRequests": [],
+  "metadata": {
+    "release": "fdfd5093bfc2cb62c3c9e2f2440ec2d3ffbfedf2",
+    "environment": "test",
+    "tool": "vite",
+    "node": "24.21.0"
+  }
+}

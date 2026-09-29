@@ -1,15 +1,17 @@
 // Read-only built-client check. No login, Auth mutation or backend request is permitted.
-const { chromium }=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
+const browsers=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
 const base=process.env.CSI_READONLY_PREVIEW||'http://127.0.0.1:3100';
 const origin=new URL(base).origin;
 assert(origin==='http://127.0.0.1:3100'||(new URL(base).protocol==='https:'&&new URL(base).hostname.endsWith('.vercel.app')));
 const sizes=[[360,800],[375,812],[390,844],[393,873],[412,915],[430,932],[844,390],[390,500]];
 (async()=>{
- const browser=await chromium.launch();
- const report={origin,layouts:0,pages:[],errors:[],blockedRequests:[]};
+ const engine=process.argv[2]||'chromium'; assert(['chromium','webkit','firefox'].includes(engine));
+ const browser=await browsers[engine].launch();
+ const report={engine,origin,layouts:0,pages:[],errors:[],blockedRequests:[]};
  try{
   for(const landing of [false,true]){
    const context=await browser.newContext({serviceWorkers:'block'});
+   if(new URL(base).searchParams.has('_vercel_share')) await context.request.get(base);
    await context.addInitScript(()=>{window.cspViolations=[];document.addEventListener('securitypolicyviolation',e=>window.cspViolations.push(e.violatedDirective));});
    await context.route('**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
@@ -27,19 +29,26 @@ const sizes=[[360,800],[375,812],[390,844],[393,873],[412,915],[430,932],[844,39
    await page.goto(url);
    if(!landing)await page.getByRole('button',{name:'Inloggen',exact:true}).waitFor();
    else await page.getByText('Los de zaak op voordat de tijd om is.',{exact:true}).waitFor();
+   await page.waitForLoadState('networkidle');
+   await page.evaluate(()=>document.fonts.ready);
    for(const [width,height]of sizes){
     await page.setViewportSize({width,height});
-    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const measured=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));
+    assert(measured.scroll<=measured.width+1,JSON.stringify({engine,landing,width,height,measured}));
     report.layouts++;
    }
-   await page.reload();assert(await page.locator('#root').innerText());
+   await page.reload();
+   await (landing ? page.getByText('Los de zaak op voordat de tijd om is.',{exact:true}) : page.getByRole('button',{name:'Inloggen',exact:true})).waitFor();
+   await page.waitForLoadState('networkidle');
    assert.deepEqual(await page.evaluate(()=>window.cspViolations),[]);
    fs.mkdirSync('.local/build-hardening',{recursive:true});
    await page.screenshot({path:`.local/build-hardening/${landing?'landing':'login'}-smoke.png`});
    report.pages.push({landing,hardRefresh:true,directLoad:!landing});
-   await context.close();
+   await context.unrouteAll({behavior:'wait'}); await context.close();
   }
   const request=await browser.newContext();
+  if(new URL(base).searchParams.has('_vercel_share')) await request.request.get(base);
   const response=await request.request.get(origin), html=await response.text();
   assert.equal(response.status(),200);assert.match(response.headers()['content-security-policy'],/script-src 'self';/);
   const scripts=[...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1]);assert(scripts.length);
