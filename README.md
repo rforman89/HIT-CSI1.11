@@ -64,3 +64,7 @@ Voor release: groene Actions en Preview, volledige lokale regressie, diff/secret
 `build-meta.json` en bestaande diagnostiek bevatten release-ID/omgeving; geen secrets. Productiesourcemaps worden niet meer gebouwd. Assets hebben contenthashes; HTML en metadata moeten herladen kunnen worden. Geen service worker aanwezig. Oude geopende CRA-clients blijven met hun geladen code werken; een refresh haalt de nieuwe entry/assets op. Een toekomstige dynamische-chunkarchitectuur vereist opnieuw een deploy-skewtest.
 
 De audit, afwegingen, aantallen en resterende releasepunten staan in [het onderhoudsrapport](docs/BUILD-TOOLING-HARDENING-REPORT.md).
+
+## Performance & schaal — lokaal checkpoint
+
+Fase 5 werkt op `hardening/performance-scale`, met Production/main op `8ef8bee`. De lokale wijzigingen voegen complete cursorpaginering, gerichte/coalesced refreshes en begrensde pegelhistorie- en aanwijzingenlijsten toe. Het [performancerapport](docs/PERFORMANCE-SCALE-REPORT.md) scheidt lokale meetresultaten van de nog openstaande hosted capaciteitsvalidatie. Het [testdraaiboek](tests/performance/README.md) beschrijft de beveiligde lokale/TEST-harness en het expliciete hervattingscheckpoint. `npm run test:performance` draait alleen lokaal; geen Production-loadtest, main-merge of deployment in deze fase.

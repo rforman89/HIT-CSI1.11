@@ -3,7 +3,7 @@ const {chromium}=require('playwright'),{service,ok,config,fixtureFile,verify,hos
 const f=JSON.parse(fs.readFileSync(fixtureFile));
 const preview=hosted?JSON.parse(fs.readFileSync('.local/preview.json')):null;
 const base=preview?.url||'http://127.0.0.1:3100';
-if(preview&&(preview.branch!=='hardening/security-roles-product'||new URL(base).protocol!=='https:'||!new URL(base).hostname.endsWith('.vercel.app')))throw Error('verified_security_preview_required');
+if(preview&&(!['hardening/security-roles-product','hardening/performance-scale'].includes(preview.branch)||new URL(base).protocol!=='https:'||!new URL(base).hostname.endsWith('.vercel.app')))throw Error('verified_security_preview_required');
 const storageState=hosted?'.local/preview-browser-state.json':undefined;let browser;
 before(async()=>{await verify();browser=await chromium.launch();});after(async()=>browser?.close());
 async function pageFor(t,role){

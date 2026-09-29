@@ -7,7 +7,7 @@ const fixture = JSON.parse(fs.readFileSync(root + '/' + fixtureFile));
 const preview = hosted && fs.existsSync(root + '/.local/preview.json') ? JSON.parse(fs.readFileSync(root + '/.local/preview.json')) : null;
 const base = preview?.url || 'http://127.0.0.1:3100';
 const expectedPreviewBranch = process.env.CSI_PREVIEW_BRANCH || 'hardening/backup-restore-operations';
-if (preview && (!['hardening/core-reliability','hardening/backup-restore-operations','hardening/security-roles-product'].includes(expectedPreviewBranch) || new URL(base).protocol !== 'https:' || !new URL(base).hostname.endsWith('.vercel.app') || preview.branch !== expectedPreviewBranch)) throw new Error('Only the explicitly verified hardening Preview branch is allowed.');
+if (preview && (!['hardening/core-reliability','hardening/backup-restore-operations','hardening/security-roles-product','hardening/performance-scale'].includes(expectedPreviewBranch) || new URL(base).protocol !== 'https:' || !new URL(base).hostname.endsWith('.vercel.app') || preview.branch !== expectedPreviewBranch)) throw Error('Only the explicitly verified hardening Preview branch is allowed.');
 const browserState = preview && fs.existsSync(root + '/.local/preview-browser-state.json') ? root + '/.local/preview-browser-state.json' : undefined;
 async function verifyBundle() {
   const context = await browser.newContext({ storageState: browserState });

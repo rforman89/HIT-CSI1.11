@@ -1,0 +1,1782 @@
+{
+  "date": "2026-09-29",
+  "baselineCommit": "8ef8bee",
+  "environment": "loopback Chromium 390x844; uncompressed static assets; Node 24.21.0; no hosted load",
+  "baseline": {
+    "network": "normal",
+    "viewport": [
+      390,
+      844
+    ],
+    "roles": [
+      {
+        "role": "landing",
+        "usableMs": 129,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 46,
+        "longTasks": [],
+        "taskMs": 87.77,
+        "scriptMs": 32.39,
+        "heapBytes": 3150132,
+        "resourceTransferBytes": 652496,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "login",
+        "usableMs": 98,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 30,
+        "longTasks": [],
+        "taskMs": 72.77,
+        "scriptMs": 31.37,
+        "heapBytes": 3472972,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "a",
+        "usableMs": 970,
+        "backendRequests": 60,
+        "initialRequests": 29,
+        "navigationRequests": 1,
+        "idleRequests": 30,
+        "idleMs": 22000,
+        "idleBytes": 616590,
+        "backendBytes": 1234993,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [
+          {
+            "screen": "/Verdachten/",
+            "ms": 52
+          }
+        ],
+        "reactCommits": 17,
+        "domNodes": 99,
+        "longTasks": [
+          63
+        ],
+        "taskMs": 280.7,
+        "scriptMs": 73.71,
+        "heapBytes": 5855228,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "suspect",
+        "usableMs": 415,
+        "backendRequests": 49,
+        "initialRequests": 25,
+        "navigationRequests": 0,
+        "idleRequests": 24,
+        "idleMs": 22000,
+        "idleBytes": 4390,
+        "backendBytes": 10684,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 16,
+        "domNodes": 142,
+        "longTasks": [],
+        "taskMs": 250.68,
+        "scriptMs": 80.08,
+        "heapBytes": 5737220,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "jury",
+        "usableMs": 372,
+        "backendRequests": 61,
+        "initialRequests": 31,
+        "navigationRequests": 0,
+        "idleRequests": 30,
+        "idleMs": 22000,
+        "idleBytes": 15354,
+        "backendBytes": 32658,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 15,
+        "domNodes": 150,
+        "longTasks": [],
+        "taskMs": 214.96,
+        "scriptMs": 66.51,
+        "heapBytes": 4602688,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "admin",
+        "usableMs": 433,
+        "backendRequests": 65,
+        "initialRequests": 33,
+        "navigationRequests": 0,
+        "idleRequests": 32,
+        "idleMs": 22000,
+        "idleBytes": 699088,
+        "backendBytes": 1400073,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 15,
+        "domNodes": 176,
+        "longTasks": [
+          67
+        ],
+        "taskMs": 265.44,
+        "scriptMs": 74.51,
+        "heapBytes": 6160124,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      }
+    ]
+  },
+  "matchedBefore": {
+    "network": "normal",
+    "viewport": [
+      390,
+      844
+    ],
+    "roles": [
+      {
+        "role": "landing",
+        "usableMs": 145,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 46,
+        "longTasks": [],
+        "taskMs": 103.43,
+        "scriptMs": 36.3,
+        "heapBytes": 3145568,
+        "resourceTransferBytes": 652496,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "login",
+        "usableMs": 99,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 30,
+        "longTasks": [],
+        "taskMs": 72.75,
+        "scriptMs": 31.83,
+        "heapBytes": 3472976,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "a",
+        "usableMs": 966,
+        "backendRequests": 60,
+        "initialRequests": 29,
+        "navigationRequests": 1,
+        "idleRequests": 30,
+        "idleMs": 22000,
+        "idleBytes": 620356,
+        "backendBytes": 1242525,
+        "identicalRequestsWithin1500ms": 14,
+        "navigation": [
+          {
+            "screen": "/Verdachten/",
+            "ms": 47
+          }
+        ],
+        "reactCommits": 17,
+        "domNodes": 99,
+        "longTasks": [
+          61
+        ],
+        "taskMs": 274.1,
+        "scriptMs": 68.75,
+        "heapBytes": 5942708,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "suspect",
+        "usableMs": 436,
+        "backendRequests": 49,
+        "initialRequests": 25,
+        "navigationRequests": 0,
+        "idleRequests": 24,
+        "idleMs": 22000,
+        "idleBytes": 5080,
+        "backendBytes": 12064,
+        "identicalRequestsWithin1500ms": 11,
+        "navigation": [],
+        "reactCommits": 16,
+        "domNodes": 150,
+        "longTasks": [],
+        "taskMs": 235.2,
+        "scriptMs": 73.96,
+        "heapBytes": 4562236,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "jury",
+        "usableMs": 445,
+        "backendRequests": 61,
+        "initialRequests": 31,
+        "navigationRequests": 0,
+        "idleRequests": 30,
+        "idleMs": 22000,
+        "idleBytes": 21002,
+        "backendBytes": 43953,
+        "identicalRequestsWithin1500ms": 13,
+        "navigation": [],
+        "reactCommits": 15,
+        "domNodes": 153,
+        "longTasks": [],
+        "taskMs": 222.47,
+        "scriptMs": 68.35,
+        "heapBytes": 4841260,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "admin",
+        "usableMs": 495,
+        "backendRequests": 65,
+        "initialRequests": 33,
+        "navigationRequests": 0,
+        "idleRequests": 32,
+        "idleMs": 22000,
+        "idleBytes": 705800,
+        "backendBytes": 1413497,
+        "identicalRequestsWithin1500ms": 16,
+        "navigation": [],
+        "reactCommits": 15,
+        "domNodes": 175,
+        "longTasks": [
+          69
+        ],
+        "taskMs": 301.37,
+        "scriptMs": 82.32,
+        "heapBytes": 6194356,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      }
+    ]
+  },
+  "matchedAfter": {
+    "network": "normal",
+    "viewport": [
+      390,
+      844
+    ],
+    "roles": [
+      {
+        "role": "landing",
+        "usableMs": 132,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 46,
+        "longTasks": [],
+        "taskMs": 91.74,
+        "scriptMs": 32.74,
+        "heapBytes": 3131604,
+        "resourceTransferBytes": 655878,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "login",
+        "usableMs": 102,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 30,
+        "longTasks": [],
+        "taskMs": 75.02,
+        "scriptMs": 33.34,
+        "heapBytes": 3470792,
+        "resourceTransferBytes": 611980,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "a",
+        "usableMs": 961,
+        "backendRequests": 44,
+        "initialRequests": 31,
+        "navigationRequests": 1,
+        "idleRequests": 12,
+        "idleMs": 22000,
+        "idleBytes": 3578,
+        "backendBytes": 755091,
+        "identicalRequestsWithin1500ms": 13,
+        "navigation": [
+          {
+            "screen": "/Verdachten/",
+            "ms": 58
+          }
+        ],
+        "reactCommits": 17,
+        "domNodes": 113,
+        "longTasks": [
+          58
+        ],
+        "taskMs": 251.41,
+        "scriptMs": 69.28,
+        "heapBytes": 5641968,
+        "resourceTransferBytes": 611980,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "suspect",
+        "usableMs": 349,
+        "backendRequests": 32,
+        "initialRequests": 20,
+        "navigationRequests": 0,
+        "idleRequests": 12,
+        "idleMs": 22000,
+        "idleBytes": 2412,
+        "backendBytes": 8839,
+        "identicalRequestsWithin1500ms": 7,
+        "navigation": [],
+        "reactCommits": 16,
+        "domNodes": 150,
+        "longTasks": [],
+        "taskMs": 198.85,
+        "scriptMs": 65.35,
+        "heapBytes": 5592488,
+        "resourceTransferBytes": 611980,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "jury",
+        "usableMs": 344,
+        "backendRequests": 35,
+        "initialRequests": 23,
+        "navigationRequests": 0,
+        "idleRequests": 12,
+        "idleMs": 22000,
+        "idleBytes": 4222,
+        "backendBytes": 26110,
+        "identicalRequestsWithin1500ms": 8,
+        "navigation": [],
+        "reactCommits": 15,
+        "domNodes": 153,
+        "longTasks": [],
+        "taskMs": 201.55,
+        "scriptMs": 66.17,
+        "heapBytes": 5605836,
+        "resourceTransferBytes": 611980,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "admin",
+        "usableMs": 464,
+        "backendRequests": 45,
+        "initialRequests": 33,
+        "navigationRequests": 0,
+        "idleRequests": 12,
+        "idleMs": 22000,
+        "idleBytes": 4328,
+        "backendBytes": 856778,
+        "identicalRequestsWithin1500ms": 13,
+        "navigation": [],
+        "reactCommits": 15,
+        "domNodes": 175,
+        "longTasks": [
+          65
+        ],
+        "taskMs": 256.28,
+        "scriptMs": 77.15,
+        "heapBytes": 5978296,
+        "resourceTransferBytes": 611980,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      }
+    ]
+  },
+  "mobile4g": {
+    "network": "4g",
+    "viewport": [
+      390,
+      844
+    ],
+    "roles": [
+      {
+        "role": "landing",
+        "usableMs": 526,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 46,
+        "longTasks": [
+          137
+        ],
+        "taskMs": 489.96,
+        "scriptMs": 195.65,
+        "heapBytes": 3155564,
+        "resourceTransferBytes": 655514,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "login",
+        "usableMs": 3679,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 30,
+        "longTasks": [
+          120
+        ],
+        "taskMs": 388.58,
+        "scriptMs": 173.66,
+        "heapBytes": 3470452,
+        "resourceTransferBytes": 611616,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "a",
+        "usableMs": 7182,
+        "backendRequests": 36,
+        "initialRequests": 29,
+        "navigationRequests": 1,
+        "idleRequests": 6,
+        "idleMs": 22000,
+        "idleBytes": 1759,
+        "backendBytes": 746380,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [
+          {
+            "screen": "/Verdachten/",
+            "ms": 128
+          }
+        ],
+        "reactCommits": 15,
+        "domNodes": 106,
+        "longTasks": [
+          146,
+          91,
+          287,
+          68
+        ],
+        "taskMs": 1417.03,
+        "scriptMs": 419.31,
+        "heapBytes": 5726392,
+        "resourceTransferBytes": 611616,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "suspect",
+        "usableMs": 4749,
+        "backendRequests": 24,
+        "initialRequests": 18,
+        "navigationRequests": 0,
+        "idleRequests": 6,
+        "idleMs": 22000,
+        "idleBytes": 1192,
+        "backendBytes": 6522,
+        "identicalRequestsWithin1500ms": 7,
+        "navigation": [],
+        "reactCommits": 14,
+        "domNodes": 142,
+        "longTasks": [
+          116,
+          101,
+          313
+        ],
+        "taskMs": 1156.08,
+        "scriptMs": 393.32,
+        "heapBytes": 5218360,
+        "resourceTransferBytes": 611616,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "jury",
+        "usableMs": 4607,
+        "backendRequests": 26,
+        "initialRequests": 20,
+        "navigationRequests": 0,
+        "idleRequests": 6,
+        "idleMs": 22000,
+        "idleBytes": 2064,
+        "backendBytes": 16752,
+        "identicalRequestsWithin1500ms": 8,
+        "navigation": [],
+        "reactCommits": 13,
+        "domNodes": 143,
+        "longTasks": [
+          117,
+          72,
+          211
+        ],
+        "taskMs": 1010.95,
+        "scriptMs": 345.98,
+        "heapBytes": 5330140,
+        "resourceTransferBytes": 611616,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "admin",
+        "usableMs": 7293,
+        "backendRequests": 38,
+        "initialRequests": 31,
+        "navigationRequests": 0,
+        "idleRequests": 7,
+        "idleMs": 22000,
+        "idleBytes": 74382,
+        "backendBytes": 842913,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [],
+        "reactCommits": 13,
+        "domNodes": 175,
+        "longTasks": [
+          110,
+          64,
+          86,
+          333
+        ],
+        "taskMs": 1464.28,
+        "scriptMs": 408.8,
+        "heapBytes": 4513244,
+        "resourceTransferBytes": 611616,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      }
+    ]
+  },
+  "slowBefore": {
+    "network": "slow",
+    "viewport": [
+      390,
+      844
+    ],
+    "roles": [
+      {
+        "role": "landing",
+        "usableMs": 553,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 46,
+        "longTasks": [
+          146
+        ],
+        "taskMs": 492.45,
+        "scriptMs": 208.15,
+        "heapBytes": 3150044,
+        "resourceTransferBytes": 652496,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "login",
+        "usableMs": 13037,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 30,
+        "longTasks": [
+          113
+        ],
+        "taskMs": 369.81,
+        "scriptMs": 165.63,
+        "heapBytes": 3474200,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "a",
+        "usableMs": 21645,
+        "backendRequests": 59,
+        "initialRequests": 16,
+        "navigationRequests": 1,
+        "idleRequests": 42,
+        "idleMs": 22000,
+        "idleBytes": 621233,
+        "backendBytes": 931612,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [
+          {
+            "screen": "/Verdachten/",
+            "ms": 80
+          }
+        ],
+        "reactCommits": 16,
+        "domNodes": 99,
+        "longTasks": [
+          112,
+          67,
+          290,
+          50
+        ],
+        "taskMs": 1561.26,
+        "scriptMs": 344.92,
+        "heapBytes": 5015568,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "suspect",
+        "usableMs": 15238,
+        "backendRequests": 49,
+        "initialRequests": 13,
+        "navigationRequests": 0,
+        "idleRequests": 36,
+        "idleMs": 22000,
+        "idleBytes": 6585,
+        "backendBytes": 10684,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 16,
+        "domNodes": 142,
+        "longTasks": [
+          117,
+          76,
+          241
+        ],
+        "taskMs": 1192.17,
+        "scriptMs": 369.64,
+        "heapBytes": 4201388,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "jury",
+        "usableMs": 15473,
+        "backendRequests": 61,
+        "initialRequests": 29,
+        "navigationRequests": 0,
+        "idleRequests": 32,
+        "idleMs": 22000,
+        "idleBytes": 15488,
+        "backendBytes": 32658,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 15,
+        "domNodes": 150,
+        "longTasks": [
+          114,
+          85,
+          216
+        ],
+        "taskMs": 1269.11,
+        "scriptMs": 378.42,
+        "heapBytes": 4260092,
+        "resourceTransferBytes": 608598,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      }
+    ]
+  },
+  "slowAfterIntermediate": {
+    "network": "slow",
+    "viewport": [
+      390,
+      844
+    ],
+    "roles": [
+      {
+        "role": "landing",
+        "usableMs": 542,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 46,
+        "longTasks": [
+          154,
+          53
+        ],
+        "taskMs": 532.81,
+        "scriptMs": 222.81,
+        "heapBytes": 3149556,
+        "resourceTransferBytes": 655424,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "login",
+        "usableMs": 13115,
+        "backendRequests": 0,
+        "initialRequests": 0,
+        "navigationRequests": 0,
+        "idleRequests": 0,
+        "idleMs": 1000,
+        "idleBytes": 0,
+        "backendBytes": 0,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 2,
+        "domNodes": 30,
+        "longTasks": [
+          120
+        ],
+        "taskMs": 389.14,
+        "scriptMs": 173.11,
+        "heapBytes": 3470452,
+        "resourceTransferBytes": 611526,
+        "sockets": {
+          "opened": 0,
+          "closed": 0,
+          "joins": 0,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "a",
+        "usableMs": 23378,
+        "backendRequests": 35,
+        "initialRequests": 18,
+        "navigationRequests": 1,
+        "idleRequests": 16,
+        "idleMs": 22000,
+        "idleBytes": 4916,
+        "backendBytes": 379099,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [
+          {
+            "screen": "/Verdachten/",
+            "ms": 108
+          }
+        ],
+        "reactCommits": 15,
+        "domNodes": 106,
+        "longTasks": [
+          124,
+          64,
+          291,
+          53
+        ],
+        "taskMs": 1432.93,
+        "scriptMs": 373.26,
+        "heapBytes": 4351484,
+        "resourceTransferBytes": 611526,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "suspect",
+        "usableMs": 14732,
+        "backendRequests": 29,
+        "initialRequests": 13,
+        "navigationRequests": 0,
+        "idleRequests": 16,
+        "idleMs": 22000,
+        "idleBytes": 3172,
+        "backendBytes": 7312,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 14,
+        "domNodes": 142,
+        "longTasks": [
+          119,
+          79,
+          230
+        ],
+        "taskMs": 1118.07,
+        "scriptMs": 352.01,
+        "heapBytes": 4066008,
+        "resourceTransferBytes": 611526,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "jury",
+        "usableMs": 14880,
+        "backendRequests": 33,
+        "initialRequests": 15,
+        "navigationRequests": 0,
+        "idleRequests": 18,
+        "idleMs": 22000,
+        "idleBytes": 5724,
+        "backendBytes": 15434,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 13,
+        "domNodes": 150,
+        "longTasks": [
+          122,
+          98,
+          279
+        ],
+        "taskMs": 1197.21,
+        "scriptMs": 382.67,
+        "heapBytes": 4121408,
+        "resourceTransferBytes": 611526,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "admin",
+        "usableMs": 24179,
+        "backendRequests": 46,
+        "initialRequests": 35,
+        "navigationRequests": 0,
+        "idleRequests": 11,
+        "idleMs": 22000,
+        "idleBytes": 329551,
+        "backendBytes": 848450,
+        "identicalRequestsWithin1500ms": null,
+        "navigation": [],
+        "reactCommits": 13,
+        "domNodes": 176,
+        "longTasks": [
+          113,
+          87,
+          377
+        ],
+        "taskMs": 1630.31,
+        "scriptMs": 396.89,
+        "heapBytes": 4625908,
+        "resourceTransferBytes": 611526,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      }
+    ]
+  },
+  "slowAfterFinal": {
+    "network": "slow",
+    "viewport": [
+      390,
+      844
+    ],
+    "roles": [
+      {
+        "role": "a",
+        "usableMs": 23294,
+        "backendRequests": 44,
+        "initialRequests": 27,
+        "navigationRequests": 1,
+        "idleRequests": 16,
+        "idleMs": 22000,
+        "idleBytes": 296550,
+        "backendBytes": 755090,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [
+          {
+            "screen": "/Verdachten/",
+            "ms": 160
+          }
+        ],
+        "reactCommits": 17,
+        "domNodes": 113,
+        "longTasks": [
+          119,
+          69,
+          287,
+          93
+        ],
+        "taskMs": 1569.15,
+        "scriptMs": 381.98,
+        "heapBytes": 4698708,
+        "resourceTransferBytes": 611911,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      },
+      {
+        "role": "admin",
+        "usableMs": 24316,
+        "backendRequests": 50,
+        "initialRequests": 34,
+        "navigationRequests": 0,
+        "idleRequests": 16,
+        "idleMs": 22000,
+        "idleBytes": 333177,
+        "backendBytes": 859496,
+        "identicalRequestsWithin1500ms": 0,
+        "navigation": [],
+        "reactCommits": 15,
+        "domNodes": 175,
+        "longTasks": [
+          124,
+          79,
+          315
+        ],
+        "taskMs": 1572.23,
+        "scriptMs": 420.4,
+        "heapBytes": 4948128,
+        "resourceTransferBytes": 611911,
+        "sockets": {
+          "opened": 1,
+          "closed": 0,
+          "joins": 1,
+          "leaves": 0
+        },
+        "errors": []
+      }
+    ]
+  },
+  "slowCaveat": "Baseline admin did not become usable; new slow run predates the final subscription-gap correction. Final participant/admin rerun after targeted timeout and photo URL fixes; other roles measured in the earlier full slow run.",
+  "large": {
+    "before": {
+      "ms": 345.56140000000005,
+      "transactions": 1000,
+      "notes": 1000,
+      "clues": 1000
+    },
+    "after": {
+      "ms": 674.9996000000001,
+      "transactions": 1508,
+      "notes": 1205,
+      "clues": 1102
+    },
+    "render": {
+      "transactionScreenMs": 62.1229000000003,
+      "domNodes": 410
+    }
+  },
+  "render": {
+    "before": {
+      "transactionScreenMs": 201.2175,
+      "domNodes": 7699
+    },
+    "after": {
+      "transactionScreenMs": 62.1229,
+      "domNodes": 410
+    },
+    "source": "same LOCAL deterministic large fixture; console outputs retained in chat and after run log"
+  },
+  "clueLists": {
+    "before": {
+      "before": {
+        "ms": 331.5365999999999,
+        "transactions": 1000,
+        "notes": 1000,
+        "clues": 1000
+      },
+      "after": {
+        "ms": 621.4821,
+        "transactions": 1513,
+        "notes": 1208,
+        "clues": 1102
+      },
+      "render": {
+        "transactionScreenMs": 61.409400000000005,
+        "domNodes": 410
+      },
+      "otherScreens": [
+        {
+          "screen": "/^📄 Clues$/",
+          "ms": 297.8606,
+          "domNodes": 13331
+        },
+        {
+          "screen": "a",
+          "usableMs": 2479.3908,
+          "ms": 343.84099999999944,
+          "domNodes": 14411
+        },
+        {
+          "screen": "suspect",
+          "usableMs": 2590.3626999999988,
+          "ms": 7.590300000001662,
+          "domNodes": 4984
+        }
+      ]
+    },
+    "after": {
+      "before": {
+        "ms": 212.82320000000004,
+        "transactions": 1000,
+        "notes": 1000,
+        "clues": 1000
+      },
+      "after": {
+        "ms": 655.9591999999998,
+        "transactions": 1513,
+        "notes": 1208,
+        "clues": 1102
+      },
+      "render": {
+        "transactionScreenMs": 68.66130000000021,
+        "domNodes": 410
+      },
+      "otherScreens": [
+        {
+          "screen": "/^📄 Clues$/",
+          "ms": 93.75939999999991,
+          "domNodes": 1782
+        },
+        {
+          "screen": "a",
+          "usableMs": 2465.9322,
+          "ms": 62.00540000000001,
+          "domNodes": 762
+        },
+        {
+          "screen": "suspect",
+          "usableMs": 2592.0796,
+          "ms": 12.689700000000812,
+          "domNodes": 4984
+        }
+      ]
+    }
+  },
+  "bundle": [
+    {
+      "file": "assets/index-BnMckGR_.js",
+      "bytes": 611567,
+      "gzipBytes": 162097,
+      "modules": [
+        {
+          "module": "node_modules/react-dom/cjs/react-dom-client.production.js",
+          "renderedLength": 453153
+        },
+        {
+          "module": "src/App.jsx",
+          "renderedLength": 112464
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/GoTrueClient.js",
+          "renderedLength": 95276
+        },
+        {
+          "module": "node_modules/@supabase/phoenix/priv/static/phoenix.mjs",
+          "renderedLength": 40732
+        },
+        {
+          "module": "node_modules/@supabase/storage-js/dist/index.mjs",
+          "renderedLength": 38308
+        },
+        {
+          "module": "src/components/suspect/SuspectDashboard.jsx",
+          "renderedLength": 32778
+        },
+        {
+          "module": "node_modules/@supabase/postgrest-js/dist/index.mjs",
+          "renderedLength": 27474
+        },
+        {
+          "module": "src/components/admin/AdminManage.jsx",
+          "renderedLength": 26122
+        },
+        {
+          "module": "src/components/admin/AdminClues.jsx",
+          "renderedLength": 25980
+        },
+        {
+          "module": "src/components/admin/AdminDashboard.jsx",
+          "renderedLength": 25355
+        },
+        {
+          "module": "src/components/admin/AdminGroupsList.jsx",
+          "renderedLength": 19340
+        },
+        {
+          "module": "src/components/participant/ParticipantDashboard.jsx",
+          "renderedLength": 18485
+        },
+        {
+          "module": "node_modules/react/cjs/react.production.js",
+          "renderedLength": 15178
+        },
+        {
+          "module": "src/components/admin/AdminCreditsAndNotifications.jsx",
+          "renderedLength": 15042
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/webauthn.js",
+          "renderedLength": 14281
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js",
+          "renderedLength": 14147
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/RealtimeChannel.js",
+          "renderedLength": 14048
+        },
+        {
+          "module": "src/components/participant/ParticipantSuspects.jsx",
+          "renderedLength": 13577
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/GoTrueAdminApi.js",
+          "renderedLength": 13212
+        },
+        {
+          "module": "src/components/admin/AdminSetupCheck.jsx",
+          "renderedLength": 12135
+        },
+        {
+          "module": "src/components/admin/AdminInterrogationPanel.jsx",
+          "renderedLength": 12070
+        },
+        {
+          "module": "src/components/shared/AppBlocks.jsx",
+          "renderedLength": 12069
+        },
+        {
+          "module": "node_modules/@supabase/supabase-js/dist/index.mjs",
+          "renderedLength": 11667
+        },
+        {
+          "module": "src/components/participant/ParticipantClues.jsx",
+          "renderedLength": 10958
+        },
+        {
+          "module": "src/components/shell/LandingPage.jsx",
+          "renderedLength": 9973
+        },
+        {
+          "module": "node_modules/scheduler/cjs/scheduler.production.js",
+          "renderedLength": 9064
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/helpers.js",
+          "renderedLength": 8765
+        },
+        {
+          "module": "node_modules/iceberg-js/dist/index.mjs",
+          "renderedLength": 8051
+        },
+        {
+          "module": "src/components/admin/AdminParticipantPreview.jsx",
+          "renderedLength": 7558
+        },
+        {
+          "module": "src/components/admin/BackupOperations.jsx",
+          "renderedLength": 6468
+        },
+        {
+          "module": "src/services/loadAppSnapshot.js",
+          "renderedLength": 6444
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/lib/serializer.js",
+          "renderedLength": 6023
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/fetch.js",
+          "renderedLength": 5849
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/webauthn.errors.js",
+          "renderedLength": 5829
+        },
+        {
+          "module": "node_modules/react-dom/cjs/react-dom.production.js",
+          "renderedLength": 5713
+        },
+        {
+          "module": "src/styles.js",
+          "renderedLength": 4671
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/base64url.js",
+          "renderedLength": 4407
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/lib/transformers.js",
+          "renderedLength": 4272
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/locks.js",
+          "renderedLength": 3920
+        },
+        {
+          "module": "src/utils/reliability.js",
+          "renderedLength": 3816
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/errors.js",
+          "renderedLength": 3763
+        },
+        {
+          "module": "src/components/jury/JuryDashboard.jsx",
+          "renderedLength": 3704
+        },
+        {
+          "module": "node_modules/@supabase/functions-js/dist/module/FunctionsClient.js",
+          "renderedLength": 3692
+        },
+        {
+          "module": "src/components/shell/LoginScreen.jsx",
+          "renderedLength": 3404
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js",
+          "renderedLength": 3199
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/web3/ethereum.js",
+          "renderedLength": 2614
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/phoenix/channelAdapter.js",
+          "renderedLength": 2522
+        },
+        {
+          "module": "src/components/shell/Header.jsx",
+          "renderedLength": 2257
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/phoenix/socketAdapter.js",
+          "renderedLength": 2248
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/phoenix/presenceAdapter.js",
+          "renderedLength": 2229
+        },
+        {
+          "module": "src/utils/security.js",
+          "renderedLength": 2013
+        },
+        {
+          "module": "src/components/shared/ErrorBoundary.jsx",
+          "renderedLength": 1674
+        },
+        {
+          "module": "src/components/admin/AccountAccess.jsx",
+          "renderedLength": 1643
+        },
+        {
+          "module": "node_modules/@supabase/functions-js/dist/module/types.js",
+          "renderedLength": 1641
+        },
+        {
+          "module": "src/components/shared/MessageBlock.jsx",
+          "renderedLength": 1403
+        },
+        {
+          "module": "\u0000vite/modulepreload-polyfill.js",
+          "renderedLength": 1205
+        },
+        {
+          "module": "\u0000rolldown/runtime.js",
+          "renderedLength": 1162
+        },
+        {
+          "module": "node_modules/tslib/tslib.es6.mjs",
+          "renderedLength": 1114
+        },
+        {
+          "module": "src/services/readAllRows.js",
+          "renderedLength": 1045
+        },
+        {
+          "module": "src/services/refreshQueue.js",
+          "renderedLength": 899
+        },
+        {
+          "module": "node_modules/react/cjs/react-jsx-runtime.production.js",
+          "renderedLength": 871
+        },
+        {
+          "module": "src/supabase.js",
+          "renderedLength": 764
+        },
+        {
+          "module": "src/components/shared/StatusBadge.jsx",
+          "renderedLength": 733
+        },
+        {
+          "module": "src/services/diagnostics.js",
+          "renderedLength": 697
+        },
+        {
+          "module": "src/utils/dateUtils.js",
+          "renderedLength": 685
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/lib/normalizeChannelError.js",
+          "renderedLength": 671
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/lib/constants.js",
+          "renderedLength": 645
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/constants.js",
+          "renderedLength": 637
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/RealtimePresence.js",
+          "renderedLength": 635
+        },
+        {
+          "module": "node_modules/react-dom/client.js",
+          "renderedLength": 473
+        },
+        {
+          "module": "src/components/shared/LoadingBlock.jsx",
+          "renderedLength": 472
+        },
+        {
+          "module": "node_modules/react-dom/index.js",
+          "renderedLength": 468
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/polyfills.js",
+          "renderedLength": 448
+        },
+        {
+          "module": "src/components/shared/SuspectImage.jsx",
+          "renderedLength": 333
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/local-storage.js",
+          "renderedLength": 317
+        },
+        {
+          "module": "src/index.jsx",
+          "renderedLength": 299
+        },
+        {
+          "module": "src/utils/statusUtils.js",
+          "renderedLength": 243
+        },
+        {
+          "module": "node_modules/@supabase/functions-js/dist/module/helper.js",
+          "renderedLength": 221
+        },
+        {
+          "module": "node_modules/react/jsx-runtime.js",
+          "renderedLength": 200
+        },
+        {
+          "module": "node_modules/scheduler/index.js",
+          "renderedLength": 188
+        },
+        {
+          "module": "node_modules/react/index.js",
+          "renderedLength": 176
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/types.js",
+          "renderedLength": 137
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/lib/version.js",
+          "renderedLength": 112
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/AuthClient.js",
+          "renderedLength": 111
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/lib/version.js",
+          "renderedLength": 108
+        },
+        {
+          "module": "node_modules/@supabase/realtime-js/dist/module/index.js",
+          "renderedLength": 0
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/AuthAdminApi.js",
+          "renderedLength": 0
+        },
+        {
+          "module": "node_modules/@supabase/auth-js/dist/module/index.js",
+          "renderedLength": 0
+        },
+        {
+          "module": "src/styles.css",
+          "renderedLength": 0
+        },
+        {
+          "module": "index.html",
+          "renderedLength": 0
+        }
+      ]
+    }
+  ],
+  "builtAssets": [
+    {
+      "file": "index-B5lxfKmV.css",
+      "bytes": 401,
+      "gzipBytes": 243
+    },
+    {
+      "file": "index-BnMckGR_.js",
+      "bytes": 611567,
+      "gzipBytes": 162097
+    }
+  ],
+  "plans": {
+    "transactions": {
+      "executionMs": 24.864,
+      "planningMs": 0.357
+    },
+    "notes": {
+      "executionMs": 16.316,
+      "planningMs": 0.388
+    },
+    "audit": {
+      "executionMs": 1.806,
+      "planningMs": 0.549
+    }
+  },
+  "localLoad": {
+    "options": {
+      "target": "local",
+      "profile": "A",
+      "clients": 10,
+      "seconds": 60,
+      "allowHosted": false,
+      "writes": false
+    },
+    "scope": "API sessions + actual Realtime; not browser clients",
+    "passed": true,
+    "durationSeconds": 68.5155518,
+    "loadDurationSeconds": 60.0051032,
+    "summary": {
+      "request": {
+        "count": 775,
+        "p50": 6.87689999999975,
+        "p95": 41.726999999999975,
+        "p99": 99.60410000000002,
+        "errorRate": 0,
+        "bytes": 5999930,
+        "perSecond": 11.31130056811423
+      },
+      "snapshot": {
+        "count": 20,
+        "p50": 48.908600000000206,
+        "p95": 209.32709999999997,
+        "p99": 235.17990000000282,
+        "errorRate": 0,
+        "bytes": 0,
+        "perSecond": 0.2919045307900447
+      },
+      "realtime-join": {
+        "count": 20,
+        "p50": 6.737199999995937,
+        "p95": 8.84940000000006,
+        "p99": 12.723199999999963,
+        "errorRate": 0,
+        "bytes": 0,
+        "perSecond": 0.2919045307900447
+      },
+      "targeted-refresh": {
+        "count": 70,
+        "p50": 20.26209999999992,
+        "p95": 179.6836000000003,
+        "p99": 201.42720000000008,
+        "errorRate": 0,
+        "bytes": 0,
+        "perSecond": 1.0216658577651563
+      }
+    },
+    "minuteWindows": [
+      {
+        "minute": 0,
+        "requests": 499,
+        "requestP95": 15.061500000003434,
+        "snapshotP95": 235.17990000000282,
+        "errors": 0
+      },
+      {
+        "minute": 1,
+        "requests": 0,
+        "requestP95": null,
+        "snapshotP95": null,
+        "errors": 0
+      }
+    ],
+    "channelSampleCount": 60,
+    "maximumChannelsPerClient": 1,
+    "roles": {
+      "a": {
+        "requests": 336,
+        "errors": 0
+      },
+      "b": {
+        "requests": 216,
+        "errors": 0
+      },
+      "suspect": {
+        "requests": 66,
+        "errors": 0
+      },
+      "jury": {
+        "requests": 69,
+        "errors": 0
+      },
+      "admin": {
+        "requests": 88,
+        "errors": 0
+      }
+    }
+  },
+  "tests": {
+    "executions": 214,
+    "duplicatePrivacyExecutions": 4,
+    "unique": 210
+  }
+}

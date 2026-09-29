@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function AdminClues({ ctx }) {
+  const [visibleCounts, setVisibleCounts] = useState({});
   const {
     supabase,
     styles,
@@ -615,7 +616,7 @@ export default function AdminClues({ ctx }) {
               </summary>
 
               <div style={{ marginTop: 12 }}>
-                {category.clues.map((clue) => (
+                {category.clues.slice(0, visibleCounts[category.key] || 50).map((clue) => (
                   <div key={clue.id} style={styles.card}>
                     {editingClueId === clue.id ? (
                       <>
@@ -836,6 +837,11 @@ export default function AdminClues({ ctx }) {
                     )}
                   </div>
                 ))}
+                {category.clues.length > (visibleCounts[category.key] || 50) && (
+                  <button style={styles.buttonSecondary} onClick={() => setVisibleCounts(current => ({...current, [category.key]:(current[category.key] || 50)+50}))}>
+                    Meer aanwijzingen tonen ({visibleCounts[category.key] || 50} van {category.clues.length})
+                  </button>
+                )}
               </div>
             </details>
           ))

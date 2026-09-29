@@ -5,6 +5,7 @@ import { safeCsvValue, buildCsvContent, snapshotJson, storagePath, validateUploa
 import { supabase, backend } from "./supabase";
 import { recordDiagnostic, diagnosticScreen } from "./services/diagnostics";
 import { loadAppSnapshot } from "./services/loadAppSnapshot";
+import { createRefreshQueue } from "./services/refreshQueue";
 import { createRequestGate, mutateCredits, creditStorageKey, readPendingCredit, purchaseTimestamp } from "./utils/reliability";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 import { styles } from "./styles";
@@ -57,7 +58,12 @@ export default function App() {
 
 function GameApp() {
   const [hasAccess,setHasAccess]=useState(false);
-  const reloadTimer = useRef(null);
+  const refreshQueue = useRef(null);
+  const snapshotRef = useRef(null);
+  const inFlight = useRef(false);
+  const realtimeReady = useRef(false);
+  const lastFullSync = useRef(0);
+  const pollDue = useRef(false);
   const requestGate = useRef(createRequestGate());
   const sessionRef = useRef(null);
   const busyRef = useRef(false);
@@ -284,23 +290,15 @@ function GameApp() {
     suspectStatuses,
   ]);
 
-  const scheduleReload = (currentProfile = profile) => {
-    if (!currentProfile) return;
+  const scheduleReload = (_currentProfile = profile, table = '*') => refreshQueue.current?.request([table]);
 
-    if (isTypingRef.current) {
-      return;
-    }
-
-    if (reloadTimer.current) {
-      clearTimeout(reloadTimer.current);
-    }
-
-    reloadTimer.current = setTimeout(() => {
-      if (!isTypingRef.current) {
-        loadAppData(currentProfile);
-      }
-    }, 1000);
-  };
+  useEffect(() => {
+    refreshQueue.current = createRefreshQueue(
+      tables => { pollDue.current=false; return loadAppData({id:sessionRef.current?.user?.id}, tables); },
+      () => (!isTypingRef.current || pollDue.current) && !busyRef.current && !inFlight.current && navigator.onLine && document.visibilityState === 'visible'
+    );
+    return () => { refreshQueue.current?.dispose(); snapshotRef.current=null; };
+  }, []);
 
   const appFocusHandlers = {
     onFocusCapture: (e) => {
@@ -315,10 +313,7 @@ function GameApp() {
       const tag = e.target.tagName?.toLowerCase();
 
       if (["input", "textarea", "select"].includes(tag)) {
-        setTimeout(() => {
-          isTypingRef.current = false;
-          loadAppData(profile);
-        }, 500);
+        isTypingRef.current = ["input", "textarea", "select"].includes(e.relatedTarget?.tagName?.toLowerCase());
       }
     },
   };
@@ -330,6 +325,9 @@ function GameApp() {
       setSession(newSession);
       if (changed || !newSession) {
         requestGate.current.invalidate();
+        snapshotRef.current = null;
+        lastFullSync.current = 0;
+        refreshQueue.current?.clear();
         setProfile(null);
         clearAppData();
         setPassword("");
@@ -338,14 +336,14 @@ function GameApp() {
         setPendingCredit(null);
         setDataStatus({ loading: false, error: "", lastUpdated: null });
       }
-      if (newSession?.user) {
+      if (newSession?.user && changed) {
         setTimeout(() => {
           if (sessionRef.current?.user?.id === newSession.user.id) loadAppData({ id: newSession.user.id });
         }, 0);
       }
     };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => acceptSession(newSession));
-    return () => { subscription.unsubscribe(); sessionRef.current = null; requestGate.current.invalidate(); clearTimeout(reloadTimer.current); };
+    return () => { subscription.unsubscribe(); sessionRef.current = null; requestGate.current.invalidate(); };
   }, []);
 
   useEffect(() => {
@@ -353,15 +351,24 @@ function GameApp() {
     if (!userId) return;
     try { setPendingCredit(readPendingCredit(sessionStorage, creditStorageKey(backend.project, userId))); }
     catch (err) { setError(err.message); }
-    const refresh = () => {
-      if (document.visibilityState === "visible" && navigator.onLine && !busyRef.current) loadAppData({ id: userId });
+    const refresh = () => refreshQueue.current?.request();
+    const poll = () => {
+      // Preserve the existing safety poll even when a form remains focused.
+      pollDue.current = true;
+      // Keep access, balances, mode and clue visibility fresh even without events.
+      // Full reconciliation catches missed events/deletes and renews signed URLs.
+      refreshQueue.current?.request(realtimeReady.current && snapshotRef.current && Date.now()-lastFullSync.current<60000
+        ? ['app_settings','groups','clues_base','suspects'] : ['*']);
     };
     const offline = () => {
       requestGate.current.invalidate();
+      snapshotRef.current = null;
+      inFlight.current = false;
       setGameMode("unknown");
       setDataStatus(current => ({ ...current, loading: false, error: "Geen verbinding. Laatst geladen gegevens blijven zichtbaar." }));
     };
-    const timer = setInterval(refresh, 10000);
+    // Different tabs do not all poll at exactly the reconnect instant.
+    const timer = setInterval(poll, 10000 + Math.floor(Math.random()*1000));
     window.addEventListener("online", refresh);
     window.addEventListener("offline", offline);
     document.addEventListener("visibilitychange", refresh);
@@ -381,44 +388,50 @@ function GameApp() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "groups" },
-        () => scheduleReload(profile)
+        () => scheduleReload(profile, 'groups')
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "group_clues" },
-        () => scheduleReload(profile)
+        () => scheduleReload(profile, 'group_clues')
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications" },
-        () => scheduleReload(profile)
+        () => scheduleReload(profile, 'notifications')
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "credit_transactions" },
-        () => scheduleReload(profile)
+        () => scheduleReload(profile, 'credit_transactions')
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "agenda_items" },
-        () => scheduleReload(profile)
+        () => scheduleReload(profile, 'agenda_items')
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "suspect_notes" },
-        () => scheduleReload(profile)
+        () => scheduleReload(profile, 'suspect_notes')
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "suspect_statuses" },
-        () => scheduleReload(profile)
+        () => scheduleReload(profile, 'suspect_statuses')
       )
       .subscribe((status) => {
-        if (status === "SUBSCRIBED") scheduleReload(profile);
+        const wasReady=realtimeReady.current;
+        realtimeReady.current=status==='SUBSCRIBED';
+        // Close the snapshot-to-subscription gap, including on initial join.
+        if (status === "SUBSCRIBED" && !wasReady) refreshQueue.current?.request([
+          "groups","group_clues","notifications","credit_transactions","agenda_items","suspect_notes","suspect_statuses"
+        ]);
         // Periodic refresh remains available when the realtime connection reconnects.
       });
 
     return () => {
+      realtimeReady.current = false;
       supabase.removeChannel(channel);
     };
   }, [profile?.id]);
@@ -518,15 +531,21 @@ function GameApp() {
     if (data.session?.user) await loadAppData({ id: data.session.user.id });
   };
   const loadProfile = async (userId) => loadAppData({ id: userId });
-  const loadAppData = async (currentProfile = profile) => {
+  const loadAppData = async (currentProfile = profile, tables = null) => {
     const userId = currentProfile?.id;
     if (!userId || sessionRef.current?.user?.id !== userId) return;
     const request = requestGate.current.begin();
-    const timeout = setTimeout(() => request.abort(), 8000);
+    inFlight.current = true;
+    if (!tables) refreshQueue.current?.clear();
+    // Targeted event refreshes can also contain large paginated datasets.
+    const timeout = setTimeout(() => request.abort(), 30000);
     setDataStatus(current => ({ ...current, loading: true }));
     try {
-      const snapshot = await loadAppSnapshot(supabase, userId, request.signal, ENABLE_FINAL_REPORTS);
+      const previous=snapshotRef.current;
+      const snapshot = await loadAppSnapshot(supabase, userId, request.signal, ENABLE_FINAL_REPORTS, {previous,tables});
       if (!request.isCurrent() || sessionRef.current?.user?.id !== userId) return;
+      snapshotRef.current=snapshot;
+      if (!tables || previous?._scope!==snapshot._scope) lastFullSync.current=Date.now();
       setProfile(snapshot.profile);
       setHasAccess(snapshot.access);
       diagnosticScreen(snapshot.profile.role);
@@ -541,10 +560,11 @@ function GameApp() {
     } catch (err) {
       if (!request.isCurrent() || sessionRef.current?.user?.id !== userId) return;
       recordDiagnostic("sync");
+      snapshotRef.current = null;
       setGameMode("unknown");
       const message = "Verversen mislukt. Laatst geladen gegevens blijven zichtbaar. " + (err?.message || "Controleer de verbinding.");
       setDataStatus(current => ({ ...current, loading: false, error: message }));
-    } finally { clearTimeout(timeout); }
+    } finally { clearTimeout(timeout); if(request.isCurrent()) inFlight.current=false; }
   };
 
   const refreshWithLoading = async () => {
@@ -3311,7 +3331,6 @@ function GameApp() {
     getAgendaIcon,
     toDateTimeLocalValue,
     getStatusLabel,
-    reloadTimer,
     isTypingRef,
     editClueFileRef,
     editSuspectFileRef,

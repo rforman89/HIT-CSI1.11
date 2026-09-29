@@ -43,13 +43,17 @@
     "privacy:inspect": "node scripts/privacy/inspect-local.cjs",
     "lint": "eslint src",
     "dev": "vite",
-    "test:static": "node --test tests/config/*.test.cjs tests/recovery/unit.test.mjs tests/recovery/cron.test.cjs tests/security/privacy.test.cjs",
+    "test:static": "node --test tests/config/*.test.cjs tests/recovery/unit.test.mjs tests/recovery/cron.test.cjs tests/security/privacy.test.cjs tests/performance/safety.test.cjs",
     "check": "node scripts/check.cjs",
     "security:audit": "npm audit --audit-level=moderate",
     "test:database:build": "node scripts/database-proof.cjs",
     "schema:diff": "node scripts/schema-diff.cjs",
     "schema:capture": "node scripts/schema-capture.cjs",
-    "test:build:browser": "node tests/browser/build-smoke.cjs"
+    "test:build:browser": "node tests/browser/build-smoke.cjs",
+    "test:performance": "node --test --test-concurrency=1 tests/performance/data.test.mjs tests/performance/browser.test.cjs",
+    "perf:profile": "node tests/performance/browser-profile.cjs",
+    "perf:load": "node tests/performance/load.mjs",
+    "perf:seed": "node tests/performance/large-data.cjs"
   },
   "browserslist": [
     ">0.2%",

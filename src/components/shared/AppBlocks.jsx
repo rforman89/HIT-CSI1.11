@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 export function ImageModal({ ctx }) {
   const { styles, imageModal, setImageModal } = ctx;
@@ -175,6 +175,7 @@ export function NotificationsBlock({ ctx }) {
 
 export function TransactionsBlock({ ctx }) {
   const { styles, transactions, formatDate } = ctx;
+  const [visibleCount, setVisibleCount] = useState(50);
 
   return (
     <div style={styles.card}>
@@ -195,7 +196,7 @@ export function TransactionsBlock({ ctx }) {
           </p>
         </div>
       ) : (
-        transactions.map((t) => (
+        transactions.slice(0, visibleCount).map((t) => (
           <div key={t.id} style={{ marginBottom: 12 }}>
             <strong>
               {t.amount > 0 ? "+" : ""}
@@ -206,6 +207,11 @@ export function TransactionsBlock({ ctx }) {
             <div style={styles.subtle}>{formatDate(t.created_at)}</div>
           </div>
         ))
+      )}
+      {transactions.length > visibleCount && (
+        <button style={styles.buttonSecondary} onClick={() => setVisibleCount(n => n + 50)}>
+          Meer pegelgeschiedenis tonen ({visibleCount} van {transactions.length})
+        </button>
       )}
     </div>
   );

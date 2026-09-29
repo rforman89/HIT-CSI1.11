@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function ParticipantCluesPanel({ ctx }) {
+  const [visibleCounts, setVisibleCounts] = useState({});
   const {
     styles,
     clues,
@@ -153,7 +154,12 @@ export default function ParticipantCluesPanel({ ctx }) {
         </summary>
 
         <div style={{ marginTop: 12 }}>
-          {group.clues.map((clue) => renderCompactClueCard(clue, mode))}
+          {group.clues.slice(0, visibleCounts[`${mode}-${group.key}`] || 50).map((clue) => renderCompactClueCard(clue, mode))}
+          {group.clues.length > (visibleCounts[`${mode}-${group.key}`] || 50) && (
+            <button style={styles.buttonSecondary} onClick={() => setVisibleCounts(current => ({...current, [`${mode}-${group.key}`]:(current[`${mode}-${group.key}`] || 50)+50}))}>
+              Meer aanwijzingen tonen ({visibleCounts[`${mode}-${group.key}`] || 50} van {group.clues.length})
+            </button>
+          )}
         </div>
       </details>
     ));
