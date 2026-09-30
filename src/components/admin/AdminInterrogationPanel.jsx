@@ -45,6 +45,7 @@ export default function AdminInterrogationPanelComponent({ ctx }) {
         </div>
 
         <select
+          aria-label="Verhoordossier"
           style={styles.select}
           value={selectedInterrogationSuspect}
           onChange={(e) => setSelectedInterrogationSuspect(e.target.value)}

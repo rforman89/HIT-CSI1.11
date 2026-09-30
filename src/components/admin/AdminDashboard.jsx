@@ -1,3 +1,4 @@
+import DashboardCard from "../shared/DashboardCard";
 import React from "react";
 
 export default function AdminDashboardPanel({ ctx }) {
@@ -550,7 +551,7 @@ export default function AdminDashboardPanel({ ctx }) {
           </div>
 
           <div style={styles.grid}>
-            <div
+            <DashboardCard
               onClick={() => setActiveAdminTab("groups")}
               title="Bekijk groepen en aankopen"
               style={{ ...styles.card, cursor: "pointer" }}
@@ -558,8 +559,8 @@ export default function AdminDashboardPanel({ ctx }) {
               <strong>👥 Actieve groepen</strong>
               <div style={styles.statNumber}>{activeGroups}</div>
               <span style={styles.badge}>Inactief: {inactiveGroups}</span>
-            </div>
-            <div
+            </DashboardCard>
+            <DashboardCard
               onClick={() => setActiveAdminTab("manage")}
               title="Bekijk verdachtenbeheer"
               style={{ ...styles.card, cursor: "pointer" }}
@@ -568,8 +569,8 @@ export default function AdminDashboardPanel({ ctx }) {
               <div style={styles.statNumber}>{suspects.length}</div>
               <span style={styles.badge}>Actief: {activeSuspects}</span>
               <span style={styles.badge}>Inactief: {inactiveSuspects}</span>
-            </div>
-            <div
+            </DashboardCard>
+            <DashboardCard
               onClick={() => setActiveAdminTab("groups")}
               title="Bekijk gekochte aanwijzingen"
               style={{ ...styles.card, cursor: "pointer" }}
@@ -577,8 +578,8 @@ export default function AdminDashboardPanel({ ctx }) {
               <strong>📄 Aankopen</strong>
               <div style={styles.statNumber}>{groupClues.length}</div>
               <div style={styles.subtle}>Gekocht/toegewezen</div>
-            </div>
-            <div
+            </DashboardCard>
+            <DashboardCard
               onClick={() => setActiveAdminTab("interrogation")}
               title="Bekijk notities in het verhoorpaneel"
               style={{ ...styles.card, cursor: "pointer" }}
@@ -586,8 +587,8 @@ export default function AdminDashboardPanel({ ctx }) {
               <strong>📝 Notities</strong>
               <div style={styles.statNumber}>{suspectNotes.length}</div>
               <div style={styles.subtle}>Door groepjes ingevoerd</div>
-            </div>
-            <div
+            </DashboardCard>
+            <DashboardCard
               onClick={() => setActiveAdminTab("interrogation")}
               title="Bekijk statussen in het verhoorpaneel"
               style={{ ...styles.card, cursor: "pointer" }}
@@ -595,8 +596,8 @@ export default function AdminDashboardPanel({ ctx }) {
               <strong>🏷️ Statussen</strong>
               <div style={styles.statNumber}>{suspectStatuses.length}</div>
               <div style={styles.subtle}>Verdachte beoordelingen</div>
-            </div>
-            <div
+            </DashboardCard>
+            <DashboardCard
               onClick={() => setActiveAdminTab("credits")}
               title="Bekijk pegels en meldingen"
               style={{ ...styles.card, cursor: "pointer" }}
@@ -606,7 +607,7 @@ export default function AdminDashboardPanel({ ctx }) {
               <div style={styles.subtle}>
                 Uitgedeeld: {creditsAwarded} · Af: {creditsSpentOrRemoved}
               </div>
-            </div>
+            </DashboardCard>
           </div>
         </div>
 

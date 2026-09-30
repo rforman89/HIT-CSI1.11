@@ -440,6 +440,7 @@ export default function ParticipantSuspectsPanel({ ctx }) {
                 {isAddingNote ? (
                   <div style={{ marginTop: 12 }}>
                     <textarea
+                      aria-label={`Notitie over ${suspect.name}`}
                       style={styles.textarea}
                       placeholder={`Nieuwe notitie over ${suspect.name}`}
                       value={newNote}

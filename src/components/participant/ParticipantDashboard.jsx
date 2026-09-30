@@ -1,3 +1,4 @@
+import DashboardCard from "../shared/DashboardCard";
 import { purchaseTimestamp } from "../../utils/reliability";
 import React from "react";
 
@@ -159,7 +160,7 @@ export default function ParticipantDashboardPanel({ ctx }) {
       </div>
 
       <div style={styles.grid}>
-        <div
+        <DashboardCard
           style={{
             ...styles.card,
             borderColor: clueProgressPercentage >= 70 ? "#166534" : "#3b82f6",
@@ -176,11 +177,11 @@ export default function ParticipantDashboardPanel({ ctx }) {
           </div>
           <div style={styles.subtle}>
             {progress.unlockedCount} van {totalClueCount || 0} zichtbaar of
-            ontgrendeld
+            verzameld
           </div>
-        </div>
+        </DashboardCard>
 
-        <div
+        <DashboardCard
           style={{
             ...styles.card,
             borderColor: missingStatusCount === 0 ? "#166534" : "#a855f7",
@@ -200,9 +201,9 @@ export default function ParticipantDashboardPanel({ ctx }) {
               ? "Alle actieve verdachten hebben een status."
               : `${missingStatusCount} verdachte(n) nog zonder status.`}
           </div>
-        </div>
+        </DashboardCard>
 
-        <div
+        <DashboardCard
           style={{
             ...styles.card,
             borderColor: progress.noteCount > 0 ? "#166534" : "#f59e0b",
@@ -222,29 +223,23 @@ export default function ParticipantDashboardPanel({ ctx }) {
               ? "Nog geen notities. Leg jullie eerste theorie vast."
               : "Notities helpen straks bij het eindverhaal."}
           </div>
-        </div>
+        </DashboardCard>
       </div>
 
       <div style={styles.card}>
         <h2 style={{ marginTop: 0 }}>Vandaag onderzoeken</h2>
         <p style={styles.subtle}>
-          Snel naar de plekken waar jullie waarschijnlijk het vaakst iets moeten
-          doen. Handig op mobiel tijdens het spel.
+          Kies een kaart om verder te onderzoeken.
         </p>
 
         {visibleFocusItems.length > 0 ? (
           <div style={styles.grid}>
             {visibleFocusItems.map((item) => (
-              <div key={item.label} style={styles.card}>
+              <DashboardCard key={item.label} style={styles.card} onClick={() => setActiveParticipantTab(item.tab)} aria-label={item.button}>
                 <strong>{item.label}</strong>
                 <p style={styles.subtle}>{item.text}</p>
-                <button
-                  style={styles.buttonSecondary}
-                  onClick={() => setActiveParticipantTab(item.tab)}
-                >
-                  {item.button}
-                </button>
-              </div>
+                <span style={styles.link}>{item.button} →</span>
+              </DashboardCard>
             ))}
           </div>
         ) : (
@@ -258,14 +253,14 @@ export default function ParticipantDashboardPanel({ ctx }) {
             <strong>Onderzoek loopt netjes</strong>
             <p style={styles.subtle}>
               Jullie hebben aanwijzingen, notities en statussen al goed op gang.
-              Gebruik de knoppen hieronder om snel verder te gaan.
+              Open een overzichtskaart om verder te gaan.
             </p>
           </div>
         )}
       </div>
 
       <div style={styles.grid}>
-        <div
+        <DashboardCard
           onClick={() => setActiveParticipantTab("messages")}
           title="Bekijk pegels en info"
           style={{
@@ -279,9 +274,9 @@ export default function ParticipantDashboardPanel({ ctx }) {
           <strong>💰 Pegels</strong>
           <div style={styles.statNumber}>{myGroup?.credits || 0}</div>
           <div style={styles.subtle}>Beschikbaar voor aanwijzingen</div>
-        </div>
+        </DashboardCard>
 
-        <div
+        <DashboardCard
           onClick={() => setActiveParticipantTab("clues")}
           title="Bekijk aanwijzingen"
           style={{
@@ -295,11 +290,11 @@ export default function ParticipantDashboardPanel({ ctx }) {
           <strong>📄 Aanwijzingen</strong>
           <div style={styles.statNumber}>{progress.unlockedCount}</div>
           <div style={styles.subtle}>
-            Ontgrendeld · {progress.buyableCount} nog te koop
+            Verzameld · {progress.buyableCount} nog te koop
           </div>
-        </div>
+        </DashboardCard>
 
-        <div
+        <DashboardCard
           onClick={() => setActiveParticipantTab("suspects")}
           title="Bekijk verdachten en notities"
           style={{
@@ -312,9 +307,9 @@ export default function ParticipantDashboardPanel({ ctx }) {
           <strong>📝 Notities</strong>
           <div style={styles.statNumber}>{progress.noteCount}</div>
           <div style={styles.subtle}>Door jullie groep opgeslagen</div>
-        </div>
+        </DashboardCard>
 
-        <div
+        <DashboardCard
           onClick={() => setActiveParticipantTab("suspects")}
           title="Bekijk onderzochte verdachten"
           style={{
@@ -328,11 +323,11 @@ export default function ParticipantDashboardPanel({ ctx }) {
           <strong>🔎 Onderzochte verdachten</strong>
           <div style={styles.statNumber}>{suspectStatusCount}</div>
           <div style={styles.subtle}>Verdachten door jullie beoordeeld</div>
-        </div>
+        </DashboardCard>
       </div>
 
       <div style={styles.grid}>
-        <div
+        <DashboardCard
           onClick={() => setActiveParticipantTab("agenda")}
           title="Bekijk agenda"
           style={{ ...styles.card, minHeight: 190, cursor: "pointer" }}
@@ -377,9 +372,9 @@ export default function ParticipantDashboardPanel({ ctx }) {
               </p>
             </div>
           )}
-        </div>
+        </DashboardCard>
 
-        <div
+        <DashboardCard
           onClick={() => setActiveParticipantTab("messages")}
           title="Bekijk info en meldingen"
           style={{ ...styles.card, minHeight: 190, cursor: "pointer" }}
@@ -440,11 +435,11 @@ export default function ParticipantDashboardPanel({ ctx }) {
               </div>
             </div>
           ) : null}
-        </div>
+        </DashboardCard>
       </div>
 
       {ENABLE_FINAL_REPORTS && (finalReportsOpen || progress.finalReport) && (
-        <div
+        <DashboardCard
           onClick={() => setActiveParticipantTab("final")}
           title="Bekijk finale"
           style={{ ...styles.card, cursor: "pointer" }}
@@ -479,13 +474,8 @@ export default function ParticipantDashboardPanel({ ctx }) {
             </>
           )}
 
-          <button
-            style={styles.button}
-            onClick={() => setActiveParticipantTab("final")}
-          >
-            Naar finale
-          </button>
-        </div>
+          <span style={styles.link}>Naar finale →</span>
+        </DashboardCard>
       )}
     </>
   );

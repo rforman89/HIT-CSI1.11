@@ -67,7 +67,7 @@ async function credits(page) {
 }
 test('E2E login: wrong password, valid login, logout, account switch', async t => {
   const { page, network } = await screen(t); await login(page, 'a', 'incorrect-password');
-  await page.getByText('Invalid login credentials', { exact: true }).waitFor();
+  await page.getByText('E-mailadres of wachtwoord klopt niet. Controleer beide en probeer opnieuw.', { exact: true }).waitFor();
   await login(page, 'a'); await page.getByText('Team TEST - Groep A', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'Uitloggen', exact: true }).click(); await login(page, 'b');
   await page.getByText('Team TEST - Groep B', { exact: true }).waitFor(); assert.equal(await page.getByText('Team TEST - Groep A', { exact: true }).count(), 0);
@@ -109,12 +109,12 @@ test('E2E sync: clue publication and game mode reach second client', async t => 
   const title = `TEST - Publicatie ${Date.now()}`;
   const row = ok(await service.from('clues_base').insert({ title, description: 'Fictief', price: 0, is_free: true, is_global: true, is_visible: false }).select().single());
   t.after(async () => { ok(await service.from('app_settings').upsert({ key: 'game_mode', value: 'test' })); ok(await adminApi.from('clues').delete().eq('id', row.id)); });
-  await page.getByRole('button', { name: /📄 Clues/ }).click();
+  await page.getByRole('button', { name: /^📄 Aanwijzingen$/ }).click();
   await page.getByRole('button', { name: 'Verversen', exact: true }).click();
-  await participant.getByRole('button', { name: /📄 Clues/ }).click();
+  await participant.getByRole('button', { name: /^📄 Aanwijzingen$/ }).click();
   await page.getByText(title, { exact: true }).locator('..').getByRole('button', { name: 'Zichtbaar maken', exact: true }).click();
   await until(async () => (await participant.locator('body').innerText()).includes(title));
-  await page.getByRole('button', { name: /✅ Klaar/ }).click();
+  await page.getByRole('button', { name: /✅ Controle/ }).click();
   page.once('dialog', dialog => dialog.accept('LIVE'));
   await page.getByRole('button', { name: 'Zet spel live', exact: true }).click();
   await until(async () => (await participant.locator('body').innerText()).includes('LIVE SPEL'));
@@ -148,7 +148,7 @@ test('E2E races: delayed old snapshot cannot restore data after logout/account s
 });
 
 test('E2E notes: double submission saves once and status still updates', async t => {
-  const { page } = await screen(t, 'a'); await page.getByRole('button', { name: /🕵️ Verdachten/ }).click();
+  const { page } = await screen(t, 'a'); await page.getByRole('button', { name: /^🕵️ Verdachten$/ }).click();
   await page.locator('select').filter({has:page.locator(`option[value="${fixture.suspect}"]`)}).first().selectOption(fixture.suspect);
   const text = `Testnotitie ${Date.now()}`;
   await page.getByRole('button', { name: 'Notitie toevoegen', exact: true }).click();
@@ -164,19 +164,19 @@ test('E2E notes: double submission saves once and status still updates', async t
   await until(async () => ok(await service.from('suspect_statuses').select().eq('group_id', fixture.groupA).eq('suspect_id', fixture.suspect)).some(row => row.status === 'suspect'));
 });
 async function clueForm(page, title) {
-  await page.getByRole('button', { name: /📄 Clues/ }).click();
+  await page.getByRole('button', { name: /^📄 Aanwijzingen$/ }).click();
   await page.getByPlaceholder('Titel', { exact: true }).fill(title);
   await page.getByPlaceholder('Omschrijving', { exact: true }).fill('Fictieve uploadtest');
 }
-test('E2E purchase: real participant purchase deducts once and unlocks clue', async t => {
+test('E2E purchase: real participant purchase deducts once and awaits jury release', async t => {
   const row = ok(await service.from('clues_base').insert({ title: 'TEST - Browseraankoop', description: 'Fictieve aankoop', price: 5, is_visible: true, is_active: true }).select().single());
   t.after(() => adminApi.from('clues').delete().eq('id', row.id).then(ok));
   const { page } = await screen(t, 'a'), start = await balance();
-  await page.getByRole('button', { name: /📄 Clues/ }).click();
+  await page.getByRole('button', { name: /^📄 Aanwijzingen$/ }).click();
   const card = page.getByRole('heading', { name: row.title, exact: true }).locator('..').locator('..');
   await card.getByRole('button', { name: 'Koop voor 5 pegels', exact: true }).click();
   await until(async () => await balance() === start - 5);
-  await card.getByText('✅ Ontgrendeld', { exact: true }).waitFor();
+  await card.getByText('⏳ Wacht op vrijgave', { exact: true }).waitFor();
   const assignments = ok(await service.from('group_clues').select().eq('group_id', fixture.groupA).eq('clue_id', row.id));
   assert.equal(assignments.length, 1); assert.equal(assignments[0].source, 'purchase');
 });

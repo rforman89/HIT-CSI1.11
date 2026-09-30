@@ -5,7 +5,7 @@ export default function LoadingBlock({ isLoading }) {
   if (!isLoading) return null;
 
   return (
-    <div style={styles.card}>
+    <div role="status" style={styles.card}>
       <strong>Gegevens verversen...</strong>
       <div style={styles.subtle}>
         De meldkamer haalt de laatste spelstand op.

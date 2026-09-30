@@ -629,7 +629,7 @@ function GameApp() {
       return;
     }
 
-    setMessage("Ingelogd.");
+    setMessage("");
   };
 
   const handleLogout = async () => {
@@ -3134,6 +3134,8 @@ function GameApp() {
     <SharedMessageBlock
       error={error}
       message={message}
+      showTechnicalDetails={profile?.role === 'admin'}
+      busyAction={busyAction}
       onClearError={() => setError("")}
       onClearMessage={() => setMessage("")}
     />
@@ -3314,8 +3316,10 @@ function GameApp() {
   const getComponentContext = () => ({
     busyAction, dataStatus, pendingCredit, runAction,
     releaseGroupClue: id => runAction("Aanwijzing vrijgeven",async()=>{
+      setError(""); setMessage("");
       const {error}=await supabase.rpc("release_group_clue",{target_purchase_id:id});
       if(error) throw error;
+      setMessage("Aanwijzing vrijgegeven. De groep kan deze nu bekijken.");
       await loadAppData(profile);
     }),
     changeAccountAccess: (id,patch) => runAction("Toegang wijzigen",async()=>{
@@ -3805,7 +3809,7 @@ function GameApp() {
 
   if (profile.role === "admin") {
     return (
-      <div style={styles.app} {...appFocusHandlers}>
+      <div style={{...styles.app, paddingBottom:"calc(160px + env(safe-area-inset-bottom, 0px))"}} {...appFocusHandlers}>
         <fieldset disabled={Boolean(busyAction)} style={{ ...styles.shell, border: 0, padding: 0, minWidth: 0, width: "100%" }}>
           {Header({
             title: "CSI HIT Control Room",
@@ -3845,14 +3849,14 @@ function GameApp() {
           {ImageModal()}
         </fieldset>
 
-        <div style={styles.adminMobileNav}>
+        <nav aria-label="Beheernavigatie" style={styles.adminMobileNav}>
           <button
             style={styles.navButton(activeAdminTab === "dashboard")}
             onClick={() => setActiveAdminTab("dashboard")}
           >
             📊
             <br />
-            Dash
+            Dashboard
           </button>
 
           <button
@@ -3861,7 +3865,7 @@ function GameApp() {
           >
             ✅
             <br />
-            Klaar
+            Controle
           </button>
 
           <button
@@ -3888,7 +3892,7 @@ function GameApp() {
           >
             📄
             <br />
-            Clues
+            Aanwijzingen
           </button>
           <button
             style={styles.navButton(activeAdminTab === "preview")}
@@ -3896,7 +3900,7 @@ function GameApp() {
           >
             👁️
             <br />
-            Preview
+            Spelerbeeld
           </button>
           <button
             style={styles.navButton(activeAdminTab === "credits")}
@@ -3926,7 +3930,7 @@ function GameApp() {
             <br />
             Verhoor
           </button>
-        </div>
+        </nav>
       </div>
     );
   }
@@ -4006,7 +4010,7 @@ function GameApp() {
         >
           📄
           <br />
-          Clues
+          Aanwijzingen
         </button>
 
         <button

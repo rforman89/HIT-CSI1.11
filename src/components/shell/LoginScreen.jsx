@@ -57,36 +57,43 @@ export default function LoginScreen({ ctx }) {
           Log in met het account dat je van de organisatie hebt gekregen.
           Registreren is alleen nodig als de organisatie daarom vraagt.
         </p>
-        {busyAction && <div role="status">Bezig met verwerken…</div>}
         {dataStatus?.loading && <div role="status">Accountgegevens laden…</div>}
         {dataStatus?.error && <div role="alert" style={styles.error}>{dataStatus.error}</div>}
+        <form noValidate onSubmit={event => { event.preventDefault(); handleLogin(); }}>
         <fieldset disabled={Boolean(busyAction)} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
+        <label htmlFor="login-name">Naam (alleen voor registratie)</label>
         <input
+          id="login-name" autoComplete="name"
           style={styles.input}
           placeholder="Naam, alleen nodig bij registreren"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
         />
+        <label htmlFor="login-email">E-mail</label>
         <input
+          id="login-email" type="email" autoComplete="username" inputMode="email" autoCapitalize="none" spellCheck={false}
           style={styles.input}
           placeholder="E-mail"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
+        <label htmlFor="login-password">Wachtwoord</label>
         <input
+          id="login-password" autoComplete="current-password"
           style={styles.input}
           type="password"
           placeholder="Wachtwoord"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button style={styles.button} onClick={handleLogin}>
+        <button type="submit" style={styles.button}>
           Inloggen
         </button>
-        <button style={styles.buttonSecondary} onClick={handleRegister}>
+        <button type="button" style={styles.buttonSecondary} onClick={handleRegister}>
           Registreren
         </button>
         </fieldset>
+        </form>
         {MessageBlock()}
       </div>
     </div>

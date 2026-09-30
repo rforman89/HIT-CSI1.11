@@ -657,7 +657,7 @@ export default function SuspectDashboard({ ctx }) {
                 }}
               >
                 {viewingOwnDossier
-                  ? "Je start automatisch in je eigen dossier. Hier zie je wat de onderzoeksteams over jou noteren, welke status ze aan je geven en welke aanwijzingen rond jouw rol zijn gekocht."
+                  ? "Je ziet alleen informatie die bij jouw eigen dossier beschikbaar is. Hier zie je wat de onderzoeksteams over jou noteren, welke status ze aan je geven en welke aanwijzingen rond jouw rol zijn gekocht."
                   : "Je bekijkt nu het dossier van een andere verdachte. Handig om snel te zien hoe de teams het totale speelveld inschatten."}
               </p>
 

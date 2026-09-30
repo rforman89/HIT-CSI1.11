@@ -6,6 +6,7 @@ export default function ParticipantCluesPanel({ ctx }) {
     styles,
     clues,
     purchasedClueIds,
+    groupClues,
     suspects,
     getClueCategoryName,
     purchaseClue,
@@ -44,6 +45,7 @@ export default function ParticipantCluesPanel({ ctx }) {
   const renderCompactClueCard = (clue, mode) => {
     const suspectName = getClueSuspectName(clue);
     const isUnlocked = mode === "unlocked";
+    const awaitingRelease = !clue.is_free && !clue.is_global && groupClues.some(item => item.clue_id === clue.id && item.status === 'requested');
     const canAfford = Number(myGroup?.credits || 0) >= Number(clue.price || 0);
 
     return (
@@ -81,7 +83,7 @@ export default function ParticipantCluesPanel({ ctx }) {
             <span style={styles.badge}>📂 {getClueCategoryName(clue)}</span>
 
             {isUnlocked ? (
-              <span style={styles.badge}>✅ Ontgrendeld</span>
+              <span style={styles.badge}>{awaitingRelease ? '⏳ Wacht op vrijgave' : '✅ Ontgrendeld'}</span>
             ) : (
               <span style={styles.badge}>💰 {clue.price} pegels</span>
             )}
@@ -93,7 +95,7 @@ export default function ParticipantCluesPanel({ ctx }) {
 
           <div style={{ minWidth: 150 }}>
             {isUnlocked ? (
-              clue.file_url || clue.pdf_url ? (
+              awaitingRelease ? <span style={styles.subtle}>De jury moet deze aanwijzing nog vrijgeven. Je hoeft niets opnieuw te kopen.</span> : clue.file_url || clue.pdf_url ? (
                 <button
                   type="button"
                   onClick={() => openClueFile(clue.file_url || clue.pdf_url)}
@@ -108,7 +110,7 @@ export default function ParticipantCluesPanel({ ctx }) {
                   Aanwijzing openen
                 </button>
               ) : (
-                <span style={styles.subtle}>Geen bestand gekoppeld</span>
+                <span style={styles.subtle}>Geen digitaal bestand. Lees de beschrijving of vraag de jury naar deze aanwijzing.</span>
               )
             ) : (
               <button
@@ -179,9 +181,9 @@ export default function ParticipantCluesPanel({ ctx }) {
 
         <div style={styles.grid}>
           <div style={styles.card}>
-            <strong>Ontgrendeld</strong>
+            <strong>Verzameld</strong>
             <div style={styles.statNumber}>{unlockedClues.length}</div>
-            <div style={styles.subtle}>Beschikbaar voor jullie groep</div>
+            <div style={styles.subtle}>Bekijk per aanwijzing of vrijgave nog nodig is</div>
           </div>
 
           <div style={styles.card}>
@@ -219,7 +221,7 @@ export default function ParticipantCluesPanel({ ctx }) {
       </div>
 
       <div style={styles.card}>
-        <h2>Ontgrendeld</h2>
+        <h2>Jullie aanwijzingen</h2>
 
         {unlockedClues.length === 0 ? (
           <div

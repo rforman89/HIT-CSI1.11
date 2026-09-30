@@ -41,7 +41,7 @@ test('admin access controls and CSV download are available with CSP',async t=>{
  const p=await pageFor(t,'admin');await p.getByRole('button',{name:/Beheer/}).first().click();await p.getByRole('heading',{name:'Rollen en toegang'}).waitFor();
  assert.ok(await p.getByLabel('Rol van Security jury').count()>0);
  await p.screenshot({path:'.local/security-admin-access.png',fullPage:true});
- await p.getByRole('button',{name:/Klaar/}).first().click();
+ await p.getByRole('button',{name:/Controle/}).first().click();
  const download=p.waitForEvent('download');
  await p.getByRole('button',{name:'CSV-overzichten downloaden',exact:true}).click();
  const file=await download;assert.match(file.suggestedFilename(),/\.csv$/);

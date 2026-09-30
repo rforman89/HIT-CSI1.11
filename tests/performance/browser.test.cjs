@@ -44,12 +44,12 @@ test('LOCAL large transaction and admin clue lists show 50 rows initially and mo
   const more=p.getByRole('button',{name:/Meer pegelgeschiedenis tonen \(50 van/});await more.waitFor();
   assert(await p.locator('*').count()<1500,'Initial list must remain bounded despite >1500 transactions');
   await more.click();await p.getByRole('button',{name:/Meer pegelgeschiedenis tonen \(100 van/}).waitFor();
-  await p.getByRole('button',{name:/^📄 Clues$/}).click();
+  await p.getByRole('button',{name:/^📄 Aanwijzingen$/}).click();
   const cluesMore=p.getByRole('button',{name:/Meer aanwijzingen tonen \(50 van/}).first();await cluesMore.waitFor();
   assert(await p.locator('*').count()<3000,'Admin clue cards must remain bounded despite >1100 clues');
   await cluesMore.click();await p.getByRole('button',{name:/Meer aanwijzingen tonen \(100 van/}).first().waitFor();
   await p.getByRole('button',{name:'Uitloggen',exact:true}).click();await p.getByRole('button',{name:'Inloggen',exact:true}).waitFor();await login(p,'a');
-  await p.getByRole('button',{name:/^📄 Clues$/}).click();
+  await p.getByRole('button',{name:/^📄 Aanwijzingen$/}).click();
   const ownMore=p.getByRole('button',{name:/Meer aanwijzingen tonen \(50 van/}).first();await ownMore.waitFor();
   assert(await p.locator('*').count()<2000,'Participant clue lists must remain bounded while totals stay complete');
   await ownMore.click();await p.getByRole('button',{name:/Meer aanwijzingen tonen \(100 van/}).first().waitFor();
@@ -59,7 +59,7 @@ test('LOCAL large transaction and admin clue lists show 50 rows initially and mo
 
 test('LOCAL a focused participant draft does not indefinitely suppress balance/access polling',async t=>{
  const {p}=await screen(t);await login(p,'a');await pause(800);
- await p.getByRole('button',{name:/🕵️ Verdachten/}).click();
+ await p.getByRole('button',{name:/^🕵️ Verdachten$/}).click();
  await p.locator('select').filter({has:p.locator(`option[value="${fixture.suspect}"]`)}).first().selectOption(fixture.suspect);
  await p.getByRole('button',{name:'Notitie toevoegen',exact:true}).click();
  const draft=p.locator('textarea').last();await draft.fill('Niet opslaan: fictief concept');

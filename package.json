@@ -53,7 +53,8 @@
     "test:performance": "node --test --test-concurrency=1 tests/performance/data.test.mjs tests/performance/browser.test.cjs",
     "perf:profile": "node tests/performance/browser-profile.cjs",
     "perf:load": "node tests/performance/load.mjs",
-    "perf:seed": "node tests/performance/large-data.cjs"
+    "perf:seed": "node tests/performance/large-data.cjs",
+    "test:pilot": "node --test --test-concurrency=1 tests/browser/pilot.test.cjs"
   },
   "browserslist": [
     ">0.2%",

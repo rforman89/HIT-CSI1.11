@@ -191,7 +191,7 @@ export const styles = {
     background: "#18181b",
     borderTop: "1px solid #3f3f46",
     display: "grid",
-    gridTemplateColumns: "repeat(9,minmax(0,1fr))",
+    gridTemplateColumns: "repeat(auto-fit,minmax(80px,1fr))",
     gap: 0,
   },
   navButton: (active) => ({
