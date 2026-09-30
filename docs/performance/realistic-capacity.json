@@ -1,0 +1,1896 @@
+{
+  "generatedAt": "2026-09-30T08:00:57.388Z",
+  "applicationCommit": "453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648",
+  "requirement": {
+    "users": 20,
+    "marginSessions": 25
+  },
+  "fixture": {
+    "groups": 2,
+    "clues": 10,
+    "notes": 3,
+    "transactions": 1,
+    "notifications": 1,
+    "audit": 6801,
+    "performanceAudit": 0,
+    "roles": {
+      "jury": 1,
+      "participant": 6,
+      "suspect": 1,
+      "admin": 2
+    },
+    "activeLoadAccounts": 5,
+    "syntheticPrivatePhotoBytes": 480613,
+    "schemaObjects": 790,
+    "schemaChanges": 0,
+    "baselineCorePassed": 28,
+    "baselineSecurityPassed": 31,
+    "description": "Restored standard fictional fixture, no large performance dataset. Existing audit history retained; not loaded as an unbounded client list."
+  },
+  "runs": [
+    {
+      "name": "acceptance-20.json",
+      "startedAt": "2026-09-30T07:34:17.815Z",
+      "options": {
+        "target": "hosted",
+        "profile": "A",
+        "clients": 20,
+        "seconds": 900,
+        "allowHosted": true,
+        "writes": true
+      },
+      "passed": true,
+      "durationSeconds": 939.3413495,
+      "loadDurationSeconds": 902.3864571,
+      "workloadStartMs": 27763.447799999998,
+      "workloadSnapshots": {
+        "count": 280,
+        "p50": 223.35310000000754,
+        "p95": 351.05749999999534,
+        "p99": 646.9026999999769,
+        "max": 681.9419999999809,
+        "errors": 0
+      },
+      "workloadRequests": {
+        "count": 12302,
+        "p50": 72.09020000009332,
+        "p95": 148.25899999996182,
+        "p99": 254.63509999998496,
+        "max": 806.3576999999932,
+        "errors": 0,
+        "perSecond": 13.632740056333454,
+        "peakPerSecond": 81,
+        "decodedBytes": 11857479
+      },
+      "hotspot": {
+        "requestWindowSeconds": 10,
+        "requests": 169,
+        "peakRequestsPerSecond": 48,
+        "requestStats": {
+          "count": 169,
+          "p50": 88.58789999992587,
+          "p95": 242.38789999997243,
+          "p99": 354.00130000000354,
+          "max": 364.2268000000622,
+          "errors": 0
+        },
+        "convergence": {
+          "count": 14,
+          "p50": 1289.0694999999832,
+          "p95": 1408.2419999999693,
+          "p99": 1408.2419999999693,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.014904060177327476
+        }
+      },
+      "summary": {
+        "request": {
+          "count": 12768,
+          "p50": 72.38709999999264,
+          "p95": 150.85899999999674,
+          "p99": 254.7609999999986,
+          "errorRate": 0,
+          "bytes": 12192184,
+          "perSecond": 13.592502881722657
+        },
+        "snapshot": {
+          "count": 300,
+          "p50": 225.15549999999348,
+          "p95": 372.70960000000014,
+          "p99": 675.6358999999939,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.31937271808558876
+        },
+        "realtime-join": {
+          "count": 25,
+          "p50": 112.11560000001919,
+          "p95": 132.89849999999933,
+          "p99": 143.67099999999846,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.026614393173799062
+        },
+        "targeted-refresh": {
+          "count": 1549,
+          "p50": 202.3581000000122,
+          "p95": 358.0873999999603,
+          "p99": 553.0083999999988,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 1.64902780104859
+        },
+        "credit-retry": {
+          "count": 2,
+          "p50": 68.66669999994338,
+          "p95": 77.48670000000857,
+          "p99": 77.48670000000857,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.002129151453903925
+        },
+        "purchase-write": {
+          "count": 2,
+          "p50": 157.59149999998044,
+          "p95": 163.86730000004172,
+          "p99": 163.86730000004172,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.002129151453903925
+        },
+        "note-write": {
+          "count": 1,
+          "p50": 132.1128000000026,
+          "p95": 132.1128000000026,
+          "p99": 132.1128000000026,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.0010645757269519625
+        },
+        "clue-release": {
+          "count": 1,
+          "p50": 197.7546999999322,
+          "p95": 197.7546999999322,
+          "p99": 197.7546999999322,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.0010645757269519625
+        },
+        "hotspot-convergence": {
+          "count": 14,
+          "p50": 1289.0694999999832,
+          "p95": 1408.2419999999693,
+          "p99": 1408.2419999999693,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.014904060177327476
+        },
+        "credit-write": {
+          "count": 1,
+          "p50": 203.50250000006054,
+          "p95": 203.50250000006054,
+          "p99": 203.50250000006054,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.0010645757269519625
+        }
+      },
+      "errors": [],
+      "roles": {
+        "admin": {
+          "count": 29,
+          "p50": 261.6345000000438,
+          "p95": 408.26579999999376,
+          "p99": 420.59419999999227,
+          "max": 420.59419999999227,
+          "errors": 0
+        },
+        "jury": {
+          "count": 43,
+          "p50": 158.59440000000177,
+          "p95": 273.40239999999176,
+          "p99": 500.39569999999367,
+          "max": 500.39569999999367,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 43,
+          "p50": 168.7215000000433,
+          "p95": 445.6975000000093,
+          "p99": 675.6358999999939,
+          "max": 675.6358999999939,
+          "errors": 0
+        },
+        "a": {
+          "count": 83,
+          "p50": 240.96080000000075,
+          "p95": 351.9780000000028,
+          "p99": 646.9026999999769,
+          "max": 646.9026999999769,
+          "errors": 0
+        },
+        "b": {
+          "count": 82,
+          "p50": 227.50939999998081,
+          "p95": 327.4015000000363,
+          "p99": 681.9419999999809,
+          "max": 681.9419999999809,
+          "errors": 0
+        }
+      },
+      "acceptance": {
+        "roles": [
+          "admin",
+          "admin",
+          "jury",
+          "jury",
+          "jury",
+          "suspect",
+          "suspect",
+          "suspect",
+          "a",
+          "b",
+          "a",
+          "b",
+          "a",
+          "b",
+          "a",
+          "b",
+          "a",
+          "b",
+          "a",
+          "b"
+        ],
+        "schedule": [
+          {
+            "at": 60,
+            "action": "browser-note"
+          },
+          {
+            "at": 180,
+            "action": "browser-credit"
+          },
+          {
+            "at": 300,
+            "action": "purchase-a"
+          },
+          {
+            "at": 420,
+            "action": "note-b"
+          },
+          {
+            "at": 450,
+            "action": "reconnect"
+          },
+          {
+            "at": 540,
+            "action": "release"
+          },
+          {
+            "at": 660,
+            "action": "credit"
+          },
+          {
+            "at": 780,
+            "action": "purchase-b"
+          }
+        ],
+        "completed": [
+          {
+            "action": "browser-note",
+            "seconds": 60.8383125
+          },
+          {
+            "action": "browser-credit",
+            "seconds": 181.7059458
+          },
+          {
+            "action": "purchase-a",
+            "seconds": 302.1649463
+          },
+          {
+            "action": "note-b",
+            "seconds": 422.6289657
+          },
+          {
+            "action": "reconnect",
+            "seconds": 460.21546150000006
+          },
+          {
+            "action": "release",
+            "seconds": 540.8219280000001
+          },
+          {
+            "action": "credit",
+            "seconds": 661.4989213
+          },
+          {
+            "action": "purchase-b",
+            "seconds": 782.0190032
+          }
+        ],
+        "applicationCommit": "453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648"
+      },
+      "reconnect": {
+        "mode": "simultaneous",
+        "clients": 5,
+        "atMs": 480469.8,
+        "ms": 3112.958099999989
+      },
+      "integrity": [
+        {
+          "complete": true,
+          "balances": true,
+          "balanceBefore": {
+            "a": 100,
+            "b": 100
+          },
+          "balanceAfter": {
+            "a": 101,
+            "b": 99
+          },
+          "transactions": true,
+          "transactionCount": 4,
+          "notes": 2,
+          "purchases": 2,
+          "creditRetries": 2,
+          "audit": true,
+          "hotspotRecipients": 14,
+          "crossGroupIsolation": true
+        }
+      ],
+      "browser": {
+        "commit": "453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648",
+        "clients": 2,
+        "viewport": [
+          390,
+          844
+        ],
+        "mobile": {
+          "latencyMs": 100,
+          "downloadBytesPerSecond": 200000,
+          "cpuRate": 4
+        },
+        "roles": [
+          {
+            "role": "a",
+            "photoDecoded": true
+          },
+          {
+            "role": "jury",
+            "photoDecoded": true
+          }
+        ],
+        "flows": [
+          {
+            "name": "a:login",
+            "ms": 3237.5247999999992
+          },
+          {
+            "name": "jury:login",
+            "ms": 1071.3544000000002
+          },
+          {
+            "name": "mobile:note-and-feedback",
+            "ms": 655.6971000000049
+          },
+          {
+            "name": "jury:credit-and-idempotent-retry",
+            "ms": 469.2810999999929
+          },
+          {
+            "name": "mobile:offline-online",
+            "ms": 4396.0399000000325
+          },
+          {
+            "name": "mobile:hotspot-visible",
+            "ms": 17.948699999949895
+          }
+        ],
+        "errors": [],
+        "samples": [
+          {
+            "seconds": 0.0004256999999997788,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 24,
+                "Documents": 4,
+                "Nodes": 425,
+                "JSHeapUsedSize": 5815600
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 15,
+                "Documents": 4,
+                "Nodes": 428,
+                "JSHeapUsedSize": 5218424
+              }
+            ]
+          },
+          {
+            "seconds": 55.1648591,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 54,
+                "Documents": 1,
+                "Nodes": 217,
+                "JSHeapUsedSize": 5227040
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 53,
+                "Documents": 1,
+                "Nodes": 352,
+                "JSHeapUsedSize": 5596352
+              }
+            ]
+          },
+          {
+            "seconds": 110.97895480000001,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 107,
+                "Documents": 1,
+                "Nodes": 353,
+                "JSHeapUsedSize": 6220760
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 88,
+                "Documents": 1,
+                "Nodes": 387,
+                "JSHeapUsedSize": 7063864
+              }
+            ]
+          },
+          {
+            "seconds": 166.1287366,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 149,
+                "Documents": 1,
+                "Nodes": 383,
+                "JSHeapUsedSize": 7292172
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 129,
+                "Documents": 1,
+                "Nodes": 417,
+                "JSHeapUsedSize": 9024732
+              }
+            ]
+          },
+          {
+            "seconds": 221.8220624,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 187,
+                "Documents": 1,
+                "Nodes": 408,
+                "JSHeapUsedSize": 8158772
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 174,
+                "Documents": 1,
+                "Nodes": 404,
+                "JSHeapUsedSize": 7289592
+              }
+            ]
+          },
+          {
+            "seconds": 276.93500930000005,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 225,
+                "Documents": 1,
+                "Nodes": 262,
+                "JSHeapUsedSize": 5778656
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 212,
+                "Documents": 1,
+                "Nodes": 429,
+                "JSHeapUsedSize": 8628732
+              }
+            ]
+          },
+          {
+            "seconds": 332.2425572,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 267,
+                "Documents": 1,
+                "Nodes": 297,
+                "JSHeapUsedSize": 6371964
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 258,
+                "Documents": 1,
+                "Nodes": 390,
+                "JSHeapUsedSize": 5719160
+              }
+            ]
+          },
+          {
+            "seconds": 387.38854200000003,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 303,
+                "Documents": 1,
+                "Nodes": 322,
+                "JSHeapUsedSize": 7067744
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 293,
+                "Documents": 1,
+                "Nodes": 415,
+                "JSHeapUsedSize": 7492940
+              }
+            ]
+          },
+          {
+            "seconds": 442.67215180000005,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 345,
+                "Documents": 1,
+                "Nodes": 352,
+                "JSHeapUsedSize": 8101388
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 336,
+                "Documents": 1,
+                "Nodes": 460,
+                "JSHeapUsedSize": 9340808
+              }
+            ]
+          },
+          {
+            "seconds": 500.3016311,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 383,
+                "Documents": 1,
+                "Nodes": 258,
+                "JSHeapUsedSize": 5316780
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 374,
+                "Documents": 1,
+                "Nodes": 390,
+                "JSHeapUsedSize": 5108336
+              }
+            ]
+          },
+          {
+            "seconds": 555.869231,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 429,
+                "Documents": 1,
+                "Nodes": 671,
+                "JSHeapUsedSize": 7022400
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 418,
+                "Documents": 1,
+                "Nodes": 425,
+                "JSHeapUsedSize": 6960112
+              }
+            ]
+          },
+          {
+            "seconds": 611.0632334000001,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 465,
+                "Documents": 1,
+                "Nodes": 696,
+                "JSHeapUsedSize": 9514624
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 448,
+                "Documents": 1,
+                "Nodes": 450,
+                "JSHeapUsedSize": 8854364
+              }
+            ]
+          },
+          {
+            "seconds": 666.5132141,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 511,
+                "Documents": 1,
+                "Nodes": 500,
+                "JSHeapUsedSize": 7395420
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 486,
+                "Documents": 1,
+                "Nodes": 395,
+                "JSHeapUsedSize": 5231676
+              }
+            ]
+          },
+          {
+            "seconds": 721.6886418,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 542,
+                "Documents": 1,
+                "Nodes": 525,
+                "JSHeapUsedSize": 9846396
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 527,
+                "Documents": 1,
+                "Nodes": 425,
+                "JSHeapUsedSize": 7406400
+              }
+            ]
+          },
+          {
+            "seconds": 776.8453999000001,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 578,
+                "Documents": 1,
+                "Nodes": 475,
+                "JSHeapUsedSize": 5701120
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 565,
+                "Documents": 1,
+                "Nodes": 450,
+                "JSHeapUsedSize": 9110128
+              }
+            ]
+          },
+          {
+            "seconds": 832.15626,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 620,
+                "Documents": 1,
+                "Nodes": 505,
+                "JSHeapUsedSize": 8201104
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 605,
+                "Documents": 1,
+                "Nodes": 413,
+                "JSHeapUsedSize": 5983564
+              }
+            ]
+          },
+          {
+            "seconds": 887.3196851,
+            "roles": [
+              {
+                "role": "a",
+                "sockets": 1,
+                "requests": 656,
+                "Documents": 1,
+                "Nodes": 530,
+                "JSHeapUsedSize": 10708736
+              },
+              {
+                "role": "jury",
+                "sockets": 1,
+                "requests": 646,
+                "Documents": 1,
+                "Nodes": 443,
+                "JSHeapUsedSize": 8064316
+              }
+            ]
+          }
+        ]
+      },
+      "maxChannels": 1,
+      "minuteWindows": [
+        {
+          "minute": 1,
+          "requests": 835,
+          "snapshots": {
+            "count": 20,
+            "p50": 219.9210000000021,
+            "p95": 296.05280000000494,
+            "p99": 334.78480000000854,
+            "max": 334.78480000000854,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 2,
+          "requests": 821,
+          "snapshots": {
+            "count": 16,
+            "p50": 218.89199999999255,
+            "p95": 306.2505999999994,
+            "p99": 306.2505999999994,
+            "max": 306.2505999999994,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 3,
+          "requests": 757,
+          "snapshots": {
+            "count": 14,
+            "p50": 207.74809999999707,
+            "p95": 351.9780000000028,
+            "p99": 351.9780000000028,
+            "max": 351.9780000000028,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 4,
+          "requests": 863,
+          "snapshots": {
+            "count": 20,
+            "p50": 210.7165999999852,
+            "p95": 274.3623999999836,
+            "p99": 328.5801999999967,
+            "max": 328.5801999999967,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 5,
+          "requests": 809,
+          "snapshots": {
+            "count": 20,
+            "p50": 214.81609999999637,
+            "p95": 313.2155999999959,
+            "p99": 329.5875000000233,
+            "max": 329.5875000000233,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 6,
+          "requests": 845,
+          "snapshots": {
+            "count": 19,
+            "p50": 235.46289999998407,
+            "p95": 420.59419999999227,
+            "p99": 420.59419999999227,
+            "max": 420.59419999999227,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 7,
+          "requests": 787,
+          "snapshots": {
+            "count": 19,
+            "p50": 236.13650000002235,
+            "p95": 345.70960000000196,
+            "p99": 345.70960000000196,
+            "max": 345.70960000000196,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 8,
+          "requests": 871,
+          "snapshots": {
+            "count": 21,
+            "p50": 272.97119999997085,
+            "p95": 500.39569999999367,
+            "p99": 681.9419999999809,
+            "max": 681.9419999999809,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 9,
+          "requests": 804,
+          "snapshots": {
+            "count": 19,
+            "p50": 248.9426000000676,
+            "p95": 646.9026999999769,
+            "p99": 646.9026999999769,
+            "max": 646.9026999999769,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 10,
+          "requests": 854,
+          "snapshots": {
+            "count": 20,
+            "p50": 224.91230000008363,
+            "p95": 292.53750000009313,
+            "p99": 297.8787000000011,
+            "max": 297.8787000000011,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 11,
+          "requests": 800,
+          "snapshots": {
+            "count": 19,
+            "p50": 232.59380000003148,
+            "p95": 340.6123999999836,
+            "p99": 340.6123999999836,
+            "max": 340.6123999999836,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 12,
+          "requests": 836,
+          "snapshots": {
+            "count": 19,
+            "p50": 223.6145999999717,
+            "p95": 480.345500000054,
+            "p99": 480.345500000054,
+            "max": 480.345500000054,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 13,
+          "requests": 808,
+          "snapshots": {
+            "count": 20,
+            "p50": 221.66779999993742,
+            "p95": 315.47990000003483,
+            "p99": 359.6240000000689,
+            "max": 359.6240000000689,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 14,
+          "requests": 851,
+          "snapshots": {
+            "count": 18,
+            "p50": 216.01980000000913,
+            "p95": 675.6358999999939,
+            "p99": 675.6358999999939,
+            "max": 675.6358999999939,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 15,
+          "requests": 761,
+          "snapshots": {
+            "count": 16,
+            "p50": 210.0490999999456,
+            "p95": 358.93030000000726,
+            "p99": 358.93030000000726,
+            "max": 358.93030000000726,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 16,
+          "requests": 0,
+          "snapshots": {
+            "count": 0,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null,
+            "errors": 0
+          }
+        }
+      ],
+      "events": 202,
+      "eventPeakPerSecond": 47
+    },
+    {
+      "name": "acceptance-margin-25.json",
+      "startedAt": "2026-09-30T07:50:19.902Z",
+      "options": {
+        "target": "hosted",
+        "profile": "A",
+        "clients": 25,
+        "seconds": 300,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": false,
+      "durationSeconds": 319.7991801,
+      "loadDurationSeconds": 281.5006768,
+      "workloadStartMs": 28541.720699999998,
+      "workloadSnapshots": {
+        "count": 100,
+        "p50": 231.40220000001136,
+        "p95": 335.08550000000105,
+        "p99": 371.3874000000069,
+        "max": 6379.441599999962,
+        "errors": 0
+      },
+      "workloadRequests": {
+        "count": 4477,
+        "p50": 71.98869999998715,
+        "p95": 131.01230000000214,
+        "p99": 193.51090000002296,
+        "max": 6331.601999999955,
+        "errors": 0,
+        "perSecond": 15.904047020038993,
+        "peakPerSecond": 84,
+        "decodedBytes": 4573067
+      },
+      "hotspot": null,
+      "summary": {
+        "request": {
+          "count": 5065,
+          "p50": 73.5643,
+          "p95": 141.21070000000145,
+          "p99": 204.05499999999302,
+          "errorRate": 0,
+          "bytes": 5115840,
+          "perSecond": 15.838064370322005
+        },
+        "snapshot": {
+          "count": 125,
+          "p50": 244.37120000002324,
+          "p95": 485.332699999999,
+          "p99": 908.3263000000002,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.390870295417621
+        },
+        "realtime-join": {
+          "count": 25,
+          "p50": 105.06459999999788,
+          "p95": 144.6327000000001,
+          "p99": 146.75,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.0781740590835242
+        },
+        "targeted-refresh": {
+          "count": 569,
+          "p50": 218.05509999999776,
+          "p95": 336.0835999999981,
+          "p99": 448.234300000011,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 1.779241584741011
+        }
+      },
+      "errors": [
+        {
+          "kind": "sustained-latency-budget"
+        }
+      ],
+      "roles": {
+        "admin": {
+          "count": 12,
+          "p50": 256.33950000000186,
+          "p95": 361.9521999999997,
+          "p99": 361.9521999999997,
+          "max": 361.9521999999997,
+          "errors": 0
+        },
+        "jury": {
+          "count": 12,
+          "p50": 173.1768999999913,
+          "p95": 6379.441599999962,
+          "p99": 6379.441599999962,
+          "max": 6379.441599999962,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 12,
+          "p50": 157.0805999999866,
+          "p95": 277.6130000000121,
+          "p99": 277.6130000000121,
+          "max": 277.6130000000121,
+          "errors": 0
+        },
+        "a": {
+          "count": 36,
+          "p50": 241.84379999997327,
+          "p95": 318.9342999999644,
+          "p99": 371.3874000000069,
+          "max": 371.3874000000069,
+          "errors": 0
+        },
+        "b": {
+          "count": 28,
+          "p50": 236.65200000000186,
+          "p95": 335.08550000000105,
+          "p99": 350.9627999999793,
+          "max": 350.9627999999793,
+          "errors": 0
+        }
+      },
+      "integrity": [],
+      "maxChannels": 1,
+      "minuteWindows": [
+        {
+          "minute": 1,
+          "requests": 1026,
+          "snapshots": {
+            "count": 21,
+            "p50": 232.85080000000016,
+            "p95": 361.9521999999997,
+            "p99": 371.3874000000069,
+            "max": 371.3874000000069,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 2,
+          "requests": 961,
+          "snapshots": {
+            "count": 20,
+            "p50": 229.5793999999878,
+            "p95": 269.3094000000274,
+            "p99": 271.1489999999758,
+            "max": 271.1489999999758,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 3,
+          "requests": 974,
+          "snapshots": {
+            "count": 19,
+            "p50": 237.07020000001648,
+            "p95": 304.9637999999977,
+            "p99": 304.9637999999977,
+            "max": 304.9637999999977,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 4,
+          "requests": 982,
+          "snapshots": {
+            "count": 24,
+            "p50": 236.96610000001965,
+            "p95": 309.534399999975,
+            "p99": 310.2747999999847,
+            "max": 310.2747999999847,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 5,
+          "requests": 534,
+          "snapshots": {
+            "count": 16,
+            "p50": 225.6689999999944,
+            "p95": 6379.441599999962,
+            "p99": 6379.441599999962,
+            "max": 6379.441599999962,
+            "errors": 0
+          }
+        }
+      ],
+      "events": 0,
+      "eventPeakPerSecond": 0
+    },
+    {
+      "name": "acceptance-browser-background.json",
+      "startedAt": "2026-09-30T07:57:03.348Z",
+      "options": {
+        "target": "hosted",
+        "profile": "A",
+        "clients": 20,
+        "seconds": 120,
+        "allowHosted": true,
+        "writes": false
+      },
+      "passed": true,
+      "durationSeconds": 148.0820155,
+      "loadDurationSeconds": 120.0027019,
+      "workloadStartMs": 20482.2692,
+      "workloadSnapshots": {
+        "count": 35,
+        "p50": 215.68940000000293,
+        "p95": 330.48969999999827,
+        "p99": 1065.5536999999895,
+        "max": 1065.5536999999895,
+        "errors": 0
+      },
+      "workloadRequests": {
+        "count": 1716,
+        "p50": 71.64480000000913,
+        "p95": 140.53310000000056,
+        "p99": 260.4417000000103,
+        "max": 956.6473000000115,
+        "errors": 0,
+        "perSecond": 14.299678030832737,
+        "peakPerSecond": 81,
+        "decodedBytes": 1953212
+      },
+      "hotspot": null,
+      "summary": {
+        "request": {
+          "count": 2188,
+          "p50": 73.32300000000396,
+          "p95": 142.27070000000822,
+          "p99": 263.68789999999717,
+          "errorRate": 0,
+          "bytes": 2382583,
+          "perSecond": 14.775595757609064
+        },
+        "snapshot": {
+          "count": 55,
+          "p50": 231.6871000000101,
+          "p95": 573.9692000000005,
+          "p99": 1065.5536999999895,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.3714157982945606
+        },
+        "realtime-join": {
+          "count": 20,
+          "p50": 106.16700000000128,
+          "p95": 130.14280000000008,
+          "p99": 131.17759999999907,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 0.13506029028893113
+        },
+        "targeted-refresh": {
+          "count": 248,
+          "p50": 211.90529999999853,
+          "p95": 434.69690000000264,
+          "p99": 717.0316000000021,
+          "errorRate": 0,
+          "bytes": 0,
+          "perSecond": 1.6747475995827459
+        }
+      },
+      "errors": [],
+      "roles": {
+        "admin": {
+          "count": 4,
+          "p50": 217.24719999999797,
+          "p95": 330.48969999999827,
+          "p99": 330.48969999999827,
+          "max": 330.48969999999827,
+          "errors": 0
+        },
+        "jury": {
+          "count": 4,
+          "p50": 157.63979999998992,
+          "p95": 297.37339999999676,
+          "p99": 297.37339999999676,
+          "max": 297.37339999999676,
+          "errors": 0
+        },
+        "suspect": {
+          "count": 4,
+          "p50": 149.9832999999926,
+          "p95": 205.84550000001036,
+          "p99": 205.84550000001036,
+          "max": 205.84550000001036,
+          "errors": 0
+        },
+        "a": {
+          "count": 13,
+          "p50": 220.60149999998976,
+          "p95": 263.1055999999953,
+          "p99": 263.1055999999953,
+          "max": 263.1055999999953,
+          "errors": 0
+        },
+        "b": {
+          "count": 10,
+          "p50": 215.27679999999236,
+          "p95": 1065.5536999999895,
+          "p99": 1065.5536999999895,
+          "max": 1065.5536999999895,
+          "errors": 0
+        }
+      },
+      "integrity": [],
+      "maxChannels": 1,
+      "minuteWindows": [
+        {
+          "minute": 1,
+          "requests": 858,
+          "snapshots": {
+            "count": 15,
+            "p50": 210.3252000000066,
+            "p95": 330.48969999999827,
+            "p99": 330.48969999999827,
+            "max": 330.48969999999827,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 2,
+          "requests": 858,
+          "snapshots": {
+            "count": 20,
+            "p50": 217.24719999999797,
+            "p95": 263.1055999999953,
+            "p99": 1065.5536999999895,
+            "max": 1065.5536999999895,
+            "errors": 0
+          }
+        },
+        {
+          "minute": 3,
+          "requests": 0,
+          "snapshots": {
+            "count": 0,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null,
+            "errors": 0
+          }
+        }
+      ],
+      "events": 28,
+      "eventPeakPerSecond": 14
+    }
+  ],
+  "metrics": [
+    {
+      "at": "2026-09-30T07:34:27.698Z",
+      "cpuBusyPercent": null,
+      "memoryAvailableBytes": 122867712,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.37,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:35:28.704Z",
+      "cpuBusyPercent": 36.86906237092109,
+      "memoryAvailableBytes": 157323264,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.61,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:36:29.191Z",
+      "cpuBusyPercent": 9.606806542210633,
+      "memoryAvailableBytes": 129351680,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.58,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:37:29.822Z",
+      "cpuBusyPercent": 10.545545129950874,
+      "memoryAvailableBytes": 134803456,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.27,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 16739120
+    },
+    {
+      "at": "2026-09-30T07:38:30.267Z",
+      "cpuBusyPercent": 9.4466600199401,
+      "memoryAvailableBytes": 118571008,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.13,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:39:30.939Z",
+      "cpuBusyPercent": 9.38877338877372,
+      "memoryAvailableBytes": 141459456,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.53,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 16757168
+    },
+    {
+      "at": "2026-09-30T07:40:31.361Z",
+      "cpuBusyPercent": 8.9647723496176,
+      "memoryAvailableBytes": 113123328,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.45,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:41:31.900Z",
+      "cpuBusyPercent": 10.034112654962923,
+      "memoryAvailableBytes": 122413056,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.27,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:42:32.292Z",
+      "cpuBusyPercent": 9.536875363764718,
+      "memoryAvailableBytes": 107077632,
+      "memoryTotalBytes": 452907008,
+      "load1": 1.02,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 189,
+      "replicationLagBytes": 38288
+    },
+    {
+      "at": "2026-09-30T07:43:32.911Z",
+      "cpuBusyPercent": 10.373513018883806,
+      "memoryAvailableBytes": 129204224,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.85,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:44:33.706Z",
+      "cpuBusyPercent": 28.921078921078635,
+      "memoryAvailableBytes": 153047040,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.98,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:45:34.200Z",
+      "cpuBusyPercent": 10.331706510050665,
+      "memoryAvailableBytes": 142880768,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.36,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 16736584
+    },
+    {
+      "at": "2026-09-30T07:46:34.618Z",
+      "cpuBusyPercent": 9.056886227545323,
+      "memoryAvailableBytes": 121352192,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.13,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:47:34.892Z",
+      "cpuBusyPercent": 10.403804438510933,
+      "memoryAvailableBytes": 128880640,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.18,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 16761456
+    },
+    {
+      "at": "2026-09-30T07:48:35.225Z",
+      "cpuBusyPercent": 8.420262037887106,
+      "memoryAvailableBytes": 104845312,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.25,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:49:35.585Z",
+      "cpuBusyPercent": 10.324999999999928,
+      "memoryAvailableBytes": 140210176,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.29,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 154,
+      "replicationLagBytes": 16750944
+    },
+    {
+      "at": "2026-09-30T07:50:37.195Z",
+      "cpuBusyPercent": 27.27875372886973,
+      "memoryAvailableBytes": 130641920,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.93,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 1,
+      "restPoolTimeouts": 0,
+      "subscriptions": 91,
+      "replicationLagBytes": 133632
+    },
+    {
+      "at": "2026-09-30T07:51:37.670Z",
+      "cpuBusyPercent": 29.48993067018876,
+      "memoryAvailableBytes": 140820480,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.64,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 175,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:52:38.005Z",
+      "cpuBusyPercent": 8.584976291489676,
+      "memoryAvailableBytes": 126373888,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.36,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 175,
+      "replicationLagBytes": 56
+    },
+    {
+      "at": "2026-09-30T07:53:38.405Z",
+      "cpuBusyPercent": 9.742478539878007,
+      "memoryAvailableBytes": 142729216,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.13,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 175,
+      "replicationLagBytes": 16738496
+    },
+    {
+      "at": "2026-09-30T07:54:38.739Z",
+      "cpuBusyPercent": 8.118481435127267,
+      "memoryAvailableBytes": 125816832,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.05,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 175,
+      "replicationLagBytes": 16738496
+    },
+    {
+      "at": "2026-09-30T07:55:39.153Z",
+      "cpuBusyPercent": 7.860116569525799,
+      "memoryAvailableBytes": 125186048,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.15,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 105,
+      "replicationLagBytes": 3040
+    },
+    {
+      "at": "2026-09-30T07:56:39.535Z",
+      "cpuBusyPercent": 1.7769658722912252,
+      "memoryAvailableBytes": 117678080,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.14,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 4208
+    },
+    {
+      "at": "2026-09-30T07:57:40.013Z",
+      "cpuBusyPercent": 12.534354959605986,
+      "memoryAvailableBytes": 119599104,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.55,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 140,
+      "replicationLagBytes": 263400
+    },
+    {
+      "at": "2026-09-30T07:58:40.468Z",
+      "cpuBusyPercent": 9.633142001497696,
+      "memoryAvailableBytes": 113901568,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.2,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 140,
+      "replicationLagBytes": 27864
+    },
+    {
+      "at": "2026-09-30T07:59:40.879Z",
+      "cpuBusyPercent": 8.381839348079122,
+      "memoryAvailableBytes": 129019904,
+      "memoryTotalBytes": 452907008,
+      "load1": 0.23,
+      "poolWaiting": 0,
+      "poolMaxWait": 0,
+      "restPoolWaiting": 0,
+      "restPoolTimeouts": 0,
+      "subscriptions": 0,
+      "replicationLagBytes": 17264
+    }
+  ],
+  "browserReleaseCheck": {
+    "startedAt": "2026-09-30T07:58:20.372Z",
+    "applicationCommit": "453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648",
+    "backgroundClients": 20,
+    "browserClients": 2,
+    "passed": true,
+    "releaseToBothBrowsersMs": 1787.5365999999995,
+    "integrity": {
+      "released": true,
+      "auditCount": 1,
+      "balancesUnchanged": true
+    },
+    "browser": {
+      "commit": "453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648",
+      "clients": 2,
+      "viewport": [
+        390,
+        844
+      ],
+      "mobile": {
+        "latencyMs": 100,
+        "downloadBytesPerSecond": 200000,
+        "cpuRate": 4
+      },
+      "roles": [
+        {
+          "role": "a",
+          "photoDecoded": true
+        },
+        {
+          "role": "jury",
+          "photoDecoded": true
+        }
+      ],
+      "flows": [
+        {
+          "name": "a:login",
+          "ms": 3042.7613
+        },
+        {
+          "name": "jury:login",
+          "ms": 1110.5711000000001
+        },
+        {
+          "name": "mobile:released-response-and-jury-update",
+          "ms": 1761.7261000000008
+        }
+      ],
+      "errors": [],
+      "samples": [
+        {
+          "seconds": 0,
+          "roles": [
+            {
+              "role": "a",
+              "sockets": 1,
+              "requests": 28,
+              "Documents": 4,
+              "Nodes": 846,
+              "JSHeapUsedSize": 5266096
+            },
+            {
+              "role": "jury",
+              "sockets": 1,
+              "requests": 30,
+              "Documents": 4,
+              "Nodes": 516,
+              "JSHeapUsedSize": 5386084
+            }
+          ]
+        }
+      ]
+    },
+    "finishedAt": "2026-09-30T07:58:33.469Z"
+  },
+  "browserEvidenceNote": "The original 15-minute browser hotspot check only confirmed an already-unlocked badge. Supplemental verification requires a newly refreshed released row in the mobile browser and removal of the pending jury card under 20 API sessions.",
+  "logs": {
+    "window": {
+      "start": "2026-09-30T07:34:00Z",
+      "end": "2026-09-30T07:56:00Z"
+    },
+    "edge": [
+      {
+        "origin_max_ms": 73,
+        "origin_p95_ms": 59,
+        "responses": 52,
+        "status": "101"
+      },
+      {
+        "origin_max_ms": 6256,
+        "origin_p95_ms": 75,
+        "responses": 18886,
+        "status": "200"
+      },
+      {
+        "origin_max_ms": 108,
+        "origin_p95_ms": 107.69999999999999,
+        "responses": 4,
+        "status": "201"
+      },
+      {
+        "origin_max_ms": 287,
+        "origin_p95_ms": 153.49999999999994,
+        "responses": 48,
+        "status": "204"
+      }
+    ],
+    "slowGroups": [
+      {
+        "origin_max_ms": 6256,
+        "path": "/rest/v1/groups",
+        "responses": 41,
+        "status": "200"
+      }
+    ],
+    "levels": [
+      {
+        "events": 139,
+        "level": "info",
+        "pg_level": "",
+        "source": "auth_logs"
+      },
+      {
+        "events": 9,
+        "level": "",
+        "pg_level": "LOG",
+        "source": "postgres_logs"
+      },
+      {
+        "events": 1,
+        "level": "",
+        "pg_level": "",
+        "source": "postgrest_logs"
+      },
+      {
+        "events": 144,
+        "level": "info",
+        "pg_level": "",
+        "source": "storage_logs"
+      }
+    ],
+    "supplementalWindow": {
+      "start": "2026-09-30T07:56:45Z",
+      "end": "2026-09-30T08:00:00Z"
+    },
+    "supplemental": [
+      {
+        "events": 68,
+        "level": "info",
+        "pg_level": "",
+        "source": "auth_logs",
+        "status": ""
+      },
+      {
+        "events": 23,
+        "level": "",
+        "pg_level": "",
+        "source": "edge_logs",
+        "status": "101"
+      },
+      {
+        "events": 2012,
+        "level": "",
+        "pg_level": "",
+        "source": "edge_logs",
+        "status": "200"
+      },
+      {
+        "events": 2,
+        "level": "",
+        "pg_level": "",
+        "source": "edge_logs",
+        "status": "201"
+      },
+      {
+        "events": 21,
+        "level": "",
+        "pg_level": "",
+        "source": "edge_logs",
+        "status": "204"
+      },
+      {
+        "events": 30,
+        "level": "info",
+        "pg_level": "",
+        "source": "storage_logs",
+        "status": ""
+      }
+    ],
+    "limitations": "No Realtime log source surfaced in these windows. One PostgREST event had no severity field; body-pattern query was unavailable. Client-side Realtime and HTTP error counters were zero."
+  },
+  "advisors": {
+    "security": [
+      {
+        "name": "authenticated_security_definer_function_executable",
+        "level": "WARN",
+        "count": 12,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+      },
+      {
+        "name": "auth_leaked_password_protection",
+        "level": "WARN",
+        "count": 1,
+        "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+      }
+    ],
+    "performance": [
+      {
+        "name": "unindexed_foreign_keys",
+        "level": "INFO",
+        "count": 8,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys"
+      },
+      {
+        "name": "auth_rls_initplan",
+        "level": "WARN",
+        "count": 9,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan"
+      },
+      {
+        "name": "unused_index",
+        "level": "INFO",
+        "count": 9,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "level": "WARN",
+        "count": 19,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies"
+      },
+      {
+        "name": "duplicate_index",
+        "level": "WARN",
+        "count": 2,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0009_duplicate_index"
+      }
+    ]
+  },
+  "replication": [
+    {
+      "observed_at": "2026-09-30 08:00:14.285658+00",
+      "subscriptions": 0,
+      "lock_waiters": 0,
+      "cumulative_deadlocks": 0,
+      "replication": [
+        {
+          "active": true,
+          "restart_lag_bytes": 728,
+          "confirmed_lag_bytes": 0
+        },
+        {
+          "active": true,
+          "restart_lag_bytes": 728,
+          "confirmed_lag_bytes": -1
+        }
+      ]
+    }
+  ]
+}

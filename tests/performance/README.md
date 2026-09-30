@@ -1,6 +1,39 @@
 # Performance validation — lokaal en hosted TEST
 
-Deze tooling is gevalideerd op `hardening/performance-scale`; capaciteitstekorten staan in het rapport. **Niet uitvoeren op Production.** De lokale fase hervat TEST niet en pauzeert IScout niet. Voor actuele resultaten en beperkingen: [rapport](../../docs/PERFORMANCE-SCALE-REPORT.md).
+Deze tooling is gevalideerd op `hardening/performance-scale`. Het actuele doel is maximaal circa twintig gebruikers met marge richting 25 actieve sessies. **Niet uitvoeren op Production.** De tooling hervat TEST niet en pauzeert IScout niet. Voor actuele resultaten en beperkingen: [rapport](../../docs/PERFORMANCE-SCALE-REPORT.md).
+
+## Actuele acceptatie: twintig gebruikers
+
+De oorspronkelijke 40–50-sessieaanname is vervallen. De historische ramp hieronder documenteert de eerdere meting en wordt voor deze acceptatie **niet opnieuw uitgevoerd**. Geen nieuwe 50/75/100-tests of grote seed. Gebruik de normale fictieve fixture, herstel die na core/security-baseline en controleer aantallen voordat load begint. De recovery-databasesuite voegt veel notificatiehistorie toe; voer die niet tussen fixtureherstel en deze meting uit.
+
+Controleer vóór iedere run exact TEST `ksnagauoufsriwplvvtd` ACTIVE_HEALTHY via `hosted-stage.cjs`. Gebruik Node 24.21.0, `CSI_BACKEND=hosted` en `CSI_PREVIEW_BRANCH=hardening/performance-scale`. Voor de reproduceerbare acceptatie staat `.local/preview.json` op de geverifieerde READY-Preview van applicatiebasis `453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648`; geldige Preview-cookies staan uitsluitend in `.local/preview-browser-state.json`.
+
+```powershell
+node tests/performance/server-metrics.cjs --allow-hosted --samples=28 --out=acceptance-metrics
+# In tweede terminal, na gezonde baseline en fixturecontrole:
+node tests/performance/hosted-stage.cjs --target=hosted --allow-hosted --profile=A --clients=20 --seconds=900 --writes --acceptance --out=acceptance-20
+# Alleen na volledig groene 20-sessiesrun:
+node tests/performance/hosted-stage.cjs --target=hosted --allow-hosted --profile=A --clients=25 --seconds=300 --out=acceptance-margin-25
+node tests/performance/summarize-acceptance.cjs
+```
+
+`--acceptance` vereist exact hosted/A/20/900/writes. Rollen: twaalf participants (zes per groep), drie suspects, drie jury, twee admins. Twee echte mobiele Preview-browsers (participant/jury) lopen gedurende de gehele workload mee: maximaal **22 gelijktijdige sessies**. De participant heeft 100 ms latency, 200 kB/s download, 100 kB/s upload en 4× CPU-vertraging. De vijf bestaande fictieve accounts worden hergebruikt; dit is geen proef met twintig unieke Auth-identiteiten.
+
+Het schema is begrensd: participantnotitie via UI rond minuut 1, jurycorrectie via UI rond minuut 3, aankoop A op 5, notitie B op 7, vijf gelijktijdige API-reconnects op 7,5, vrijgave op 9, jurycorrectie op 11 en aankoop B op 13. De mobiele browser gaat daarnaast kort offline/online. Beide correcties worden met hun oorspronkelijke action-ID herhaald en mogen geen tweede transactie maken. De bestaande aankoop-RPC voorkomt dubbele aankopen. Iedere mutatie wordt achteraf via saldi, rijen, transacties, audit en groepsisolatie gecontroleerd. Geen fixture-reset tijdens of na de load; bewaar lokaal de runstate voor reconstructie. Eindregressies draaien op de geïsoleerde lokale backend.
+
+De vijftienminuten-p95 van volledige **workload**-snapshots moet ≤2.000 ms blijven, met nul onverwachte HTTP-/browser-/Realtime-fouten en volledige integriteit. De bestaande stopgrens >3 s over de laatste tien volledige snapshots blijft actief, evenals alle target- en foutguards. De 25-sessiesmarge is vijf minuten profiel A zonder writes of extra browsers. Inspecteer servermetrics tussen runs; stop ook bij pooluitputting of aanhoudende resourceproblemen.
+
+`realistic-capacity.json` publiceert alleen meetgegevens; `.local` bevat de ruwe samples, accounts, toegangscookies en write-state. Throughput in de nieuwe workloadvelden sluit setup/cleanup uit. De historische `summary` omvat die wel. Heapmetingen van de twee acceptatiebrowsers gebruiken geen geforceerde garbage collection; vergelijk die niet rechtstreeks met de oude GC-soak. De browser-hotspotmeting begint na de vrijgave-RPC; API-convergentie begint vóór die RPC. Sluit na afloop alle browsers/channels en de eigen metricscollector; verifieer nul server-subscriptions voordat TEST wordt vrijgegeven.
+
+De eerste acceptatieversie controleerde alleen het participantlabel Ontgrendeld, dat al bij een pending assignment bestaat. Dat bewijst geen nieuwe browserupdate. De helper vereist nu een nieuwe mobiele group_clues-response met released-status én het verdwijnen van de pending jurykaart. Het oorspronkelijke meetbestand blijft intact; dit ontbrekende bewijs is afzonderlijk aangevuld met een korte gerichte proef op dezelfde applicatiebasis, zonder extra optimalisatie:
+
+```powershell
+node tests/performance/hosted-stage.cjs --target=hosted --allow-hosted --profile=A --clients=20 --seconds=120 --out=acceptance-browser-background
+# Na bevestiging dat alle twintig API-clients geabonneerd zijn, in tweede terminal:
+node tests/performance/browser-release-check.mjs --allow-hosted
+```
+
+Deze aanvullende browserproef gebruikt één nieuwe fictieve clue/assignment en één juryvrijgave via UI; saldi blijven gelijk, precies één release-auditregel. Twee browsers bovenop twintig API-clients. De end-to-endtijd loopt vanaf de UI-klik tot de participant de released-rij heeft verwerkt in zijn netwerkresponse en de jurykaart is verdwenen. Geen nieuwe volledige soak of capaciteitstrap; de afzonderlijke meetbestanden documenteren de aanvulling.
 
 ## Lokale herhaling
 
@@ -61,7 +94,9 @@ Exacte targetallowlist, JWT-projectrefcontrole voor hosted, database-marker, fic
 
 De hotspot gebruikt een gerichte `group_clues`-vrijgave voor groep A. Het aantal verwachte ontvangers volgt de bestaande RLS. Groep B mag de aanwijzing niet ontvangen. Een globale metadata-vrijgave loopt via de bestaande polling (maximaal ongeveer 11 s + querytijd) en wordt apart in browser-E2E gecontroleerd. Coalescing vermindert REST-reloads, niet het aantal door Supabase afgeleverde events.
 
-## Hosted draaiboek — pas na het checkpoint
+## Historisch hosted draaiboek — stressonderzoek van 29 september
+
+Onderstaande hoge treden zijn historische onderzoeksinstructies, geen huidig acceptatie- of pre-eventprotocol. De actuele opdracht gebruikt uitsluitend de twintig-/25-sessiestests hierboven.
 
 1. Laat de operator bevestigen dat **CSI HIT TEST `ksnagauoufsriwplvvtd` ACTIVE_HEALTHY** is. Verifieer dit in de control plane vóór iedere run. Bespreek het korte IScout-venster; de scripts veranderen geen projectstatus.
 2. Controleer schema/migrations met de bestaande databaseprocedure. Geen Productiondata kopiëren, geen blinde migration-history-repair. Alleen ontbrekende, gereviewde TEST-migraties toepassen.
@@ -102,4 +137,10 @@ Verwachte hosted sessie: **45–60 minuten**, inclusief ramp, gerichte writes/re
 
 ## Korte check vóór Pasen 2027
 
-Op opnieuw geverifieerde TEST: functionele login/pegel-smoke, vijf sessies profiel A gedurende 120 s met reconnect, één gerichte schrijftest met vijf sessies en daarna de integriteitscontrole. Vergelijk met de uiteindelijk goedgekeurde hosted baseline, controleer actuele quota/plan en test mobiel. Stop bij regressie; niet opschalen. Production uitsluitend bestaande logs/health observeren. Deze pre-event check vervangt de afgekeurde hogere capaciteitstreden en noodzakelijke vervolgvalidatie niet.
+Op opnieuw geverifieerde TEST: normale fictieve fixture en functionele login/pegel-smoke, daarna tien sessies profiel A gedurende drie minuten met zes begrensde writes, Realtime-hotspot en reconnect:
+
+```powershell
+node tests/performance/hosted-stage.cjs --target=hosted --allow-hosted --profile=A --clients=10 --seconds=180 --writes --reconnect --out=pre-event-10
+```
+
+Laat één mobiele browser meelopen voor bruikbaarheid en private foto; rapporteer die als elfde sessie. Vergelijk workload-p95 (streef ≤2 s), errors, integriteit en hotspot met de twintiggebruikersbaseline. Controleer actuele quota/plan, datasetomvang en verwachte apparaten/tabs. Stop bij regressie; niet opschalen en geen load op Production. Deze korte check signaleert veranderingen vlak vóór Pasen 2027 en vervangt geen nieuwe acceptatie bij wezenlijk gewijzigde code, data of infrastructuur.

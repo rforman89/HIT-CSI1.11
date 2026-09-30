@@ -6,11 +6,13 @@ import {createClient} from '@supabase/supabase-js';
 import safety from './safety.cjs';
 import {loadAppSnapshot} from '../../src/services/loadAppSnapshot.js';
 import {createRefreshQueue} from '../../src/services/refreshQueue.js';
-import {prepareWrites,writeStep,observeHotspot,verifyWrites} from './write-workload.mjs';
+import {prepareWrites,writeStep,writeAction,observeHotspot,verifyWrites} from './write-workload.mjs';
+import {roles as acceptanceRoles,schedule,validateAcceptance} from './acceptance-plan.mjs';
 const args=Object.fromEntries(process.argv.slice(2).map(x=>{const [key,...v]=x.replace(/^--/,'').split('=');return [key,v.length?v.join('='):true];}));
-for(const key of Object.keys(args))assert(['target','profile','clients','seconds','allow-hosted','writes','reconnect','out'].includes(key),'Unknown option');
-for(const key of ['allow-hosted','writes','reconnect'])assert(args[key]===undefined||args[key]===true,'Flags do not accept values');
+for(const key of Object.keys(args))assert(['target','profile','clients','seconds','allow-hosted','writes','reconnect','acceptance','out'].includes(key),'Unknown option');
+for(const key of ['allow-hosted','writes','reconnect','acceptance'])assert(args[key]===undefined||args[key]===true,'Flags do not accept values');
 const options={target:args.target,profile:args.profile||'A',clients:Number(args.clients||5),seconds:Number(args.seconds||60),allowHosted:args['allow-hosted']===true,writes:args.writes===true};
+if(args.acceptance){validateAcceptance(options);assert(!args.reconnect,'Acceptance has its own five-client reconnect');}
 const config=JSON.parse(fs.readFileSync(options.target==='hosted'?'.local/hosted-backend.json':'.local/test-backend.json','utf8'));
 const {origin,marker}=safety.validate(config,options);
 const fixture=JSON.parse(fs.readFileSync(options.target==='hosted'?'.local/hosted-fixture.json':'.local/fixture.json','utf8'));
@@ -18,10 +20,11 @@ process.env.REACT_APP_SUPABASE_URL=origin;
 const out=args.out||`load-${options.target}-${options.profile}-${options.clients}`;assert(/^[a-zA-Z0-9-]+$/.test(out));
 const elapsed=()=>performance.now(),pause=ms=>new Promise(r=>setTimeout(r,ms));
 const samples=[],clients=[],events=[],integrity=[],errors=[],pending=new Set();
-let stopping=false,started=performance.now(),writeState,phase='setup';
+let stopping=false,started=performance.now(),writeState,browsers,phase='setup';
 const deadline=new AbortController();
 const watchdog=setTimeout(()=>{stopping=true;errors.push({kind:'wall-clock-limit'});deadline.abort();},Math.min(1800,options.seconds+180)*1000);
 const report={options,startedAt:new Date().toISOString(),scope:'API sessions + actual Realtime; not browser clients',runtime:{node:process.version},samples,events,integrity,errors};
+if(args.acceptance)report.acceptance={roles:acceptanceRoles,schedule,completed:[],applicationCommit:'453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648'};
 const fetchChecked=async(input,init={})=>{
  const url=new URL(typeof input==='string'?input:input.url||input);assert.equal(url.origin,origin,'Cross-target fetch refused');
  return fetch(input,{...init,redirect:'error',signal:AbortSignal.any([deadline.signal,AbortSignal.timeout(10000),...(init.signal?[init.signal]:[])])});
@@ -51,7 +54,7 @@ try{
  started=elapsed();
  for(let i=0;i<options.clients;i++){
   if(stopping)throw Error('Stopped during setup');
-  const role=i%10===0?'admin':i%10===1?'jury':i%10===2?'suspect':i%2?'a':'b';
+  const role=args.acceptance?acceptanceRoles[i]:i%10===0?'admin':i%10===1?'jury':i%10===2?'suspect':i%2?'a':'b';
   const actor={role,index:i};actor.client=createClient(origin,config.ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async(input,init)=>{
    const t=elapsed(),r=await fetchChecked(input,init);const bytes=(await r.clone().arrayBuffer()).byteLength;
    samples.push({role,kind:'request',phase,atMs:t-started,path:new URL(typeof input==='string'?input:input.url||input).pathname.replace(/\/object\/sign\/.*/, '/object/sign/[private]'),ms:elapsed()-t,bytes,status:r.status,ok:r.ok});
@@ -59,21 +62,42 @@ try{
    return r;
   }}});
   clients.push(actor);check(await actor.client.auth.signInWithPassword(fixture.accounts[role]));
-  actor.queue=createRefreshQueue(t=>snapshot(actor,t).catch(()=>{}),()=>!stopping&&!actor.busy);
+  actor.queue=createRefreshQueue(t=>snapshot(actor,t).catch(()=>{}),()=>!stopping&&!actor.busy&&!actor.reconnecting);
   await snapshot(actor);await connect(actor);await snapshot(actor,['groups','group_clues','notifications','credit_transactions','agenda_items','suspect_notes','suspect_statuses']);await pause(150);
  }
+ if(args.acceptance)browsers=await(await import('./acceptance-browser.mjs')).acceptanceBrowsers(config,fixture,writeState,service);
  const loadStarted=elapsed(),end=loadStarted+options.seconds*1000;
  phase='load';report.workloadStartMs=loadStarted-started;report.channelCounts=[];
  const interval={A:10000,B:5000,C:2500,D:1500}[options.profile];
  let reconnected=false;
- await Promise.all(clients.map(async actor=>{
+ const scenario=async()=>{
+  if(!args.acceptance)return;
+  let next=0,lastLog=-1;const actor=role=>clients.find(a=>a.role===role);
+  while(!stopping&&elapsed()<end){
+   const seconds=(elapsed()-loadStarted)/1000,step=schedule[next];
+   if(step&&seconds>=step.at){
+    if(step.action==='browser-note')await browsers.note();
+    else if(step.action==='browser-credit'){await browsers.credit();const c=writeState.browserCredit;const retry=check(await measure('jury','credit-retry',()=>actor('jury').client.rpc('mutate_group_credits',c.params)));assert.equal(retry.transaction_id,c.transaction);}
+    else if(step.action==='reconnect'){
+     const selected=[0,2,5,8,9].map(i=>clients[i]),t=elapsed();for(const a of selected){a.reconnecting=true;a.queue.clear();}
+     try{await Promise.all(selected.map(async a=>{await a.busy;await a.client.removeAllChannels();}));await pause(2000);await Promise.all(selected.map(async a=>{await connect(a);await snapshot(a);assert.equal(a.client.getChannels().length,1);}));report.reconnect={mode:'simultaneous',clients:5,atMs:t-started,ms:elapsed()-t};}finally{for(const a of selected)a.reconnecting=false;}
+     await browsers.reconnect();
+    }else if(step.action==='release'){await browsers.prepareHotspot();await writeAction(writeState,actor('admin'),fixture,measure,'release');await browsers.hotspot();}
+    else{const [action,role]=step.action.split('-');await writeAction(writeState,actor(role||'jury'),fixture,measure,action);}
+    report.acceptance.completed.push({action:step.action,seconds:(elapsed()-loadStarted)/1000});console.log('Acceptance action complete: '+step.action);next++;
+   }
+   await browsers.check(seconds);const minute=Math.floor(seconds/60);if(minute!==lastLog){console.log('Acceptance minute '+minute);lastLog=minute;}await pause(5000);
+  }
+  assert.equal(next,schedule.length,'Incomplete acceptance schedule');await browsers.check(options.seconds);report.browser=browsers.report;
+ };
+ await Promise.all([...clients.map(async actor=>{
   await pause(actor.index*71);let iteration=0;
   while(!stopping&&elapsed()<end){
    if(actor.reconnecting){await pause(100);continue;}
    try{
     const channels=actor.client.getChannels().length;report.channelCounts.push({client:actor.index,atMs:elapsed()-started,channels});assert.equal(channels,1,'Channel accumulation');
     await snapshot(actor,options.profile==='A'&&elapsed()-actor.lastFull<60000?['app_settings','groups','clues_base','suspects']:null);iteration++;
-    if(writeState&&iteration===2)await writeStep(writeState,actor,clients,fixture,measure);
+    if(writeState&&!args.acceptance&&iteration===2)await writeStep(writeState,actor,clients,fixture,measure);
     if(args.reconnect&&!reconnected&&actor.index===0&&elapsed()-loadStarted>options.seconds*500){
      reconnected=true;const reconnectStarted=elapsed();
      for(const a of clients){a.reconnecting=true;a.queue.clear();}
@@ -86,17 +110,19 @@ try{
    }catch(e){errors.push({role:actor.role,kind:'workload',error:e.name||'Error'});stopping=true;break;}
    await pause(Math.min(interval+actor.index*37,Math.max(0,end-elapsed())));
   }
- }));
+ }),scenario()]);
  report.loadDurationSeconds=(elapsed()-loadStarted)/1000;
  if(writeState){
-  integrity.push(await verifyWrites(writeState,service,clients,fixture));
+  integrity.push(await verifyWrites(writeState,service,clients,fixture,args.acceptance?2:1));
   assert(integrity[0].complete,'Write scenario stopped before all operations and hotspot convergence completed');
   assert(quantile(samples.filter(s=>s.kind==='hotspot-convergence').map(s=>s.ms),.95)<=3000,'Hotspot convergence exceeds 3s budget');
  }
  report.passed=!stopping&&errors.length===0;
+ if(args.acceptance)assert(quantile(samples.filter(s=>s.phase==='load'&&s.kind==='snapshot').map(s=>s.ms),.95)<=2000,'Acceptance workload snapshot p95 exceeds 2s');
 }catch(e){report.passed=false;report.failure=e.message;process.exitCode=1;}
 finally{
  stopping=true;
+ if(browsers){report.browser=browsers.report;await browsers.close();}
  for(const a of clients)a.queue?.dispose();
  await Promise.allSettled([...pending]);
  phase='cleanup';

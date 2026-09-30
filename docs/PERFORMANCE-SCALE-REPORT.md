@@ -1,4 +1,166 @@
-# CSI HIT — Performance, Scale & Game-Weekend Load Hardening
+# CSI HIT — Final Capacity Validation for Realistic Game Load
+
+Datum: 30 september 2026. Branch: `hardening/performance-scale`. Gevalideerde applicatiebasis: `453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648`.
+
+**Gereed voor production-review voor een verwacht maximum van circa 20 gelijktijdige gebruikers.** De volledige vijftienminutenrun is geslaagd, met twee extra browsers. De 25-sessiesmarge stopte na 281,50 s door één snapshot van 6,38 s; zij is niet volledig geslaagd. De twintiggebruikersacceptatie blijft volgens de afgesproken criteria geldig, met beperkte bewijsvoering voor extra tabs. Dit is een capaciteitsoordeel voor het beschreven profiel, geen Productionrelease. Production en main zijn ongewijzigd.
+
+## Nieuwe capaciteitsafspraak
+
+De organisator heeft de oorspronkelijke aanname van 40–50 sessies vervangen door **maximaal circa twintig gelijktijdig ingelogde gebruikers, met praktische marge richting 25 actieve sessies**. Het aantal tabs/apparaten bepaalt de technische belasting. De oude hoge stresstreden zijn geen primair releasecriterium meer; alle eerdere metingen blijven hieronder integraal als gedateerd archief behouden. Er is geen nieuwe 50/75/100-ramp uitgevoerd.
+
+## Testbasis en fixture
+
+Uitsluitend CSI HIT TEST `ksnagauoufsriwplvvtd`, vóór beide runs door de control plane als ACTIVE_HEALTHY bevestigd. Harde URL-, projectref-, JWT- en database-markerguards blijven actief. Geen applicatiecode, dependencies, indexes, caching, RLS, schema of compute gewijzigd ten opzichte van 453a5e0; alleen harness, meetexport en documentatie aangepast.
+
+Herstelde normale fictieve fixture vóór de run: twee groepen, tien clues, drie notities, één transactie, één notificatie en 6.801 bestaande auditregels. Geen grote performancefixture (nul eigen grote-fixture-auditrecords). Drie rungebonden clues komen tijdens voorbereiding bij; auditgeschiedenis wordt niet als onbeperkte clientlijst geladen. Private synthetische foto: 480.613 bytes / 400×400 pixels. Schema na de functionele baseline opnieuw **790/790 gelijk**, geen migratie nodig. Baseline: 28 corechecks en 31 security/privacychecks groen (27 hosted plus vier offline privacychecks).
+
+De eerdere kleine stressfixture had 1.209 notificaties uit recoverytests. De huidige normale fixture heeft er één bij aanvang. Ook het refreshprofiel verschilt. De nieuwe cijfers bewijzen het afgesproken scenario; zij zijn **geen gemeten versnelling door nieuwe code** of garantie voor de oude grote historie.
+
+## Sessieverdeling
+
+Twintig actieve API-/Realtime-sessies: twaalf participants (zes per groep), drie suspects, drie jury en twee admins. Gedurende de gehele workload lopen bovendien twee echte mobiele Preview-browsers mee (participant en jury): **22 gelijktijdige sessies in totaal**. Vijf bestaande fictieve accounts dragen meerdere sessies; twintig afzonderlijke Auth-identiteiten en alle mogelijke groepsverdelingen zijn niet apart getest. De margecontrole gebruikt 25 API-sessies zonder extra browsers (zestien participants, drie suspects, drie jury, drie admins).
+
+## Twintig sessies gedurende vijftien minuten
+
+Profiel A: metadata ongeveer iedere tien seconden, volledige reconciliatie na circa zestig seconden en gerichte refresh bij Realtime-events. Zeven gecontroleerde writes liggen verspreid over de vijftien minuten. De workload duurt **902.39 s**; setup en cleanup staan apart in de ruwe gegevens.
+
+| Meting, alleen workload | 20 API + 2 browsers | 25 API, marge |
+|---|---:|---:|
+| Volledige snapshots p50 / p95 / p99 (ms) | 223 / 351 / 647 | 231 / 335 / 371 |
+| Volledige snapshots, aantal | 280 | 100 |
+| API-requests | 12302 | 4477 |
+| API-requests per seconde | 13.63 | 15.90 |
+| API-request p95 (ms) | 148 | 131 |
+| Onverwachte API-fouten | 0 | 0 |
+| Resultaat | geslaagd | gestopt op latencyguard |
+| Workloadduur (s) | 902.39 | 281.50 |
+
+Throughput betreft API-clients; de twee browserrequesttellers staan afzonderlijk in het [gesanitiseerde meetbestand](performance/realistic-capacity.json). Requestduur omvat clientoverhead en het lezen van responses. Gedecodeerde bytes zijn geen factureerbare egress. De historische summary-velden omvatten setup; bovenstaande percentielen uitsluitend volledige workload-snapshots.
+
+Volledige snapshot-p95 per workloadminuut (ms): 1: 296; 2: 306; 3: 352; 4: 274; 5: 313; 6: 421; 7: 346; 8: 500; 9: 647; 10: 293; 11: 341; 12: 480; 13: 315; 14: 676; 15: 359. Het totaal blijft onder het acceptatiebudget van 2.000 ms. De bestaande stopgrens voor aanhoudende latency >3 s en guards op HTTP-, Realtime- en integriteitsfouten zijn niet versoepeld.
+
+## Realtime-hotspot
+
+Een gerichte vrijgave voor groep A bereikt alle **14 gerechtigde API-clients**. Convergentie vanaf vóór de RPC: p50/p95/p99 **1289 / 1408 / 1408 ms**. De mobiele participant toont de vrijgave eveneens. Groep B ontvangt de groepspecifieke vrijgave en notities van A niet.
+
+In de tien seconden vanaf de release starten 169 gemeten API-requests, maximaal 48 in één seconde; request-p95 242 ms, fouten 0. Over de hele run: maximaal 81 API-requests/s en 47 afgeleverde clientevents/s (202 events totaal). Dit zijn clienttijdvakken, geen platformbilling- of serverratelimitmeters. Coalescing vermindert refreshwerk, niet eventfanout.
+
+## Writes en exacte integriteit
+
+Alle geplande acties voltooid: notitie via participant-UI rond minuut 1, jurycorrectie via UI rond minuut 3, aankoop A rond 5, notitie B rond 7, vrijgave rond 9, tweede jurycorrectie rond 11 en aankoop B rond 13. Exacte afrondtijden staan in het meetbestand. Beide correcties zijn met de oorspronkelijke action-ID herhaald; elke retry wijst naar dezelfde transactie. Bestaande aankoopuniqueness en RPC-autorisatie blijven leidend.
+
+| Controle | Uitkomst |
+|---|---|
+| Groep A | 100 + 1 − 1 + 1 = **101** |
+| Groep B | 100 − 1 = **99** |
+| Runtransacties | exact 4: twee correcties en twee aankopen |
+| Notities / aankopen | 2 / 2, elk exact één rij |
+| Idempotente correctieretries | 2, geen extra boeking |
+| Audit | één credit-insert per action-ID, één assignment-insert per aankoop, één vrijgave-update |
+| Vrijgave | juiste groep, status released en released_at aanwezig |
+| Groepsisolatie | geen A-hotspot of A-notitie bij B |
+
+Notities hebben geen bestaande operation-audittrigger; hun rij, groep en zichtbaarheid zijn gecontroleerd. Alle runwrites blijven op TEST staan. De exacte IDs, action-IDs en voor-/nastate staan uitsluitend in de genegeerde lokale write-state; de gepubliceerde meetgegevens bevatten geen accounts, payloads of toegangstokens. Eindregressies gebruiken LOCAL en wissen dit hosted bewijs niet.
+
+## Reconnect
+
+Vijf API-clients (admin, jury, suspect, A, B) reconnecten gelijktijdig rond minuut 7,5. Totale hersteltijd inclusief twee seconden onderbreking en nieuwe snapshots: **3113 ms**. 25 joins totaal; maximaal 1 channel per API-client. De participantbrowser ondergaat daarnaast een eigen offline/online-proef en herstelt naar TESTMODUS. Geen langdurige foutstaat of dubbel clientchannel.
+
+De server telde rond reconnect tijdelijk 189 tabelbindings en daarna weer 154 (=22×7). Dit tijdelijke aantal is geen bewijs van 27 tegelijk actieve browsers; de server ruimt oude bindings asynchroon op. Na alle load is de servercleanup apart gecontroleerd.
+
+## Echte browsers en mobiele vertraging
+
+Beide browsers gebruiken de READY-Preview op exact 453a5e0, viewport 390×844. Participant: 100 ms latency, 200 kB/s download, 100 kB/s upload, 4× CPU-vertraging. Jury: dezelfde viewport zonder deze netwerkvertraging. Dashboard/login, verdachtennavigatie, private foto, notitiefeedback, pegelactie, aanwijzing en Realtime-/reconnectgedrag slagen; **nul console-, page-, onverwachte netwerk- of zichtbare syncfouten**.
+
+| Browserflow | Eenmalige waarneming (ms) |
+|---|---:|
+| a:login | 3238 |
+| jury:login | 1071 |
+| mobile:note-and-feedback | 656 |
+| jury:credit-and-idempotent-retry | 469 |
+| mobile:offline-online | 4396 |
+| mobile:hotspot-visible | 18 |
+
+De loginwaarden omvatten assets/invullen/wachten op de bruikbare app, tijdens setup met twintig verbonden API-clients maar vóór hun doorgaande poll-loop. Browser-creditduur omvat UI en verificatie; de idempotente retry volgt afzonderlijk. Dit zijn éénmalige flowwaarnemingen, geen statistische browser-SLA.
+
+**Aanvulling op het browserbewijs:** de eerste hotspotassertion controleerde alleen Ontgrendeld. Dat label bestaat al bij een pending assignment; de 18 ms daarvan is uitsluitend een zichtbaarheidscontrole en geen gemeten browserpropagatie. De API-convergentie hierboven controleert wél de veranderde status en blijft geldig. De harness is aangescherpt zonder applicatiewijziging; het oorspronkelijke meetbestand is behouden.
+
+Een gerichte aanvullende proef onder opnieuw twintig actieve API-leessessies plus twee browsers geeft één nieuwe fictieve aanwijzing via de jury-UI vrij. Binnen **1788 ms vanaf de UI-klik** retourneert de mobiele browser een nieuwe group_clues-response met de juiste released-rij én verdwijnt de pending jurykaart. Nul browserfouten; saldi ongewijzigd; precies één release-auditregel. De achtergrondrun duurt 120.00 s, snapshot-p95 330 ms, nul API-fouten. Dit is een gerichte aanvulling, geen vervanging of herhaling van de vijftienminutenrun. De twee browsers loggen hier in tijdens de doorgaande API-load. De eerste aanvullende poging stopte vóór de vrijgave op een te brede Playwright-selector (dezelfde titel in wachtrij en dossier); de selector is beperkt tot de vrijgavesectie en dezelfde pending assignment is veilig hervat. Geen extra clue of dubbele release door de herhaling.
+
+Minuutmetingen van heap, DOM en sockets staan in het meetbestand. Er is geen geforceerde garbage collection gebruikt; veranderingen door navigatie en afvalverzameling zijn geen hard lekbewijs. Maximaal één socket per browser; vijftien minuten is geen garantie voor een volledige speldag.
+
+## Backendmetrics, logs en advisors
+
+26 Metrics API-samples, ongeveer één per minuut. Hoogste CPU-delta 36.87%, laagste beschikbare geheugen 100.0 MiB. Hoogste PgBouncer-wachtenden 0, PostgREST-wachtenden 1, pooltimeouts 0. De metrics gelden voor de aangeboden gedeelde node, niet dedicated CPU. Tabelbindings zijn geen connectiontelling. WAL restart-afstand is geen directe eventvertraging; de slotcontrole en echte convergentie staan afzonderlijk in de meetexport.
+
+Logvenster 07:34–07:56 UTC: 18.886 HTTP 200, vier 201, 48 204 en 52 websocket-upgrades (101); geen 4xx/5xx. De negen Postgres-logevents hebben niveau LOG, Auth/Storage alleen info. De aanvullende browserproef heeft eveneens uitsluitend 2xx/101. Er verscheen geen afzonderlijke Realtime-logbron; nul client-Realtime-fouten is dus het directe bewijs. Eén PostgREST-event had geen severityveld en de tekstclassificatiequery was niet beschikbaar: geen volledige afwezigheid van interne logfouten claimen.
+
+Servercontrole om 08:00:14 UTC: nul subscriptions, nul lock-wachters, nul cumulatieve deadlocks; beide logische slots actief, confirmed_lag 0/−1 bytes (meetvolgorde), restart_lag 728 bytes. Daarna is ook de eigen metricscollector gestopt. De aggregaten staan onder `logs`, `replication` en `advisors` in het meetbestand.
+
+Advisors: twaalf bestaande [SECURITY DEFINER-meldingen](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), één [leaked-password-protectionmelding](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection), acht [foreign-key-indexadviezen](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys), negen [RLS-initplanadviezen](https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan), negentien [meervoudige permissieve policies](https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies), twee [dubbele indexes](https://supabase.com/docs/guides/database/database-linter?lint=0009_duplicate_index) en negen [ongebruikte indexes](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index). De laatste teller was historisch zes en is gebruiksafhankelijk; er zijn geen indexes gewijzigd. Deze adviezen zijn geen vastgesteld causaal bewijs voor de ene latency-uitschieter. Geen databaseoptimalisaties of platforminstellingen aangepast.
+
+## Vijfentwintig sessies: operationele marge
+
+Na de groene twintig-sessiesrun volgt één geplande read-heavy proef van 300 seconden met 25 API-sessies. **Voortijdig gestopt na 281.50 s**, snapshot-p95 335 ms, nul onverwachte HTTP-/Realtime-fouten, maximaal 1 channel per client. Eén jurysnapshot duurde 6.379 ms, waarvan een groups-request 6.332 ms; een admin-groups-request duurde 5.032 ms. Beide antwoorden waren HTTP 200. De guard gebruikt p95 over de laatste tien volledige snapshots, feitelijk het maximum bij n=10; één uitschieter volstaat dus om conservatief te stoppen. Die guard is behouden en de proef is niet opnieuw gedraaid.
+
+Edge logs bevestigen maximaal 6.256 ms server-origin-tijd op groups rond de stop; dit is geen uitsluitend lokale clientvertraging. Minuutmetrics tonen geen aanhoudende poolwachtrij of uitputting; geen deadlocks of database-errorlogs gevonden. De precieze oorzaak van deze korte vertraging is niet vastgesteld. De totale workload-p95 is ruim onder 2 s, maar een geheel groene vijfminutenmarge wordt niet geclaimd. De eis staat toe dat een minder sterke 25-sessiesmarge de geslaagde twintiggebruikersacceptatie niet automatisch blokkeert. De volledige duurtest bewijst al 22 gelijktijdige sessies; voor 25 blijven incidenteel trage responses een operationeel aandachtspunt.
+
+## Bekende stressgrenzen en veilige capaciteit
+
+Verwacht gebruik: circa **twintig gebruikers**, met beperkte normale writes en de beschreven kleine dataomvang. Operationele marge: 22 sessies tijdens de volledige duurtest bewezen; richting 25 is de marge **beperkt**, met één voortijdige latency-stop ondanks gezonde totale p95. Houd extra tabs beperkt en observeer synchronisatie. Hogere zware concurrency en grote historie zijn ongevalideerd/afgekeurd en geen onderdeel van deze vrijgave voor review.
+
+Historisch: 25 B-reads p95 1.514 ms geslaagd; 25 C-piek p95 3.504 ms afgekeurd; 50 B-reads p95 4.198 ms afgekeurd; grote fixture bij vijf sessies p95 11.502 ms afgekeurd. Er is geen afzonderlijke 40-sessiesrun geweest. De oude C-proef bevatte zes geclusterde logische writes met full refresh iedere 2,5 s; niet alle clients schreven voortdurend. De volledige oude meettabellen blijven in het archief hieronder staan.
+
+## Infrastructuur- en planadvies
+
+De huidige Free/Nano-infrastructuur is voldoende aangetoond voor **het twintiggebruikersprofiel**, met twee extra browsers, writes en reconnect. Er wordt geen onvoorwaardelijke capaciteit van 25 sessies toegezegd. De korte 25-sessiesuitschieter verdient observatie bij de pre-eventcheck; deze proef levert geen bewijs dat een betaalde upgrade noodzakelijk is of het probleem gegarandeerd oplost. Een upgrade volgt evenmin uit het falen van de oude vijftig-sessiesstress. Geen plan of compute gewijzigd. Bij sterk groeiende historie, meer apparaten of wezenlijk andere speldata moet opnieuw worden gemeten; de oude grote-fixturegrens blijft relevant.
+
+Plan- en quota-inventarisatie van 29 september staat gedateerd in het archief. Die gebruiksstanden zijn geen actuele rekening van deze run. Controleer quota, databereik, actieve tabs en Free-projectstatus opnieuw vóór het evenement.
+
+## Pre-event check vóór Pasen 2027
+
+Gebruik op gezonde TEST tien sessies, drie minuten profiel A, zes beperkte writes, hotspot en reconnect; één mobiele browser erbij. Exact commando en criteria staan in het [draaiboek](../tests/performance/README.md#korte-check-vóór-pasen-2027). Streef workload-p95 ≤2 s, nul onverwachte fouten, correcte saldi en geen subscriptiongroei. Vergelijk dataset/plan met deze baseline. Geen load op Production, niet opschalen bij regressie. Volg tijdens het spel het [incidentdraaiboek](GAME-DAY-INCIDENT-RUNBOOK.md).
+
+## Eindregressies
+
+Na beide capacityruns opnieuw een schone `npm ci`, volledige lokale quality gate, core reliability, security, browserflows, lint, build, audit, diffcheck en secretscan. Alle hieronder genoemde checks slagen op de eigen lokale backend; de hosted writes blijven behouden.
+
+| Suite | Checks |
+|---|---:|
+| Vitest | 49 |
+| Static/config/recovery/privacy/performanceguards | 43 |
+| Core database | 28 |
+| Security/auth/privacy | 31 |
+| Browser E2E incl. responsive | 22 |
+| Security browser | 8 |
+| Uitvoeringen / uniek | **181 / 177** |
+
+Vier privacychecks worden in twee suites uitgevoerd. Twee nieuwe acceptanceguards zijn inbegrepen in de 43 staticchecks. Audit: nul kwetsbaarheden. De eerdere volledige 210-unieke-testvalidatie blijft historische basis; niet alle recovery/performance-integraties zijn deze keer herhaald. De totale testsuite heeft nu twee extra guards, maar dat is geen claim dat 212 tests in deze eindronde draaiden.
+
+## Git en Preview
+
+Applicatiebasis **453a5e0** blijft identiek in src, dependencies, buildconfig en SQL. Alleen rapport/testharnesswijzigingen gaan naar dezelfde branch. De afsluitende commit en de controle van zijn CI/Preview staan in het opleverbericht; geen main-merge.
+
+De echte browseracceptatie gebruikt [Preview 453a5e0](https://hit-csi-1-11-nouiydve8-rforman89s-projects.vercel.app), deployment `dpl_8bnuvtNP3qDGvjt9K5Z11dgneg5R`, READY. Buildmetadata en werkelijk gebruikte backend zijn TEST. Deze immutable deployment blijft het bewijs bij de run. De nieuwe rapport/harnesscommit krijgt een eigen Preview met dezelfde applicatiebron; dat onderscheid wordt niet weggewerkt door het meetcommit te vervangen. [Branchpreview](https://hit-csi-1-11-git-hardening-performan-f94ec7-rforman89s-projects.vercel.app). Credentials, authstate, ruwe logs en backups blijven buiten Git.
+
+## Production en projectstatus
+
+Production `uhfcrskkgutlqqogahbr` is in deze acceptatie niet benaderd voor queries, wijzigingen of load. Main blijft `8ef8beec9b76859cc4f858f34898d5def3b22d67`. Geen Productiondeployment, migratie, migration-history-repair of configuratiewijziging. IScout blijft door de operator gepauzeerd tijdens het hosted venster.
+
+Na beëindiging van alle workloads, browsercleanup, nul server-subscriptions en de laatste CI/Previewcontrole kan CSI HIT TEST veilig worden gepauzeerd en IScout worden hervat. De operator voert deze statuswissel uit; scripts doen dat niet automatisch.
+
+## Resterende grenzen en conclusie
+
+De fixture heeft twee actieve testgroepen en vijf gedeelde testaccounts. Andere groepsspreiding, veel meer historische rijen, hoge-resolutiefoto's, een hele speldag en zwaardere concurrentie zijn hiermee niet algemeen gegarandeerd. De bekende RLS/security-advisors en migration-historyvragen blijven bestaande reviewonderwerpen, zonder nieuwe wijzigingen in deze opdracht.
+
+**Gereed voor production-review voor een verwacht maximum van circa 20 gelijktijdige gebruikers.**
+
+---
+
+# Historisch archief — metingen en besluit van 29 september 2026
+
+Onderstaande oorspronkelijke rapportage is behouden voor traceerbaarheid. Haar capaciteitseis van 40–50 sessies en bijbehorende afwijzende conclusie zijn **vervangen door de acceptatie hierboven**. De stressmetingen zelf blijven geldig als bovengrensinformatie, niet als huidig primair releasecriterium. Genummerde paragraafverwijzingen binnen dit archief verwijzen uitsluitend naar het oude rapport. Historische Productioninventarisatie is niet herhaald in de nieuwe acceptatie.
+
 
 Datum: 29 september 2026. Status: hosted validatie afgerond; capaciteit voor het beoogde spelgebruik onvoldoende. Basis: `8ef8beec9b76859cc4f858f34898d5def3b22d67`. Branch: `hardening/performance-scale`.
 

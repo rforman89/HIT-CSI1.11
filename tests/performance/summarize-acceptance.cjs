@@ -1,0 +1,17 @@
+// Publish only measurements, never fixture accounts, signed URLs or action payloads.
+const fs=require('node:fs');
+const dir='.local/performance/',read=name=>JSON.parse(fs.readFileSync(dir+name,'utf8').replace(/^\uFEFF/,''));
+const q=(xs,p)=>xs.length?[...xs].sort((a,b)=>a-b)[Math.min(xs.length-1,Math.ceil(xs.length*p)-1)]:null;
+const stats=xs=>({count:xs.length,p50:q(xs.map(x=>x.ms),.5),p95:q(xs.map(x=>x.ms),.95),p99:q(xs.map(x=>x.ms),.99),max:xs.length?Math.max(...xs.map(x=>x.ms)):null,errors:xs.filter(x=>!x.ok).length});
+const peak=xs=>Math.max(0,...Object.values(xs.reduce((a,x)=>{const second=Math.floor(x.atMs/1000);a[second]=(a[second]||0)+1;return a;},{})));
+const runs=['acceptance-20.json','acceptance-margin-25.json','acceptance-browser-background.json'].filter(n=>fs.existsSync(dir+n)).map(name=>{
+ const r=read(name),snapshots=r.samples.filter(s=>s.phase==='load'&&s.kind==='snapshot'),requests=r.samples.filter(s=>s.phase==='load'&&s.kind==='request');
+ const release=r.samples.find(s=>s.kind==='clue-release'),hotspotRequests=release?requests.filter(s=>s.atMs>=release.atMs&&s.atMs<release.atMs+10000):[];
+ const minuteWindows=Array.from({length:Math.ceil(r.loadDurationSeconds/60)},(_,minute)=>{const inWindow=s=>Math.floor((s.atMs-r.workloadStartMs)/60000)===minute;return {minute:minute+1,requests:requests.filter(inWindow).length,snapshots:stats(snapshots.filter(inWindow))};});
+ return {name,startedAt:r.startedAt,options:r.options,passed:r.passed,failure:r.failure,durationSeconds:r.durationSeconds,loadDurationSeconds:r.loadDurationSeconds,workloadStartMs:r.workloadStartMs,workloadSnapshots:stats(snapshots),workloadRequests:{...stats(requests),perSecond:requests.length/r.loadDurationSeconds,peakPerSecond:peak(requests),decodedBytes:requests.reduce((s,r)=>s+(r.bytes||0),0)},hotspot:release?{requestWindowSeconds:10,requests:hotspotRequests.length,peakRequestsPerSecond:peak(hotspotRequests),requestStats:stats(hotspotRequests),convergence:r.summary['hotspot-convergence']}:null,summary:r.summary,errors:r.errors,roles:Object.fromEntries([...new Set(r.samples.map(s=>s.role))].map(role=>[role,stats(snapshots.filter(s=>s.role===role))])),acceptance:r.acceptance,reconnect:r.reconnect,integrity:r.integrity,browser:r.browser,maxChannels:Math.max(0,...(r.channelCounts||[]).map(s=>s.channels)),minuteWindows,events:r.events.length,eventPeakPerSecond:peak(r.events)};
+});
+const optional=name=>fs.existsSync(dir+name)?read(name):null;
+const metrics=fs.existsSync(dir+'acceptance-metrics.jsonl')?fs.readFileSync(dir+'acceptance-metrics.jsonl','utf8').trim().split('\n').map(JSON.parse):[];
+const report={generatedAt:new Date().toISOString(),applicationCommit:'453a5e03f1bfa92b8fe29421c7d8c96d6ec3a648',requirement:{users:20,marginSessions:25},fixture:optional('acceptance-fixture.json'),runs,metrics,browserReleaseCheck:optional('acceptance-browser-release.json'),browserEvidenceNote:'The original 15-minute browser hotspot check only confirmed an already-unlocked badge. Supplemental verification requires a newly refreshed released row in the mobile browser and removal of the pending jury card under 20 API sessions.',logs:optional('acceptance-logs.json'),advisors:optional('acceptance-advisors.json'),replication:optional('acceptance-replication.json')};
+fs.writeFileSync('docs/performance/realistic-capacity.json',JSON.stringify(report,null,2)+'\n');
+console.log(JSON.stringify(runs.map(r=>({name:r.name,passed:r.passed,workloadSnapshots:r.workloadSnapshots,errors:r.errors.length}))));

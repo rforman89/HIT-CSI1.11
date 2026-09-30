@@ -15,3 +15,12 @@ test('hosted requires explicit checkpoint, exact project and matching credential
  for(const options of [{clients:4},{seconds:10}])assert.throws(()=>validate(config,{target:'hosted',allowHosted:true,writes:true,...options}));
  assert.equal(validate(config,{target:'hosted',allowHosted:true}).marker,TEST);
 });
+
+test('acceptance confines duration, concurrency, target and read-heavy profile',async()=>{
+ const {validateAcceptance}=await import('./acceptance-plan.mjs');const o={target:'hosted',allowHosted:true,profile:'A',clients:20,seconds:900,writes:true};validateAcceptance(o);
+ for(const change of [{target:'local'},{allowHosted:false},{profile:'C'},{clients:25},{seconds:60},{writes:false}])assert.throws(()=>validateAcceptance({...o,...change}));
+});
+test('acceptance plan spreads seven writes and a five-client reconnect across fifteen minutes',async()=>{
+ const {roles,schedule}=await import('./acceptance-plan.mjs');assert.equal(roles.length,20);assert.equal(roles.filter(x=>['a','b'].includes(x)).length,12);assert.equal(roles.filter(x=>x==='jury').length,3);assert.equal(roles.filter(x=>x==='suspect').length,3);assert.equal(roles.filter(x=>x==='admin').length,2);
+ assert.equal(schedule.filter(x=>x.action!=='reconnect').length,7);assert(schedule.every((x,i)=>x.at>0&&x.at<900&&(!i||x.at>schedule[i-1].at)));assert.equal(schedule.filter(x=>x.action==='reconnect').length,1);
+});
