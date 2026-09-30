@@ -2,6 +2,8 @@
 
 Doel: kan iedere rol zonder uitleg de belangrijkste taak uitvoeren? Plan circa 30 minuten met vier testers en echte telefoons. Noteer waar iemand hulp nodig heeft. Verwacht gebruik: circa twintig gelijktijdige gebruikers; dit is geen capaciteitstest.
 
+Begin bij de [Pilot Run Sheet](PILOT-RUN-SHEET.md) voor rollen, volgorde, code freeze en versiebeleid. De lijn blijft HIT-CSI 1.11; HIT-CSI 1.20 volgt pas na een geslaagde pilot, noodzakelijke fixes, groene regressie en finale goedkeuring. Handmatige ingelogde Production-smoke blijft voor Ronald over.
+
 ## Voor de pilot
 
 - [ ] Controleer de afgesproken pilotomgeving en build. Gebruik uitsluitend fictieve data voor onderstaande acties; oefen geen reset of restore op Production.
@@ -33,7 +35,7 @@ Doel: kan iedere rol zonder uitleg de belangrijkste taak uitvoeren? Plan circa 3
 ## Na de pilot
 
 - [ ] Noteer bugs, verwarring, ontbrekende feedback en featurewensen apart met het [feedbacksjabloon](PILOT-FEEDBACK-TEMPLATE.md).
-- [ ] Classificeer P0 (taak blokkeert), P1 (verwarring/foutkans), P2 (polish) of P3 (later). Spreek een eigenaar af voor P0/P1.
+- [ ] Classificeer als BLOCKER, BUG, FRICTION, POLISH of FEATURE IDEA volgens de run sheet. Noteer urgentie apart: vóór de pilot alleen P0 of een serieuze P1-bug die pilotgebruik blokkeert of sterk verstoort. Spreek een eigenaar af.
 - [ ] Noteer build, apparaten, rollen en gebruikte omgeving. Deel geen wachtwoorden, tokens of echte dossierinhoud in screenshots.
 - [ ] Beslis welke P0/P1 vóór het spel opgelost moeten worden; dit pilotresultaat verhoogt de bewezen capaciteitsgrens niet.
 

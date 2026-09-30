@@ -5,7 +5,8 @@
 - **Wat wilde ik doen?**
 - **Wat verwachtte ik?**
 - **Wat gebeurde er?**
-- **Impact:** blocker (P0) / verwarrend of foutgevoelig (P1) / polish (P2) / wens voor later (P3)
+- **Categorie:** BLOCKER / BUG / FRICTION / POLISH / FEATURE IDEA — zie [definities en freeze-regels](PILOT-RUN-SHEET.md).
+- **Impact / urgentie:** wat blokkeert of verstoort het gebruik? Alleen P0 of een serieuze P1-bug kan vóór de pilot een fix rechtvaardigen; overige punten verzamelen.
 - **Korte stappen om het te herhalen:**
 - **Screenshot indien relevant:** geen wachtwoord, token of echte persoonsgegevens.
 - **Eigenaar / vervolgactie:**
