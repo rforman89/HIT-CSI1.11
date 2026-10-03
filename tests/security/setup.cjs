@@ -10,6 +10,10 @@ const {sql,service,ok,root,fixtureFile,verify,hosted}=require('../backend/target
   sql(fs.readFileSync('supabase/migrations/'+migration,'utf8'));
  }
  const file=root+'/'+fixtureFile,f=JSON.parse(fs.readFileSync(file,'utf8'));
+ if(sql("SELECT count(*) FROM pg_policies WHERE schemaname='public' AND tablename='suspects' AND policyname='suspect cross dossier read'")==='0'){
+  if(hosted)throw Error('Apply the reviewed cross-dossier migration to verified TEST first');
+  sql(fs.readFileSync('supabase/migrations/20261003173654_suspect_cross_dossier_read.sql','utf8'));
+ }
  for(const role of ['jury','unassigned','inactive','no_profile']) {
   if(!f.accounts[role]) {
    f.accounts[role]={email:`security-${role}@example.test`,password:randomBytes(24).toString('base64url')};
@@ -20,7 +24,7 @@ const {sql,service,ok,root,fixtureFile,verify,hosted}=require('../backend/target
  }
  if(!f.securityClue)f.securityClue=randomUUID();
  if(!f.securitySuspect)f.securitySuspect=randomUUID();
- ok(await service.from('suspects').upsert({id:f.securitySuspect,name:'TEST - Ander beveiligd dossier',photo_url:'security/other.png',is_active:true}));
+ ok(await service.from('suspects').upsert({id:f.securitySuspect,name:'TEST - Ander beveiligd dossier',description:'Fictief profiel van de andere verdachte.',photo_url:'security/other.png',is_active:true}));
  ok(await service.from('clues_base').upsert({id:f.securityClue,title:'TEST - Afgeschermd bestand',description:'TEST SECRET B',suspect_id:f.securitySuspect,price:5,file_url:'security/other.pdf',is_active:true,is_visible:true}));
  ok(await service.from('group_clues').upsert({group_id:f.groupB,clue_id:f.securityClue,status:'requested'},{onConflict:'group_id,clue_id'}));
  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6SAAAAABJRU5ErkJggg==','base64');

@@ -26,7 +26,7 @@ R = lezen, W = wijzigen; alle rollen behalve anonymous vereisen actief profiel. 
 | Andere groepsnotities/statussen/aankopen | Nee | Nee | Alleen eigen verdachte R | R | R/W |
 | Eigen groepsnotities | Nee | R; eigen auteur W | Alleen eigen verdachte R | R | R/W |
 | Verdachtestatus per groep | Nee | Eigen groep R/W | Alleen eigen verdachte R | R | R/W |
-| Verdachten/foto's | Nee | Actieve R | Eigen actieve R | R | R/W |
+| Verdachten/foto's | Nee | Actieve R | Actieve R (pilot-hotfix, zie hieronder) | R | R/W |
 | Aankoop | Nee | Eigen groep via RPC | Nee | Nee | Beheertoewijzing |
 | Aanwijzing vrijgeven | Nee | Nee | Nee | RPC bestaande toewijzing | Ja |
 | Pegelcorrectie | Nee | Nee | Nee | Idempotente RPC + reden | Idempotente RPC + reden |
@@ -39,10 +39,18 @@ R = lezen, W = wijzigen; alle rollen behalve anonymous vereisen actief profiel. 
 | Restore | Nee | Nee | Nee | Nee | Geen frontend; service-tooling, Production verboden |
 | CSV/exports | Nee | Nee | Nee | Geen export-UI | Ja, formules geneutraliseerd |
 | Storage upload/replace/delete | Nee | Nee | Nee | Nee | Begrensde buckets/types/size |
-| Storage download | Nee | Zelfde entitlement als inhoud | Eigen dossier | Dossiers | Alle spelbestanden |
+| Storage download | Nee | Zelfde entitlement als inhoud | Actieve dossierfoto's; aanwijzingen alleen eigen dossier | Dossiers | Alle spelbestanden |
 | Backupbucket | Nee | Nee | Nee | Nee | Via geautoriseerde serverflow |
 
 Vrijgeven verandert alleen requested naar released en zet timestamp; het verleent geen recht tot aanpassen van group_id/clue_id of willekeurige content. Huidig product ontsluit een betaalde aanwijzing al bij aankoop; vrijgeven introduceert geen nieuwe betaalmuur en verandert dat gedrag niet.
+
+Pilot-hotfix 3 oktober 2026 (nog niet naar Production): een actieve suspect met
+actieve eigen koppeling leest ook andere actieve verdachteprofielen. Dit betreft
+uitsluitend `suspects`: `name`, `description`, `photo_url` plus `id`, `is_active`,
+`sort_order`, `created_at`; foto-download is beperkt tot paden waarnaar een actief
+profiel verwijst. Onderzoeksnotities, statussen en aanwijzingen blijven alleen
+voor de eigen verdachte toegankelijk. Bestaande inzage in actieve groepen wordt
+niet uitgebreid. Zie [gerichte validatie](SUSPECT-CROSS-DOSSIER-HOTFIX.md).
 
 ## Implementatiegrenzen
 

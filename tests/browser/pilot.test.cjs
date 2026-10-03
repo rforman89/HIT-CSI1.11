@@ -27,7 +27,23 @@ test('pilot participant: keyboard card, note feedback, purchase and balance',asy
 
 test('pilot participant: pending clue explains release without another purchase',async t=>{const p=await open(t,'b');await p.getByRole('button',{name:/^📄 Aanwijzingen$/}).click();const card=p.getByRole('heading',{name:'TEST - Afgeschermd bestand',exact:true}).locator('..').locator('..');await card.getByText('⏳ Wacht op vrijgave',{exact:true}).waitFor();assert.equal(await card.getByRole('button',{name:'Aanwijzing openen'}).count(),0);await card.getByText(/Je hoeft niets opnieuw te kopen/).waitFor();});
 
-test('pilot suspect: own dossier and available research, no misleading other dossier',async t=>{const p=await open(t,'suspect');await p.getByText('Mijn verdachte-dossier',{exact:true}).waitFor();await p.getByText(/Je ziet alleen informatie die bij jouw eigen dossier beschikbaar is/).waitFor();assert.equal(await p.locator('select').count(),0);assert.equal(await p.getByText('TEST - Ander beveiligd dossier',{exact:true}).count(),0);await p.getByText('Bekijk verdachteprofiel',{exact:true}).click();await p.getByText('Uitsluitend fictieve testgegevens.',{exact:true}).waitFor();await p.screenshot({path:'.local/pilot/suspect.png'});});
+test('pilot suspect: selects another read-only profile without misleading research, then returns to own dossier',async t=>{
+ const p=await open(t,'suspect');await p.getByText('Mijn verdachte-dossier',{exact:true}).waitFor();
+ await p.getByRole('heading',{name:'Dossier in het kort',exact:true}).waitFor();
+ await p.getByText('Bekijk verdachteprofiel',{exact:true}).click();await p.getByText('Uitsluitend fictieve testgegevens.',{exact:true}).waitFor();
+ await p.getByLabel('Verdachtendossier',{exact:true}).selectOption(f.securitySuspect);
+ await p.getByRole('heading',{name:'TEST - Ander beveiligd dossier',exact:true}).waitFor();
+ await p.getByText('Fictief profiel van de andere verdachte.',{exact:true}).waitFor();
+ await p.getByText(/Onderzoeksnotities, groepsstatussen en gekochte aanwijzingen van dit dossier zijn niet beschikbaar/).waitFor();
+ assert.equal(await p.getByRole('heading',{name:'Dossier in het kort',exact:true}).count(),0);
+ assert.equal(await p.getByText('TEST SECRET B',{exact:true}).count(),0);
+ assert.equal(await p.getByRole('button',{name:/opslaan|verwijderen|vrijgeven|Pegels verwerken/i}).count(),0);
+ assert.ok(await p.locator('img').evaluateAll(images=>images.some(i=>i.src.includes('suspect-photos/security/other.png')&&i.complete&&i.naturalWidth>0)));
+ await p.screenshot({path:'.local/pilot/suspect-other.png'});
+ await p.getByRole('button',{name:'Terug naar mijn dossier',exact:true}).click();
+ await p.getByText('Mijn verdachte-dossier',{exact:true}).waitFor();await p.getByRole('heading',{name:'Dossier in het kort',exact:true}).waitFor();
+ await p.screenshot({path:'.local/pilot/suspect.png'});
+});
 
 test('pilot jury: one-click dossier, release feedback, explicit correction and overview',async t=>{const p=await open(t,'jury');assert.equal(await p.getByRole('button',{name:/Beheer|backup|Reset/}).count(),0);await nav(p,'Jurynavigatie').getByRole('button',{name:'Dossiers',exact:true}).click();await p.getByLabel('Verhoordossier',{exact:true}).selectOption(f.suspect);assert.equal(await p.locator('#jury-dossiers').getByRole('heading',{name:'TEST - Verdachte',exact:true}).count(),1);
  await nav(p,'Jurynavigatie').getByRole('button',{name:'Vrijgeven',exact:true}).click();const release=p.locator('#jury-vrijgave').getByRole('button',{name:'Vrijgeven',exact:true}).first();await release.click();await p.getByRole('status').filter({hasText:'Aanwijzing vrijgegeven.'}).waitFor();await closeMessage(p);

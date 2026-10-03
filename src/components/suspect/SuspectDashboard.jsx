@@ -658,13 +658,14 @@ export default function SuspectDashboard({ ctx }) {
               >
                 {viewingOwnDossier
                   ? "Je ziet alleen informatie die bij jouw eigen dossier beschikbaar is. Hier zie je wat de onderzoeksteams over jou noteren, welke status ze aan je geven en welke aanwijzingen rond jouw rol zijn gekocht."
-                  : "Je bekijkt nu het dossier van een andere verdachte. Handig om snel te zien hoe de teams het totale speelveld inschatten."}
+                  : "Je leest het profiel van een andere verdachte: naam, beschrijving en foto. Je kunt dit dossier niet wijzigen."}
               </p>
 
               {activeSuspectOptions.length > 1 && (
                 <div style={{ marginTop: 12, maxWidth: 520 }}>
                   <strong>Dossier bekijken</strong>
                   <select
+                    aria-label="Verdachtendossier"
                     style={{ ...styles.select, marginTop: 8 }}
                     value={viewedSuspect.id}
                     onChange={(e) => setSelectedSuspectDossier(e.target.value)}
@@ -725,7 +726,7 @@ export default function SuspectDashboard({ ctx }) {
                 </details>
               )}
 
-              <div style={{ marginTop: 14 }}>
+              {viewingOwnDossier && <div style={{ marginTop: 14 }}>
                 <span style={styles.badge}>🧑‍🤝‍🧑 {groups.length} groep(en)</span>
                 <span style={styles.badge}>
                   📝 {notesForMe.length} notitie(s)
@@ -733,11 +734,12 @@ export default function SuspectDashboard({ ctx }) {
                 <span style={styles.badge}>
                   🔎 {boughtCluesForMe.length} aanwijzing(en) gekocht
                 </span>
-              </div>
+              </div>}
             </div>
           </div>
         </div>
 
+        {viewingOwnDossier ? <>
         <div style={styles.card}>
           <h2 style={{ marginTop: 0 }}>Dossier in het kort</h2>
           <p style={styles.subtle}>
@@ -1093,6 +1095,14 @@ export default function SuspectDashboard({ ctx }) {
             })
           )}
         </div>
+
+        </> : <div style={styles.card}>
+          <p style={styles.subtle}>
+            Onderzoeksnotities, groepsstatussen en gekochte aanwijzingen van dit
+            dossier zijn niet beschikbaar voor jouw rol. Je ziet deze informatie
+            alleen bij je eigen dossier.
+          </p>
+        </div>}
 
         {MessageBlock()}
         {ImageModal()}

@@ -82,8 +82,9 @@ test('inactive admin loses technical rights immediately',async()=>{
  try{assert.ok((await actors.admin.rpc('backup_health')).error);denied(await actors.admin.from('clue_categories').insert({name:'forged'}).select());}
  finally{ok(await service.from('profiles').update({is_active:true}).eq('id',f.users.admin));}
 });
-test('suspect reads only own dossier, cannot act as participant even with stale membership',async()=>{
- assert.deepEqual(ok(await actors.suspect.from('suspects').select('id')).map(x=>x.id),[f.suspect]);
+test('suspect reads active dossiers but only own research, cannot act as participant even with stale membership',async()=>{
+ const ids=ok(await actors.suspect.from('suspects').select('id')).map(x=>x.id);
+ assert.ok(ids.includes(f.suspect));assert.ok(ids.includes(f.securitySuspect));
  denied(await actors.suspect.from('suspect_notes').select().eq('suspect_id',f.securitySuspect));
  ok(await service.from('group_members').insert({user_id:f.users.suspect,group_id:f.groupA}));
  try{assert.ok((await actors.suspect.rpc('purchase_clue',{target_group_id:f.groupA,target_clue_id:f.securityClue})).error);}
@@ -123,7 +124,7 @@ test('public/anon/unassigned photo reads denied, own participant and jury allowe
  const pub=await fetch(config.API_URL+'/storage/v1/object/public/suspect-photos/security/own.png');assert.notEqual(pub.status,200);
  for(const r of ['anon','unassigned','inactive'])assert.ok((await actors[r].storage.from('suspect-photos').download('security/own.png')).error);
  for(const r of ['a','jury','admin','suspect'])assert.ok((await actors[r].storage.from('suspect-photos').download('security/own.png')).data);
- assert.ok((await actors.suspect.storage.from('suspect-photos').download('security/other.png')).error);
+ assert.ok((await actors.suspect.storage.from('suspect-photos').download('security/other.png')).data);
 });
 test('guessed clue path, paid-content and backup paths do not bypass entitlement',async()=>{
  for(const r of ['anon','unassigned','a','suspect']) assert.ok((await actors[r].storage.from('clue-files').download('security/other.pdf')).error);
